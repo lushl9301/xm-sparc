@@ -1,0 +1,145 @@
+/*
+ * $FILE: xm.lds
+ *
+ * ld script to build the sparch V8 version
+ *
+ * $VERSION$
+ *
+ * $AUTHOR$
+ *
+ * $LICENSE:
+ * COPYRIGHT (c) Fent Innovative Software Solutions S.L.
+ *     Read LICENSE.txt file for the license terms.
+ */
+
+#include <config.h>
+
+#ifdef sparc
+#undef sparc
+#endif
+OUTPUT_FORMAT("elf32-sparc", "elf32-sparc", "elf32-sparc")
+OUTPUT_ARCH(sparc)
+ENTRY(_start)
+
+PHYSOFFSET = - CONFIG_XM_OFFSET + CONFIG_XM_LOAD_ADDR;
+
+SECTIONS
+{
+    . = CONFIG_XM_LOAD_ADDR;
+    _sxm = .;
+    .sldr ALIGN(256*1024) : {
+        _sldr = .;
+        *(.ldr)
+        _eldr = .;
+    }
+#ifdef CONFIG_LEON3
+    .xmHdr ALIGN(0x1000) : {
+           *(.xmHdr)
+    }
+#endif
+    .boot ALIGN(0x1000) : {
+	  *(.boot.text)
+	  *(.boot.data)
+    }
+    . = . + CONFIG_XM_OFFSET - CONFIG_XM_LOAD_ADDR;
+    .text ALIGN(8):  AT (ADDR (.text) + PHYSOFFSET) {
+        *(.vboot.text)
+        *(.text)
+    }
+
+    .irqtab ALIGN(0x1000) :  AT (ADDR (.irqtab) + PHYSOFFSET) {
+        *(.irqtab)
+    }
+
+    .rsv_hwirqs ALIGN(8) : AT (ADDR (.rsv_hwirqs) + PHYSOFFSET){
+    	rsvHwIrqs = .;
+        *(.rsv_hwirqs)
+	eRsvHwIrqs = .;
+    }
+
+    .rsv_ioports ALIGN(8) : AT (ADDR (.rsv_ioports) + PHYSOFFSET){
+    	rsvIoPorts = .;	 
+        *(.rsv_ioports)
+	eRsvIoPorts = .;
+    }
+
+    .rsv_physpages ALIGN(8) : AT (ADDR (.rsv_physpages) + PHYSOFFSET) {
+        rsvPhysPages = .;
+        *(.rsv_physpages)
+        eRsvPhysPages = .;
+    }
+
+    .rodata ALIGN(8) :  AT (ADDR (.rodata) + PHYSOFFSET) {
+        asmHypercallsTab = .;
+        *(.ahypercallstab)
+        fastHypercallsTab = .;
+        *(.fhypercallstab)
+        hypercallsTab = .;
+        *(.hypercallstab)
+        hypercallFlagsTab = .;
+        *(.hypercallflagstab)
+
+	. = ALIGN(8);
+	exPTable = .;
+	*(.exptable)
+	LONG(0);
+        LONG(0);
+
+	. = ALIGN(8);
+	kDevSetup = .;
+	*(.kdevsetup)
+	LONG(0);
+	. = ALIGN(8);
+	objectSetupTab = .;
+	*(.objsetuptab)
+	LONG(0);
+
+        . = ALIGN(8);
+        *(.rodata)
+        *(.rodata.*)
+        *(.got)
+        *(.eh_frame)
+    }
+    
+    .build_info ALIGN(8) :  AT (ADDR (.build_info) + PHYSOFFSET) {
+    	buildInfo = .;
+        *(.kbuild_info)
+        *(.build_info)
+	BYTE(0);
+    }
+
+    .data ALIGN(8) :  AT (ADDR (.data) + PHYSOFFSET) {
+    	_sdata = .;
+        *(.vboot.data)
+        *(.data)
+	_edata = .;
+	sysResetCounter = .;
+	LONG(0);
+        resetStatusInit = .;
+        LONG(0);
+	_cpdata = .;
+	LONG(0);
+    }
+
+    .bss ALIGN(8) :  AT (ADDR (.bss) + PHYSOFFSET) {
+        _sbss = .;
+        *(COMMON)
+        *(.bss)
+        _ebss = .; 
+	. = ALIGN(8);
+	_scdata = .;
+	. = . + SIZEOF(.data);
+	_ecdata = .;
+    }
+
+    . = ALIGN(1<<15);
+    xmcTab = .;
+    physXmcTab = . + PHYSOFFSET;
+    _exm = . + PHYSOFFSET;
+
+    /DISCARD/ : {
+        *(.note)
+        *(.comment*)
+    }
+}
+

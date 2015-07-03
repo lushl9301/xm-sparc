@@ -1,0 +1,49 @@
+/*
+ * $FILE: ldr.lds
+ *
+ * ld script to build the sparch V8 version
+ *
+ * $VERSION$
+ *
+ * $AUTHOR$
+ *
+ * $LICENSE:
+ * COPYRIGHT (c) Fent Innovative Software Solutions S.L.
+ *     Read LICENSE.txt file for the license terms.
+ */
+
+#include <config.h>
+#include <arch/paging.h>
+
+#ifdef sparc
+#undef sparc
+#endif
+OUTPUT_FORMAT("elf32-sparc", "elf32-sparc", "elf32-sparc")
+OUTPUT_ARCH(sparc)
+ENTRY(_start)
+
+SECTIONS
+{
+    _sldr = .;
+    . = (XM_PCTRLTAB_ADDR)-256*1024-(4096*18);
+    .bss ALIGN(8) : {
+	_sbss = .;
+	*(COMMON)
+        *(.bss)
+	_ebss = .;
+    }  
+
+    . = (XM_PCTRLTAB_ADDR)-256*1024;
+
+    .text ALIGN(8): {
+        *(.text)
+    }    
+    .data ALIGN(8) : {
+        *(.data)
+    }
+    _eldr = .;
+    /DISCARD/ : {
+        *(.note)
+        *(.comment*)
+    }
+}

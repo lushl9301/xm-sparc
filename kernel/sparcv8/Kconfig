@@ -1,0 +1,155 @@
+mainmenu "XM Configuration"
+
+config SPARCv8
+       def_bool y
+
+config HWIRQ_PRIO_LBS
+       def_bool y
+
+config ARCH_MMU_BYPASS
+	def_bool y
+
+config MAX_NO_KTHREADS
+       int
+       default "255"
+
+#config HWIRQ_PRIO_FBS
+#       def_bool y
+
+config NO_HWIRQS
+       int
+       default "16" if LEON3
+
+config TARGET_BIG_ENDIAN
+       def_bool y       
+
+config SPARTAN_6_FPGA
+       def_bool y
+       depends on MPT_COTS_LEON3||MPT_TDMA_APPROACH
+
+config EXT_SYNC_MPT_IO
+       def_bool y
+       depends on SPARTAN_6_FPGA||VIRTEX_7_FPGA
+
+config TTNOC_NODES
+       int
+       default "3" if VIRTEX_7_FPGA
+
+#config NO_CPUS
+#       int
+#       default "1"
+
+menu "Processor"
+
+choice
+     prompt "SPARC cpu"
+     default LEON3
+
+config LEON3
+       bool "Leon3"
+       --help---
+	Select this for a LEON3 processor.
+
+endchoice
+
+choice
+     prompt "Board"
+     default TSIM
+
+config TSIM
+       bool "TSim"
+
+config MPT_COTS_LEON3
+       bool "MPT-COTS-LEON3"
+       depends on LEON3
+
+config GR_CPCI_XC4V
+       bool "GR-CPCI-XC4V"
+       depends on LEON3
+
+config GR_712RC
+       bool "GR-712RC"
+       depends on LEON3
+
+config GR_XC3S_1500
+       bool "GR-XC3S-1500"
+       depends on LEON3
+
+endchoice
+
+choice
+     prompt "SPARC memory protection schema"
+     default MMU
+
+config MMU
+       bool "MMU"
+
+endchoice
+
+config SMP
+       bool "Enable SMP"
+       default n
+       depends on GR_712RC||SPARTAN_6_FPGA
+
+config NO_CPUS
+       int "Number of CPUs supported"
+       default "4"
+       depends on SMP
+
+#choice
+#     prompt "Page size"
+#     default PAGE_4K
+#     depends on MMU
+#config PAGE_4K
+#       bool "4K"
+#config PAGE_8K
+#       bool "8K"
+#config PAGE_16K
+#       bool "16K"
+#config PAGE_32K
+#       bool "32K"
+#endchoice
+
+config VMM_UPDATE_HYPERCALLS
+       bool "Enable VMM update hypercalls"
+       default y
+       depends on MMU
+
+config UART_TIMEOUT
+       int
+       default 500 
+
+config ENABLE_CACHE
+       bool "Enable cache"
+       default y
+
+config CACHE_SNOOP
+       bool "Enable cache snoop"
+       depends on ENABLE_CACHE
+       default y
+
+config CACHE_IBURST_FETCH
+       bool "Enable instruction burst fetch"
+       depends on ENABLE_CACHE
+       default y
+
+config FLUSH_CACHE_AFTER_CS
+       bool "Flush cache after context switch"
+       depends on ENABLE_CACHE
+       default y
+
+endmenu
+
+menu "Physical memory layout"
+config XM_LOAD_ADDR
+       hex "XM load address"
+       default "0x40000000" if LEON3
+
+config XM_OFFSET
+       hex
+       default XM_LOAD_ADDR if !MMU
+       default "0xFC000000" if MMU
+
+endmenu
+
+source "kernel/Kconfig"
