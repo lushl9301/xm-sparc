@@ -21,17 +21,17 @@
 _start: 
 start:
         set partCtrlTabPtr, %g2
-        st %g1, [%g2]
+        st %g1, [%g2] // store what? = = what is g1
 
         set stack, %fp
-        set STACK_SIZE-8, %g1
+        set STACK_SIZE-8, %g1 //the next slot is stack size
         add %fp, %g1, %fp
-        mov %g1, %o0
+        mov %g1, %o0    ///??? mv to %x0?
         call MainLdr
         sub %fp, MIN_STACK_FRAME, %sp
         
         set partCtrlTabPtr, %g2
-        ld [%g2], %g1
+        ld [%g2], %g1  ///???store Main into
         jmp %o0
         nop
 1:      b 1b

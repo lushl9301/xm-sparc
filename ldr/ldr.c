@@ -16,7 +16,7 @@
 #include <xef.h>
 #include <xm.h>
 
-partitionControlTable_t *partCtrlTabPtr;
+partitionControlTable_t *partCtrlTabPtr; //used in boot.S
 
 static int VAddr2PAddr(void *mAreas, xm_s32_t noAreas, xmAddress_t vAddr, xmAddress_t *pAddr) {
     *pAddr=vAddr;
