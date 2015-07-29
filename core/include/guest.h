@@ -96,6 +96,7 @@ struct xmPhysicalMemMap {
 //@ \void{</track id="xmPhysicalMemMap">}
 
 //@ <track id="sched-info">}
+/// I guess it is not shared
 struct schedInfo {
     xm_u32_t noSlot;
     xm_u32_t id;
@@ -123,9 +124,9 @@ typedef struct {
     xm_u32_t hwIrqs; // Hw interrupts belonging to the partition
     xm_s32_t noPhysicalMemAreas;
     xm_s32_t noCommPorts;
-    xm_u8_t name[CONFIG_ID_STRING_LENGTH];
+    xm_u8_t name[CONFIG_ID_STRING_LENGTH]; //seems to be 16?
     xm_u32_t iFlags; // As defined by the ARCH (ET+PIL in sparc)
-    xm_u32_t hwIrqsPend; // pending hw irqs
+    xm_u32_t hwIrqsPend; // pending hw irqs //cannot nested IRQ?
     xm_u32_t hwIrqsMask; // masked hw irqs
     
     xm_u32_t extIrqsPend; // pending extended irqs
@@ -139,6 +140,8 @@ typedef struct {
 } partitionControlTable_t;
 /* </track id="doc-Partition-Control-Table">  */
 
+
+///??? what?
 static inline void xmSetBit(xmWord_t bm[], xm_u32_t bp, xm_s32_t maxBits) {
     xm_u32_t e=bp>>XM_LOG2_WORD_SZ, b=bp&((1<<XM_LOG2_WORD_SZ)-1);
     if (bp>=maxBits)
@@ -146,11 +149,21 @@ static inline void xmSetBit(xmWord_t bm[], xm_u32_t bp, xm_s32_t maxBits) {
     bm[e]|=(1<<b);
 }
 
+///???
 static inline void xmClearBit(xmWord_t bm[], xm_u32_t bp, xm_s32_t maxBits) {
     xm_u32_t e=bp>>XM_LOG2_WORD_SZ, b=bp&((1<<XM_LOG2_WORD_SZ)-1);
     if (bp>=maxBits)
         return;
+        ///??? why not return earlier
     bm[e]&=~(1<<b);
+}
+
+static inline xm_s32_t xmIsBitSet(xmWord_t bm[], xm_s32_t bp, xm_s32_t maxBits) {
+    xm_u32_t e=bp>>XM_LOG2_WORD_SZ, b=bp&((1<<XM_LOG2_WORD_SZ)-1);
+    if (bp>=maxBits)
+        return -1;
+
+    return (bm[e]&(1<<b))?1:0;
 }
 
 static inline void xmClearBitmap(xmWord_t bm[], xm_s32_t maxBits) {
@@ -161,21 +174,14 @@ static inline void xmClearBitmap(xmWord_t bm[], xm_s32_t maxBits) {
         bm[e]=0;
 }
 
+
+///??? this is initialize not set
 static inline void xmSetBitmap(xmWord_t bm[], xm_s32_t maxBits) {
     xm_u32_t e;
-    
     for (e=0; e<((maxBits&((1<<(XM_LOG2_WORD_SZ))-1))?
                  (maxBits>>XM_LOG2_WORD_SZ)+1:
                  (maxBits>>XM_LOG2_WORD_SZ)); e++)
         bm[e]=~0;
-}
-
-static inline xm_s32_t xmIsBitSet(xmWord_t bm[], xm_s32_t bp, xm_s32_t maxBits) {
-    xm_u32_t e=bp>>XM_LOG2_WORD_SZ, b=bp&((1<<XM_LOG2_WORD_SZ)-1);
-    if (bp>=maxBits)
-        return -1;
-
-    return (bm[e]&(1<<b))?1:0;
 }
 
 #endif
