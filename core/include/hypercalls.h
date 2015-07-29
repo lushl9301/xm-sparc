@@ -34,8 +34,8 @@
 #define reset_partition_nr __RESET_PARTITION_NR
     #define XM_RESET_MODE 0x1
 /* <track id="reset-values"> */
-    #define XM_COLD_RESET 0x0
-    #define XM_WARM_RESET 0x1
+        #define XM_COLD_RESET 0x0
+        #define XM_WARM_RESET 0x1
 /* </track id="reset-values"> */
 #define shutdown_partition_nr __SHUTDOWN_PARTITION_NR
 #define halt_system_nr __HALT_SYSTEM_NR
