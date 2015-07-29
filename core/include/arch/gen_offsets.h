@@ -2,6 +2,7 @@
  * $FILE: gen_offsets.h
  *
  * ASM offsets, this file only can be included from asm-offset.c
+ * asm-offset.c is in scripts folder
  *
  * $VERSION$
  *

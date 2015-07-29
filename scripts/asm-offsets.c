@@ -21,6 +21,7 @@
 #include _OFFS_FILE_
 
 int main(void) {
+    ///??? Super strange. but nvm...
     GenerateOffsets();
     BLANK();
     return 0;
