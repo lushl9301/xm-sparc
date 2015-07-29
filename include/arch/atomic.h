@@ -16,7 +16,8 @@
 #define _XM_ARCH_ATOMIC_H_
 
 typedef struct { 
-    volatile xm_u32_t val; 
+    volatile xm_u32_t val;
+    ///??? = = you must be kidding me.
 } xmAtomic_t;
 
 #ifdef _XM_KERNEL_
