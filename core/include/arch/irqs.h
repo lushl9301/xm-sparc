@@ -46,6 +46,8 @@ typedef struct _cpuCtxt {
     xmWord_t pc;
 } cpuCtxt_t;
 
+
+// health monitor?
 #define CpuCtxt2HmCpuCtxt(cpuCtxt, hmCpuCtxt) do { \
     (hmCpuCtxt)->nPc=(cpuCtxt)->nPc; \
     (hmCpuCtxt)->psr=(cpuCtxt)->psr; \
