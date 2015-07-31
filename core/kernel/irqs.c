@@ -350,6 +350,9 @@ xm_s32_t RaisePendIrqs(cpuCtxt_t *ctxt) {
         return IrqVector2Address(emul);
     }
 
+
+    ///??? detect IRQ in a very strange manner
+
     // 2) Check pending extended trap
     if ((eIrq=AreExtTrapsPending(partCtrlTab))>-1) {
         partCtrlTab->extIrqsPend&=~(1<<eIrq);
