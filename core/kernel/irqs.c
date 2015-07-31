@@ -55,6 +55,8 @@ void DefaultIrqHandler(cpuCtxt_t *ctxt, void *data) {
     
     CpuCtxt2HmCpuCtxt(ctxt, &hmLog.cpuCtxt);
     hmLog.opCodeH|=HMLOG_OPCODE_VALID_CPUCTXT_MASK;
+
+    ///??? TOP important for irq?
     HmRaiseEvent(&hmLog);
 
     kprintf("Unexpected irq %d\n", ctxt->irqNr);
@@ -64,12 +66,14 @@ static void TriggerIrqHandler(cpuCtxt_t *ctxt, void *data) {
     xmId_t partId;
     partId=xmcTab.hpv.hwIrqTab[ctxt->irqNr].owner;
 
+    // set irqNr to the corresponding partition
     SetPartitionHwIrqPending(&partitionTab[partId], ctxt->irqNr);
 }
 
 void SetTrapPending(cpuCtxt_t *ctxt) {
     localSched_t *sched=GET_LOCAL_SCHED();
     
+    ///??? why never use ctxt?
     ASSERT(!AreKThreadFlagsSet(sched->cKThread, KTHREAD_TRAP_PENDING_F));
     SetKThreadFlags(sched->cKThread, KTHREAD_TRAP_PENDING_F);
 }
@@ -84,7 +88,7 @@ static inline xmAddress_t IsInPartExTable(xmAddress_t addr) {
 
     for (exPTablePtr=exPTable; exPTablePtr; exPTablePtr=(struct exPTable *)exPTablePtr[e].b) {
         for (e=0; exPTablePtr[e].a; e++)
-            if (addr==exPTablePtr[e].a) 
+            if (addr==exPTablePtr[e].a)
                 return exPTablePtr[e].b;
     }
     return 0;
