@@ -82,10 +82,10 @@ static inline xmAddress_t IsInPartExTable(xmAddress_t addr) {
     extern struct exPTable {
         xmAddress_t a;
         xmAddress_t b;
-    } exPTable[]; 
+    } exPTable[];
     struct exPTable *exPTablePtr;
     xm_s32_t e;
-
+    ///??? e must be 0?
     for (exPTablePtr=exPTable; exPTablePtr; exPTablePtr=(struct exPTable *)exPTablePtr[e].b) {
         for (e=0; exPTablePtr[e].a; e++)
             if (addr==exPTablePtr[e].a)
@@ -214,6 +214,8 @@ void DoIrq(cpuCtxt_t *ctxt) {
 #ifndef CONFIG_MASKING_VT_HW_IRQS
     HwEndIrq(ctxt->irqNr);
 #endif
+
+    ///???finished? so can just schedule here?
     cpu->irqNestingCounter--;
     do {
 	Schedule();
@@ -271,6 +273,8 @@ trapHandler_t SetTrapHandler(xm_s32_t trap, trapHandler_t trapHandler) {
 static inline xm_s32_t AreHwIrqsPending(partitionControlTable_t *partCtrlTab) {
     xm_s32_t eIrq;
 
+    // select pending status
+    ///??? how about nested irq
     eIrq=partCtrlTab->hwIrqsPend&~partCtrlTab->hwIrqsMask;
     if (eIrq) {
 #ifdef CONFIG_HWIRQ_PRIO_FBS
@@ -312,7 +316,7 @@ static inline xm_s32_t AreExtTrapsPending(partitionControlTable_t *partCtrlTab) 
         eIrq=_Fls(eIrq);
 #endif
 	return eIrq;
-    }       
+    }
   
     return -1;
 }
