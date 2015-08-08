@@ -32,7 +32,7 @@
 static xm_s32_t noVCpus;
 
 static void KThrTimerHndl(kTimer_t *kTimer, void *args) {
-    kThread_t *k=(kThread_t *)args;    
+    kThread_t *k=(kThread_t *)args;
     CHECK_KTHR_SANITY(k);
     SetExtIrqPending(k, XM_VT_EXT_HW_TIMER);
 }
@@ -47,7 +47,7 @@ static void KThrWatchdogTimerHndl(kTimer_t *kTimer, void *args) {
 
 void SetupKThreads(void) { 
     xm_s32_t e;
-
+    ///??? didn't do much. just count noVCpus?
     ASSERT(GET_CPU_ID()==0);
     for (e=0, noVCpus=0; e<xmcTab.noPartitions; e++)
         noVCpus+=xmcPartitionTab[e].noVCpus;
@@ -56,6 +56,7 @@ void SetupKThreads(void) {
 void InitIdle(kThread_t *idle, xm_s32_t cpu) {
     localCpu_t *lCpu=GET_LOCAL_CPU();
 
+    // clear everything for idle
     idle->ctrl.magic1=idle->ctrl.magic2=KTHREAD_MAGIC;
     DynListInit(&idle->ctrl.localActiveKTimers);
     idle->ctrl.lock=SPINLOCK_INIT;
@@ -80,6 +81,7 @@ void StartUpGuest(xmAddress_t entry) {
     SetKThreadFlags(sched->cKThread, KTHREAD_DCACHE_ENABLED_F|KTHREAD_ICACHE_ENABLED_F);
     SetCacheState(DCACHE|ICACHE);
     ResumeVClock(&k->ctrl.g->vClock, &k->ctrl.g->vTimer);
+    ///??? .... okay...
     SwitchKThreadArchPost(k);
 
     // JMP_PARTITION must enable interrupts
@@ -111,10 +113,10 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
 
     ASSERT((cfg->id>=0)&&(cfg->id<xmcTab.noPartitions));
     p=&partitionTab[cfg->id];
-    GET_MEMAZ(p->kThread, cfg->noVCpus*sizeof(kThread_t *), ALIGNMENT);
+    GET_MEMAZ(p->kThread, cfg->noVCpus * sizeof(kThread_t *), ALIGNMENT);
     p->cfg=cfg;
     
-    pctSize=sizeof(partitionControlTable_t)+sizeof(struct xmPhysicalMemMap)*cfg->noPhysicalMemoryAreas+(cfg->noPorts>>XM_LOG2_WORD_SZ);
+    pctSize=sizeof(partitionControlTable_t)+sizeof(struct xmPhysicalMemMap) * cfg->noPhysicalMemoryAreas+(cfg->noPorts>>XM_LOG2_WORD_SZ);
     
     if (cfg->noPorts&((1<<XM_LOG2_WORD_SZ)-1))
         pctSize+=sizeof(xmWord_t);
