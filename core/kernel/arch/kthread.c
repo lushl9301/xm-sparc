@@ -60,6 +60,8 @@ void SwitchKThreadArchPost(kThread_t *current) {
         }
     }
     // Flushing the cache
+
+    ///??? what ...; must set and check separately if it is enable or not
 #ifdef CONFIG_FLUSH_CACHE_AFTER_CS
     if (current->ctrl.g&&(current!=cSPrevPart))
         SetKThreadFlags(current, KTHREAD_FLUSH_DCACHE_F|KTHREAD_FLUSH_ICACHE_F);    
