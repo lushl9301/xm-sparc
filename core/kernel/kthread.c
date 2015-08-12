@@ -140,7 +140,8 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
             SetKThreadFlags(k, KTHREAD_FP_F);
 
         scK=(xmcTab.hpv.cpuTab[cpuId].schedPolicy==CYCLIC_SCHED)?k:0;
-            
+
+        ///???
         InitKTimer(cpuId,&k->ctrl.g->kTimer, KThrTimerHndl, k, scK);
         InitKTimer(cpuId,&k->ctrl.g->watchdogTimer, KThrWatchdogTimerHndl, k, scK);
         InitVTimer(cpuId,&k->ctrl.g->vTimer, k);
