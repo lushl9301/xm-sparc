@@ -225,15 +225,19 @@ static inline void SetupPct(partitionControlTable_t *partCtrlTab, kThread_t *k, 
     SetupPctArch(partCtrlTab, k);
 }
 
+
+///??? don't need to lock anything? or stop anything
 void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u32_t status) {
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page=NULL;
     xmAddress_t vPtd;
    
+    ///??? enable by pass mmu acctually did nothing
     vPtd=EnableByPassMmu(ptdL1,GetPartition(k),&page);
- 
+
     SetupPtdL1((xmWord_t *)vPtd, k);
 
+    /// of course did nothing
     DisableByPassMmu(page);
 
     SetupPct(k->ctrl.g->partCtrlTab, k, GetPartition(k)->cfg);
@@ -247,18 +251,20 @@ void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u3
 #ifdef CONFIG_AUDIT_EVENTS
     RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_VCPU_RESET, 1, &k->ctrl.g->id);
 #endif
+    //cKThread means core thread?
+    //I think so
     if (k!=sched->cKThread) {
         SetupKStack(k, StartUpGuest, entryPoint);
 #ifdef CONFIG_SMP
-    if (k->ctrl.g){
-       xm_u8_t cpu=xmcVCpuTab[(KID2PARTID(k->ctrl.g->id)*xmcTab.hpv.noCpus)+KID2VCPUID(k->ctrl.g->id)].cpu;
-       if (cpu!=GET_CPU_ID())
-          SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
-       else
-          Schedule();
-    }
+        if (k->ctrl.g){
+            xm_u8_t cpu=xmcVCpuTab[(KID2PARTID(k->ctrl.g->id)*xmcTab.hpv.noCpus)+KID2VCPUID(k->ctrl.g->id)].cpu;
+            if (cpu!=GET_CPU_ID())
+                SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
+            else
+                Schedule();
+        }
 #else
-    Schedule();
+        Schedule();
 #endif
     } else {
         LoadPartitionPageTable(k);
