@@ -1105,12 +1105,12 @@ xm_s32_t __VBOOT SetupComm(void) {
 	    DynListInit(&channelTab[e].q.freeMsgs);
 	    DynListInit(&channelTab[e].q.recvMsgs);
 	    for (i=0; i<xmcCommChannelTab[e].q.maxNoMsgs; i++) {
-		GET_MEMZ(channelTab[e].q.msgPool[i].buffer, xmcCommChannelTab[e].q.maxLength);
-		if(DynListInsertHead(&channelTab[e].q.freeMsgs, &channelTab[e].q.msgPool[i].listNode)) {
+            GET_MEMZ(channelTab[e].q.msgPool[i].buffer, xmcCommChannelTab[e].q.maxLength);
+            if(DynListInsertHead(&channelTab[e].q.freeMsgs, &channelTab[e].q.msgPool[i].listNode)) {
                     cpuCtxt_t ctxt;
                     GetCpuCtxt(&ctxt);
-		    SystemPanic(&ctxt, "[SetupComm] Queuing channels initialisation error");
-                }
+                    SystemPanic(&ctxt, "[SetupComm] Queuing channels initialisation error");
+            }
 	    }
             channelTab[e].q.lock=SPINLOCK_INIT;
 	    break;

@@ -42,20 +42,20 @@ static inline void DynListInit(struct dynList *l) {
 
 static inline xm_s32_t DynListInsertHead(struct dynList *l, struct dynListNode *e) {
     if (e->list) {
-	ASSERT(e->list==l);
-	return 0;
+	    ASSERT(e->list==l);
+        return 0;
     }
     ASSERT(!e->next&&!e->prev);
     SpinLock(&l->lock);
     if (l->head) {
         ASSERT_LOCK(l->noElem>0, &l->lock);
-	e->next=l->head;
-	e->prev=l->head->prev;
-	l->head->prev->next=e;
-	l->head->prev=e;	
+	    e->next=l->head;
+	    e->prev=l->head->prev;
+	    l->head->prev->next=e;
+	    l->head->prev=e;	
     } else {	
-	ASSERT_LOCK(!l->noElem, &l->lock);
-	e->prev=e->next=e;
+	    ASSERT_LOCK(!l->noElem, &l->lock);
+	    e->prev=e->next=e;
     }
     l->head=e;
     l->noElem++;
