@@ -122,6 +122,8 @@ static inline int SetupLdr(partition_t *p, xmWord_t *pPtdL1, xmAddress_t at, xmA
     return 0;
 }
 
+
+//set pT to be the address for pageTable then check reset memory area
 xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
     xmAddress_t addr, vAddr=0, a, b, pT;
     xmWord_t *pPtdL1, attr;
@@ -149,7 +151,7 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
 
     for (e=0; e<p->cfg->noPhysicalMemoryAreas; e++) {
         if (xmcPhysMemAreaTab[e+p->cfg->physicalMemoryAreasOffset].flags&XM_MEM_AREA_UNMAPPED)
- 	    continue;
+            continue;
 
         a=xmcPhysMemAreaTab[e+p->cfg->physicalMemoryAreasOffset].startAddr;
         b=a+xmcPhysMemAreaTab[e+p->cfg->physicalMemoryAreasOffset].size-1;
@@ -165,7 +167,7 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
 
             if (VmMapUserPage(p, pPtdL1, addr, vAddr, attr, AllocMem, &pgTb, &size)<0)
                 return ~0;
-	}
+        }
     }
 
 
@@ -209,6 +211,6 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
     }
 
     VCacheUnlockPage(pagePtdL1);
-  return pT;
+    return pT;
 }
 

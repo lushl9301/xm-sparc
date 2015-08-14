@@ -66,6 +66,9 @@
 
 #ifndef __ASSEMBLY__
 
+
+// can write together with the reset
+ 
 static inline void StoreIoReg(xmAddress_t pAddr, xm_u32_t value) {
 #if defined(CONFIG_MMU)
     __asm__ __volatile__("sta %0, [%1] %2\n\t"::"r"(value),
