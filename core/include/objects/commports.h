@@ -131,9 +131,9 @@ union queuingPortCmd {
 
 union channel {
     struct {
-	char *buffer;
-	xm_s32_t length;
-	xmTime_t timestamp;
+        char *buffer;
+	    xm_s32_t length;
+	    xmTime_t timestamp;
         partition_t **receiverTab;
         xm_s32_t *receiverPortTab;
         xm_s32_t noReceivers;
