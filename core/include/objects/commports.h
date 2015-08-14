@@ -156,15 +156,15 @@ union channel {
     } t;
 #endif
     struct {
-	struct msg {
-	    struct dynListNode listNode;
-	    char *buffer;
-	    xm_s32_t length;
-	    xmTime_t timestamp;
-	} *msgPool;
-	struct dynList freeMsgs, recvMsgs;
-	xm_s32_t usedMsgs;
-	partition_t *receiver;
+    	struct msg {
+    	    struct dynListNode listNode;
+    	    char *buffer;
+    	    xm_s32_t length;
+    	    xmTime_t timestamp;
+    	} *msgPool;
+    	struct dynList freeMsgs, recvMsgs;
+    	xm_s32_t usedMsgs;
+    	partition_t *receiver;
         xm_s32_t receiverPort;
         partition_t *sender;
         xm_s32_t senderPort;

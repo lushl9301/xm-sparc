@@ -43,6 +43,7 @@ static inline void DynListInit(struct dynList *l) {
 static inline xm_s32_t DynListInsertHead(struct dynList *l, struct dynListNode *e) {
     if (e->list) {
 	    ASSERT(e->list==l);
+        /// This is buggy
         return 0;
     }
     ASSERT(!e->next&&!e->prev);
@@ -159,6 +160,7 @@ static inline xm_s32_t DynListRemoveElement(struct dynList *l, struct dynListNod
     SpinUnlock(&(_l)->lock); \
 } while(0)
 
+///??? not used. don't know what for
 #define DYNLIST_FOR_EACH_ELEMENT_EXIT(_l) SpinUnlock(&(_l)->lock)
 
 #endif

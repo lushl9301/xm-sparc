@@ -387,34 +387,37 @@ xm_s32_t __VBOOT SetupComm(void) {
 
     /* create the channels */
     for (e=0; e<xmcTab.noCommChannels; e++) {
-	switch(xmcCommChannelTab[e].type) {
-	case XM_SAMPLING_CHANNEL:
-	    GET_MEMZ(channelTab[e].s.buffer, xmcCommChannelTab[e].s.maxLength);
+    	switch(xmcCommChannelTab[e].type) {
+    	case XM_SAMPLING_CHANNEL:
+    	    GET_MEMZ(channelTab[e].s.buffer, xmcCommChannelTab[e].s.maxLength);
             GET_MEMZ(channelTab[e].s.receiverTab, xmcCommChannelTab[e].s.noReceivers*sizeof(partition_t *));
             GET_MEMZ(channelTab[e].s.receiverPortTab, xmcCommChannelTab[e].s.noReceivers*sizeof(xm_s32_t));
             channelTab[e].s.lock=SPINLOCK_INIT;
-	    break;
-	case XM_TTNOC_CHANNEL:
-// 	    GET_MEMZ(channelTab[e].t.buffer, xmcCommChannelTab[e].t.maxLength);
+    	    break;
+    	case XM_TTNOC_CHANNEL:
+    // 	    GET_MEMZ(channelTab[e].t.buffer, xmcCommChannelTab[e].t.maxLength);
             GET_MEMZ(channelTab[e].t.receiverTab, xmcCommChannelTab[e].t.noReceivers*sizeof(partition_t *));
             GET_MEMZ(channelTab[e].t.receiverPortTab, xmcCommChannelTab[e].t.noReceivers*sizeof(xm_s32_t));
             channelTab[e].t.lock=SPINLOCK_INIT;
-	    break;
-	case XM_QUEUING_CHANNEL:
-	    GET_MEMZ(channelTab[e].q.msgPool, sizeof(struct msg)*xmcCommChannelTab[e].q.maxNoMsgs);
-	    DynListInit(&channelTab[e].q.freeMsgs);
-	    DynListInit(&channelTab[e].q.recvMsgs);
-	    for (i=0; i<xmcCommChannelTab[e].q.maxNoMsgs; i++) {
-		GET_MEMZ(channelTab[e].q.msgPool[i].buffer, xmcCommChannelTab[e].q.maxLength);
-		if(DynListInsertHead(&channelTab[e].q.freeMsgs, &channelTab[e].q.msgPool[i].listNode)) {
+    	    break;
+    	case XM_QUEUING_CHANNEL:
+            // the msgPool is a list of msg. so just created NoMsgs of msg
+    	    GET_MEMZ(channelTab[e].q.msgPool, sizeof(struct msg)*xmcCommChannelTab[e].q.maxNoMsgs);
+    	    DynListInit(&channelTab[e].q.freeMsgs);
+    	    DynListInit(&channelTab[e].q.recvMsgs);
+    	    for (i=0; i<xmcCommChannelTab[e].q.maxNoMsgs; i++) {
+                // Hence this part make sense
+        		GET_MEMZ(channelTab[e].q.msgPool[i].buffer, xmcCommChannelTab[e].q.maxLength);
+                ///??? it will assert or return 0; never return TRUE
+    	        if(DynListInsertHead(&channelTab[e].q.freeMsgs, &channelTab[e].q.msgPool[i].listNode)) {
                     cpuCtxt_t ctxt;
                     GetCpuCtxt(&ctxt);
-		    SystemPanic(&ctxt, "[SetupComm] Queuing channels initialisation error");
+                    SystemPanic(&ctxt, "[SetupComm] Queuing channels initialisation error");
                 }
-	    }
+    	    }
             channelTab[e].q.lock=SPINLOCK_INIT;
-	    break;
-	}
+    	    break;
+    	}
     }
 
     objectTab[OBJ_CLASS_SAMPLING_PORT]=&samplingPortObj;
