@@ -240,8 +240,8 @@ void *VCacheMapPage(xmAddress_t pAddr, struct physPage *page) {
 void VCacheUnlockPage(struct physPage *page) {
     ASSERT(page&&page->mapped);
     if (!page->unlocked) {
-	page->unlocked=1;
-	DynListInsertHead(&cacheLRU, &page->listNode);
+    page->unlocked=1;
+    DynListInsertHead(&cacheLRU, &page->listNode);
     }
 }
 
@@ -262,13 +262,13 @@ void SetupPhysMM(void) {
     DynListInit(&cacheLRU);
     GET_MEMZ(physPageTab, sizeof(struct physPage *)*xmcTab.noRegions);
     for (e=0; e<xmcTab.noRegions; e++) {
-	ASSERT(!(xmcMemRegTab[e].size&(PAGE_SIZE-1))&&!(xmcMemRegTab[e].startAddr&(PAGE_SIZE-1)));
-	if (xmcMemRegTab[e].flags&XMC_REG_FLAG_PGTAB) {
-	    GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE));
+        ASSERT(!(xmcMemRegTab[e].size&(PAGE_SIZE-1))&&!(xmcMemRegTab[e].startAddr&(PAGE_SIZE-1)));
+        if (xmcMemRegTab[e].flags&XMC_REG_FLAG_PGTAB) {
+            GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE));
             for (i=0; i<xmcMemRegTab[e].size/PAGE_SIZE; i++)
                 physPageTab[e][i].lock=SPINLOCK_INIT;
         } else {
-	    physPageTab[e]=0;
+            physPageTab[e]=0;
         }
     }
 }
