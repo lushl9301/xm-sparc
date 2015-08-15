@@ -80,26 +80,25 @@ static xm_s32_t WriteTrace(xmObjDesc_t desc, xmTraceEvent_t *__gParam event, xm_
             xm_u32_t tmpSeq;
             event[e].signature=XMTRACE_SIGNATURE;
             event[e].opCodeL&=~TRACE_OPCODE_PARTID_MASK;
-	    event[e].opCodeL|=(KID2PARTID(sched->cKThread->ctrl.g->id)<<TRACE_OPCODE_PARTID_BIT)&TRACE_OPCODE_PARTID_MASK;
+            event[e].opCodeL|=(KID2PARTID(sched->cKThread->ctrl.g->id)<<TRACE_OPCODE_PARTID_BIT)&TRACE_OPCODE_PARTID_MASK;
             event[e].opCodeL&=~TRACE_OPCODE_VCPUID_MASK;
-	    event[e].opCodeL|=(KID2VCPUID(sched->cKThread->ctrl.g->id)<<TRACE_OPCODE_VCPUID_BIT)&TRACE_OPCODE_VCPUID_MASK;                        
-	    event[e].timestamp=GetSysClockUsec();
+            event[e].opCodeL|=(KID2VCPUID(sched->cKThread->ctrl.g->id)<<TRACE_OPCODE_VCPUID_BIT)&TRACE_OPCODE_VCPUID_MASK;                        
+            event[e].timestamp=GetSysClockUsec();
             tmpSeq=seq++;
             event[e].opCodeH&=~TRACE_OPCODE_SEQ_MASK;
             event[e].opCodeH|=tmpSeq<<TRACE_OPCODE_SEQ_BIT;
             event[e].checksum=0;
             event[e].checksum=CalcCheckSum((xm_u16_t *)&event[e], sizeof(struct xmTraceEvent));
             LogStreamInsert(log, &event[e]);
-	    written++;
-	}
+            written++;
+        }
         if (((event->opCodeH&TRACE_OPCODE_CRIT_MASK)>>TRACE_OPCODE_CRIT_BIT)==XM_TRACE_UNRECOVERABLE) {
-	    xmHmLog_t log;
+            xmHmLog_t log;
             log.opCodeL=
                 (KID2PARTID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_PARTID_BIT)|(KID2VCPUID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_VCPUID_BIT)|(XM_HM_EV_PARTITION_ERROR<<HMLOG_OPCODE_EVENT_BIT);	    
             memcpy(log.payload, event->payload, sizeof(xmWord_t)*XM_HMLOG_PAYLOAD_LENGTH-1);
-
-	    HmRaiseEvent(&log);
-	}
+            HmRaiseEvent(&log);
+        }
     }
 
     return written*sizeof(xmTraceEvent_t);

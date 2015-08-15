@@ -107,14 +107,14 @@ static inline xm_s32_t LogStreamInsert(struct logStream *lS, void *log) {
                 lS->ctrl.d--;
             lS->ctrl.elem--;
             smashed ++;
-	}
-	ASSERT_LOCK(lS->ctrl.elem<lS->info.maxNoElem, &lS->lock);
+        }
+        ASSERT_LOCK(lS->ctrl.elem<lS->info.maxNoElem, &lS->lock);
         KDevSeek(lS->kDev, sizeof(struct logStreamHdr)+lS->ctrl.tail*lS->info.elemSize, DEV_SEEK_START);
         KDevWrite(lS->kDev, log, lS->info.elemSize);
         lS->ctrl.tail=((lS->ctrl.tail+1)<lS->info.maxNoElem)?lS->ctrl.tail+1:0;
         lS->ctrl.elem++;
     } else {
-	KDevWrite(lS->kDev, log, lS->info.elemSize);
+        KDevWrite(lS->kDev, log, lS->info.elemSize);
     }
     SpinUnlock(&lS->lock);
     LogStreamCommit(lS);
@@ -127,8 +127,8 @@ static inline xm_s32_t LogStreamGet(struct logStream *lS, void *log) {
     if ((lS->ctrl.elem)>0&&(lS->ctrl.d<lS->ctrl.elem)) {
         ptr=(lS->ctrl.d+lS-> ctrl.head)%lS->info.maxNoElem;
         lS->ctrl.d++;
-	KDevSeek(lS->kDev, sizeof(struct logStreamHdr)+ptr*lS->info.elemSize, DEV_SEEK_START);
-	KDevRead(lS->kDev, log, lS->info.elemSize);
+        KDevSeek(lS->kDev, sizeof(struct logStreamHdr)+ptr*lS->info.elemSize, DEV_SEEK_START);
+        KDevRead(lS->kDev, log, lS->info.elemSize);
         SpinUnlock(&lS->lock);
         LogStreamCommit(lS);
         return 0;
