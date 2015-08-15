@@ -52,9 +52,9 @@ struct guest {
 
 static inline xm_s32_t IsPCtrlTabPg(xmAddress_t addr, struct guest *g) {
     xmAddress_t a, b;
-    a=_VIRT2PHYS(g->partCtrlTab);
-    b=a+g->partCtrlTab->partCtrlTabSize;
-    return ((addr>=a)&&(addr<b))?1:0;
+    a = _VIRT2PHYS(g->partCtrlTab);
+    b = a + g->partCtrlTab->partCtrlTabSize;
+    return ((addr >= a) && (addr < b)) ? 1 : 0;
 }
 
 #define CHECK_KTHR_SANITY(k) ASSERT((k->ctrl.magic1==KTHREAD_MAGIC)&&(k->ctrl.magic2==KTHREAD_MAGIC))
@@ -67,13 +67,13 @@ static inline xm_s32_t IsPCtrlTabPg(xmAddress_t addr, struct guest *g) {
 
 typedef union kThread {
     struct __kThread {
-	// Harcoded, don't change it
-	xm_u32_t magic1;
-	// Harcoded, don't change it
-	xmAddress_t *kStack;
+        // Harcoded, don't change it
+        xm_u32_t magic1;
+        // Harcoded, don't change it
+        xmAddress_t *kStack;
         spinLock_t lock;
-	volatile xm_u32_t flags;
-	//  [3...0] -> scheduling bits
+        volatile xm_u32_t flags;
+//  [3...0] -> scheduling bits
 #define KTHREAD_FP_F (1<<1) // Floating point enabled
 #define KTHREAD_HALTED_F (1<<2)  // 1:HALTED
 #define KTHREAD_SUSPENDED_F (1<<3) // 1:SUSPENDED
@@ -90,27 +90,29 @@ typedef union kThread {
 #define KTHREAD_NO_PARTITIONS_FIELD (0xff<<16) // No. partitions
 #define KTHREAD_TRAP_PENDING_F (1<<31) // 31: PENDING
 
-	struct dynList localActiveKTimers;
-	struct guest *g;
-	void *schedData;
+        struct dynList localActiveKTimers;
+        struct guest *g;
+        void *schedData;
         cpuCtxt_t *irqCpuCtxt;
-	xm_u32_t irqMask;
-	xm_u32_t magic2;
+        xm_u32_t irqMask;
+        xm_u32_t magic2;
     } ctrl;
     xm_u8_t kStack[CONFIG_KSTACK_SIZE];
 } kThread_t;
 
 static inline void SetKThreadFlags(kThread_t *k, xm_u32_t f) {
     SpinLock(&k->ctrl.lock);
-    k->ctrl.flags|=f;
-    if (k->ctrl.g&&k->ctrl.g->partCtrlTab) k->ctrl.g->partCtrlTab->flags|=f;
-    SpinUnlock(&k->ctrl.lock); 
+    k->ctrl.flags |= f;
+    if (k->ctrl.g && k->ctrl.g->partCtrlTab)
+        k->ctrl.g->partCtrlTab->flags |= f;
+    SpinUnlock(&k->ctrl.lock);
 }
 
 static inline void ClearKThreadFlags(kThread_t *k, xm_u32_t f) {
     SpinLock(&k->ctrl.lock);
-    k->ctrl.flags&=~f;
-    if (k->ctrl.g&&k->ctrl.g->partCtrlTab) k->ctrl.g->partCtrlTab->flags&=~f;
+    k->ctrl.flags &= ~f;
+    if (k->ctrl.g && k->ctrl.g->partCtrlTab)
+        k->ctrl.g->partCtrlTab->flags &= ~f;
     SpinUnlock(&k->ctrl.lock);
 }
 
@@ -118,7 +120,7 @@ static inline xm_u32_t AreKThreadFlagsSet(kThread_t *k, xm_u32_t f) {
     xm_u32_t __r;
 
     SpinLock(&k->ctrl.lock);
-    __r=k->ctrl.flags&f;
+    __r = k->ctrl.flags & f;
     SpinUnlock(&k->ctrl.lock);
     return __r;
 }
@@ -128,10 +130,10 @@ typedef struct partition {
     xmAddress_t pctArray;
     xmSize_t pctArraySize;
     xm_u32_t opMode;
-    xmAddress_t imgStart;  /*Partition Memory address in the container*/
+    xmAddress_t imgStart; /*Partition Memory address in the container*/
     ///??? container?
     xmAddress_t vLdrStack; /*Stack address allocated by XM*/
-    struct xmcPartition *cfg;    
+    struct xmcPartition *cfg;
 } partition_t;
 
 extern partition_t *partitionTab;
@@ -139,7 +141,7 @@ extern partition_t *partitionTab;
 static inline partition_t *GetPartition(kThread_t *k) {
     if (k->ctrl.g)
         return &partitionTab[KID2PARTID(k->ctrl.g->id)];
-    
+
     return 0;
 }
 
@@ -147,8 +149,10 @@ extern void InitIdle(kThread_t *idle, xm_s32_t cpu);
 
 extern partition_t *CreatePartition(struct xmcPartition *conf);
 extern void SetupKThreadArch(kThread_t *k);
-extern xm_s32_t ResetPartition(partition_t *p, xm_u32_t cold, xm_u32_t status) __WARN_UNUSED_RESULT;
-extern void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u32_t status);
+extern xm_s32_t ResetPartition(partition_t *p, xm_u32_t cold, xm_u32_t status)
+        __WARN_UNUSED_RESULT;
+extern void ResetKThread(kThread_t *k, xmAddress_t ptdL1,
+        xmAddress_t entryPoint, xm_u32_t status);
 extern void SetupPctMm(partitionControlTable_t *partCtrlTab, kThread_t *k);
 extern void SetupPctArch(partitionControlTable_t *partCtrlTab, kThread_t *k);
 extern void SwitchKThreadArchPre(kThread_t *new, kThread_t *current);
@@ -158,8 +162,8 @@ static inline void SetHwIrqPending(kThread_t *k, xm_s32_t irq) {
     ASSERT(k->ctrl.g);
     ASSERT((irq>=XM_VT_HW_FIRST)&&(irq<=XM_VT_HW_LAST));
     if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
-	return;
-    k->ctrl.g->partCtrlTab->hwIrqsPend|=(1<<irq);
+        return;
+    k->ctrl.g->partCtrlTab->hwIrqsPend |= (1 << irq);
     SetKThreadFlags(k, KTHREAD_READY_F);
 }
 
@@ -168,15 +172,15 @@ static inline void SetPartitionHwIrqPending(partition_t *p, xm_s32_t irq) {
     xm_s32_t e;
 
     ASSERT((irq>=XM_VT_HW_FIRST)&&(irq<=XM_VT_HW_LAST));
-    
-    for (e=0; e<p->cfg->noVCpus; e++) {
-        k=p->kThread[e];
-        
+
+    for (e = 0; e < p->cfg->noVCpus; e++) {
+        k = p->kThread[e];
+
         if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
             continue;
         SpinLock(&k->ctrl.lock);
         ///??? why need irq here. don't need on top
-        k->ctrl.g->partCtrlTab->hwIrqsPend|=(1<<irq);
+        k->ctrl.g->partCtrlTab->hwIrqsPend |= (1 << irq);
         SpinUnlock(&k->ctrl.lock);
         SetKThreadFlags(k, KTHREAD_READY_F);
     }
@@ -185,15 +189,15 @@ static inline void SetPartitionHwIrqPending(partition_t *p, xm_s32_t irq) {
 static inline void SetExtIrqPending(kThread_t *k, xm_s32_t irq) {
     ASSERT(k->ctrl.g);
     ASSERT((irq>=XM_VT_EXT_FIRST)&&(irq<=XM_VT_EXT_LAST));
-    irq-=XM_VT_EXT_FIRST;
+    irq -= XM_VT_EXT_FIRST;
     if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
-	return;
+        return;
 //#ifdef CONFIG_OBJ_STATUS_ACC
     //   if (k->ctrl.g)
 //        partitionStatus[k->ctrl.g->cfg->id].noVIrqs++;
 //#endif
     SpinLock(&k->ctrl.lock);
-    k->ctrl.g->partCtrlTab->extIrqsPend|=(1<<irq);
+    k->ctrl.g->partCtrlTab->extIrqsPend |= (1 << irq);
     SpinUnlock(&k->ctrl.lock);
     SetKThreadFlags(k, KTHREAD_READY_F);
 }
@@ -203,14 +207,14 @@ static inline int ArePartitionExtIrqPendingSet(partition_t *p, xm_s32_t irq) {
     xm_s32_t e;
 
     ASSERT((irq>=XM_VT_EXT_FIRST)&&(irq<=XM_VT_EXT_LAST));
-    irq-=XM_VT_EXT_FIRST;
+    irq -= XM_VT_EXT_FIRST;
 
-    for (e=0; e<p->cfg->noVCpus; e++) {
-        k=p->kThread[e];
+    for (e = 0; e < p->cfg->noVCpus; e++) {
+        k = p->kThread[e];
         SpinLock(&k->ctrl.lock);
-        if (!(k->ctrl.g->partCtrlTab->extIrqsPend&(1<<irq))){
-           SpinUnlock(&k->ctrl.lock);
-           return 0;
+        if (!(k->ctrl.g->partCtrlTab->extIrqsPend & (1 << irq))) {
+            SpinUnlock(&k->ctrl.lock);
+            return 0;
         }
         SpinUnlock(&k->ctrl.lock);
     }
@@ -221,12 +225,12 @@ static inline int ArePartitionExtIrqPendingSet(partition_t *p, xm_s32_t irq) {
 static inline int AreExtIrqPendingSet(kThread_t *k, xm_s32_t irq) {
 
     ASSERT((irq>=XM_VT_EXT_FIRST)&&(irq<=XM_VT_EXT_LAST));
-    irq-=XM_VT_EXT_FIRST;
+    irq -= XM_VT_EXT_FIRST;
 
     SpinLock(&k->ctrl.lock);
-    if (!(k->ctrl.g->partCtrlTab->extIrqsPend&(1<<irq))){
-       SpinUnlock(&k->ctrl.lock);
-       return 0;
+    if (!(k->ctrl.g->partCtrlTab->extIrqsPend & (1 << irq))) {
+        SpinUnlock(&k->ctrl.lock);
+        return 0;
     }
     SpinUnlock(&k->ctrl.lock);
     return 1;
@@ -237,21 +241,21 @@ static inline void SetPartitionExtIrqPending(partition_t *p, xm_s32_t irq) {
     xm_s32_t e;
 
     ASSERT((irq>=XM_VT_EXT_FIRST)&&(irq<=XM_VT_EXT_LAST));
-    irq-=XM_VT_EXT_FIRST;
+    irq -= XM_VT_EXT_FIRST;
 
-    for (e=0; e<p->cfg->noVCpus; e++) {
-        k=p->kThread[e];
+    for (e = 0; e < p->cfg->noVCpus; e++) {
+        k = p->kThread[e];
 
         if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
             continue;
         SpinLock(&k->ctrl.lock);
-        k->ctrl.g->partCtrlTab->extIrqsPend|=(1<<irq);
+        k->ctrl.g->partCtrlTab->extIrqsPend |= (1 << irq);
         SpinUnlock(&k->ctrl.lock);
         SetKThreadFlags(k, KTHREAD_READY_F);
-/*#ifdef CONFIG_OBJ_STATUS_ACC
-        if (k->ctrl.g)
-            partitionStatus[k->ctrl.g->cfg->id].noVIrqs++;
-            #endif*/
+        /*#ifdef CONFIG_OBJ_STATUS_ACC
+         if (k->ctrl.g)
+         partitionStatus[k->ctrl.g->cfg->id].noVIrqs++;
+         #endif*/
     }
 }
 
