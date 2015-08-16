@@ -12,6 +12,8 @@
  *     Read LICENSE.txt file for the license terms.
  */
 
+// done but no one is using it
+
 #ifndef _XM_QUEUE_H_
 #define _XM_QUEUE_H_
 
