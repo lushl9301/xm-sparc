@@ -28,7 +28,7 @@ void SetupKDev(void) {
 
 const kDevice_t *LookUpKDev(const xmDev_t *dev) {
     if ((dev->id<0)||(dev->id>=NO_KDEV)||(dev->id==XM_DEV_INVALID_ID))
-	return 0;
+        return 0;
 
     if (GetKDevTab[dev->id])
         return GetKDevTab[dev->id](dev->subId);

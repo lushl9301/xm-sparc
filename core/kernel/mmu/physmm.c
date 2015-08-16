@@ -80,16 +80,15 @@ struct physPage *PmmFindPage(xmAddress_t pAddr, partition_t *p, xm_u32_t *flags)
             if (pAddr>b) {
                 l=c+1;
             } else {
-                struct xmcMemoryRegion *memRegion=
-                    &xmcMemRegTab[memArea->memoryRegionOffset];
+                struct xmcMemoryRegion *memRegion=&xmcMemRegTab[memArea->memoryRegionOffset];
                 ASSERT((pAddr>=a)&&((pAddr+PAGE_SIZE-1)<=b));
                 if (!(memRegion->flags&XMC_REG_FLAG_PGTAB))
                     return 0;
                 if (flags)
                     *flags=memArea->flags;
-                
+                // memRegion->startAddr is "a" exactly
                 return &physPageTab[memArea->memoryRegionOffset][(pAddr-memRegion->startAddr)>>PAGE_SHIFT];
-            }                
+            }
         }
     }
 
@@ -154,7 +153,7 @@ xm_s32_t PmmFindArea(xmAddress_t pAddr, xmSSize_t size, partition_t *p, xm_u32_t
                 r=c-1;
             } else {
                 if ((pAddr+size-1)>b) {
-                l=c+1;
+                    l=c+1;
                 } else {
                     ASSERT((pAddr>=a)&&((pAddr+size-1)<=b));
                     if (flags)
@@ -172,7 +171,7 @@ xm_s32_t PmmFindArea(xmAddress_t pAddr, xmSSize_t size, partition_t *p, xm_u32_t
                 r=c-1;
             } else {
                 if ((pAddr+size-1)>b) {
-                l=c+1;
+                    l=c+1;
                 } else {
                     ASSERT((pAddr>=a)&&((pAddr+size-1)<=b));
                     if (flags)
@@ -217,7 +216,8 @@ void PmmResetPartition(partition_t *p) {
 //#endif
 
 void *VCacheMapPage(xmAddress_t pAddr, struct physPage *page) {
-    if (page->mapped)
+    // paddr means paged addr?
+	if (page->mapped)
         return (void *)(page->vAddr+(pAddr&(PAGE_SIZE-1)));
 
     if (VmmGetNoFreeFrames()<=0) {
@@ -240,8 +240,9 @@ void *VCacheMapPage(xmAddress_t pAddr, struct physPage *page) {
 void VCacheUnlockPage(struct physPage *page) {
     ASSERT(page&&page->mapped);
     if (!page->unlocked) {
-    page->unlocked=1;
-    DynListInsertHead(&cacheLRU, &page->listNode);
+        page->unlocked=1;
+        ///??? why insert it
+        DynListInsertHead(&cacheLRU, &page->listNode);
     }
 }
 
