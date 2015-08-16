@@ -52,7 +52,7 @@ xm_u32_t __GetCpuId(void) {
     return 0;
 #endif
 }
-
+// same one?
 xm_u32_t __GetCpuHwId(void) {
 #ifdef CONFIG_SMP
     xm_u32_t cpuId;
@@ -91,5 +91,6 @@ void __VBOOT SetupCpu(void) {
 }
 
 void __VBOOT EarlySetupCpu(void) {
+	///??? extern xm_u32_t cpuKhz;???
     cpuKhz=GetCpuKhz();
 }

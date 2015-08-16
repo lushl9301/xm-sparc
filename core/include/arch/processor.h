@@ -58,6 +58,7 @@ static inline void FlushICache(void) {
     __asm__ __volatile__("sta %0, [%%g0] %1\n\t"::"r"(cCR), "i"(LEON_CCR_BASE):"memory");
 }
 
+/// == Flush I+D Cache
 static inline void FlushCache(void) {
     xm_u32_t cCR;
     __asm__ __volatile__("lda [%%g0] %1, %0\n\t":"=r"(cCR): "i"(LEON_CCR_BASE):"memory");
@@ -65,6 +66,7 @@ static inline void FlushCache(void) {
     __asm__ __volatile__("sta %0, [%%g0] %1\n\t"::"r"(cCR), "i"(LEON_CCR_BASE):"memory");
 }
 
+// DCACHE|ICACHE = 0xf
 #define DCACHE 0xc
 #define ICACHE 0x3
 
@@ -146,6 +148,7 @@ static inline void FlushTlbCtxt(void) {
 
 #else
 
+// same as above
 #define FLUSH_ICACHE(_r0, _r1) \
     lda [%g0] LEON_CCR_BASE, _r0 ; \
     mov 1, _r1 ; \
@@ -168,11 +171,11 @@ static inline void FlushTlbCtxt(void) {
 #endif
 
 #define CCR_DS_BIT (1<<23)
-#define CCR_FD_BIT (1<<22)
-#define CCR_FI_BIT (1<<21)
+#define CCR_FD_BIT (1<<22) // flush DCache
+#define CCR_FI_BIT (1<<21) // flush ICache
 #define CCR_IB_BIT (1<<16)
-#define CCR_DCS_MASK (0x3<<2)
-#define CCR_ICS_MASK (0x3<<0)
+#define CCR_DCS_MASK (0x3<<2) // #define DCACHE 0xc
+#define CCR_ICS_MASK (0x3<<0) // #define ICACHE 0x3
 
 #define PSR_IMPL_MASK 0xf0000000
 #define PSR_VER_MASK 0x0f000000
