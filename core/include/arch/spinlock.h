@@ -100,6 +100,7 @@ static inline xm_s32_t __ArchSpinTryLock(archSpinLock_t *lock) {
 
 #define __ArchSpinIsLocked(x) (*(volatile xm_s8_t *)(&(x)->lock)<=0)
 
+// %%psr is flag?
 static inline xm_u32_t GetIpl(void) {
     xm_u32_t retVal;
     __asm__ __volatile__("rd %%psr, %0" : "=r" (retVal));
