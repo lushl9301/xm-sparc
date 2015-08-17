@@ -68,15 +68,15 @@ struct xmcIoPort {
 #define XM_IOPORT_RANGE 0
 #define XM_RESTRICTED_IOPORT 1
     union {
-	struct xmcIoPortRange {
-	    xmIoAddress_t base;
-	    xm_s32_t noPorts;
-	} range;
-	struct xmcRestrictdIoPort {
-	    xmIoAddress_t address;
-	    xm_u32_t mask;
+        struct xmcIoPortRange {
+            xmIoAddress_t base;
+            xm_s32_t noPorts;
+        } range;
+        struct xmcRestrictdIoPort {
+            xmIoAddress_t address;
+            xm_u32_t mask;
 #define XM_DEFAULT_RESTRICTED_IOPORT_MASK (~0)
-	} restricted;
+        } restricted;
     };
 };
 

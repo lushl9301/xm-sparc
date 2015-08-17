@@ -53,6 +53,7 @@ static inline void BarrierWaitMask(barrierMask_t *m){
    while(BarrierCheckMask(m));
 }
 
+///??? where is b->v?
 static inline void BarrierWait(barrier_t *b) {
     while(b->v);
 }
@@ -87,6 +88,7 @@ static inline xm_s32_t SpinIsLocked(spinLock_t *s) {
     HwRestoreFlags(flags);			\
 } while(0)
 
+// TryLock is never used
 static inline xm_s32_t SpinTryLock(spinLock_t *s) {
     return __ArchSpinTryLock(&s->archLock);
 }

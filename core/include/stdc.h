@@ -54,6 +54,7 @@ static inline xm_s32_t isspace(xm_s32_t ch) {
     return (xm_u32_t)(ch - 9) < 5u  ||  ch == ' ';
 }
 
+// Hex decimal
 static inline xm_s32_t isxdigit(xm_s32_t ch) {
     return (xm_u32_t)(ch - '0') < 10u  ||
 	(xm_u32_t)((ch | 0x20) - 'a') <  6u;
