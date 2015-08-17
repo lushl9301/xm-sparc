@@ -31,7 +31,8 @@ static xm_s32_t noFrames;
 xmAddress_t VmmAlloc(xm_s32_t nPag) {
     xmAddress_t vAddr;
     if ((noFrames-nPag)<0) 
-	return 0;
+        return 0;
+    //vmmStartAddr looks like a stack pointer
     vAddr=vmmStartAddr;
     vmmStartAddr+=(nPag<<PAGE_SHIFT);
     noFrames-=nPag;
@@ -56,7 +57,9 @@ void __VBOOT SetupVirtMM(void) {
     end=st+xmcPhysMemAreaTab[xmcTab.hpv.physicalMemoryAreasOffset].size-1;
     flags=xmcPhysMemAreaTab[xmcTab.hpv.physicalMemoryAreasOffset].flags;
     eprintf("XM map: [0x%"PRNT_ADDR_FMT"x - 0x%"PRNT_ADDR_FMT"x] flags: 0x%x\n", st, end, flags);
-    ASSERT(st==CONFIG_XM_LOAD_ADDR);    
+    ASSERT(st==CONFIG_XM_LOAD_ADDR);
+
+    // defined these 2 var above
     SetupVmMap(&vmmStartAddr, &noFrames);
     eprintf("[VMM] Free [0x%"PRNT_ADDR_FMT"x-0x%"PRNT_ADDR_FMT"x] %d frames\n", vmmStartAddr, XM_VMAPEND, noFrames);
 }
