@@ -39,19 +39,19 @@ void SetupVmMap(xmAddress_t *stFrameArea, xm_s32_t *noFrames) {
     *stFrameArea=ROUNDUP(_PHYS2VIRT(end+1), LPAGE_SIZE);
     *noFrames=((XM_VMAPEND-*stFrameArea)+1)/PAGE_SIZE;
 
-    st=_PHYS2VIRT(st)-CONFIG_XM_OFFSET;
+    st=_PHYS2VIRT(st)-CONFIG_XM_OFFSET; //== st - xm_load_addr
     for (e=0; e<(xmcPhysMemAreaTab[xmcTab.hpv.physicalMemoryAreasOffset].size>>PTDL3_SHIFT); e++) {
-	if (flags&XM_MEM_AREA_UNCACHEABLE)
-	    _ptdL3[(st+(e<<PTDL3_SHIFT))>>PTDL3_SHIFT]&=~_PG_ARCH_CACHE;
-	else
-	    _ptdL3[(st+(e<<PTDL3_SHIFT))>>PTDL3_SHIFT]|=_PG_ARCH_CACHE;
+        // deal with all cache
+    	if (flags&XM_MEM_AREA_UNCACHEABLE)
+            _ptdL3[(st+(e<<PTDL3_SHIFT))>>PTDL3_SHIFT]&=~_PG_ARCH_CACHE;
+        else
+            _ptdL3[(st+(e<<PTDL3_SHIFT))>>PTDL3_SHIFT]|=_PG_ARCH_CACHE;
     }
 
     for (e=0; e<*noFrames; e++)
-	_ptdL3[(*stFrameArea-CONFIG_XM_OFFSET+e*PAGE_SIZE)>>PTDL3_SHIFT]=0;
+        _ptdL3[(*stFrameArea-CONFIG_XM_OFFSET+e*PAGE_SIZE)>>PTDL3_SHIFT]=0;
     _ptdL3[XM_PCTRLTAB_ADDR>>PTDL2_SHIFT]=0;
     FlushTlbGlobal();
-    
 }
 
 void CloneXMPtdL1(xmWord_t *ptdL1) {
@@ -64,6 +64,7 @@ void SetupPtdL1(xmWord_t *ptdL1, kThread_t *k) {
     static xm_u8_t mmuCtxt=0;
     
     CloneXMPtdL1(ptdL1);
+    // mmuCtxt is static, so it will increase for each kthread reset
     k->ctrl.g->kArch.mmuCtxt=++mmuCtxt;
     contextTab[k->ctrl.g->kArch.mmuCtxt]=((xmAddress_t)ptdL1>>4)|_PG_ARCH_PTD_PRESENT;
 }
@@ -85,7 +86,7 @@ xm_u32_t VmAttr2ArchAttr(xm_u32_t flags) {
     xm_u32_t attr=0;
 
     if (flags&_PG_ATTR_PRESENT) attr|=_PG_ARCH_PTE_PRESENT;
-    if (flags&_PG_ATTR_USER) {        
+    if (flags&_PG_ATTR_USER) {
         if (flags&_PG_ATTR_RW) 
             attr|=_PG_ARCH_RW_USER;
         else
@@ -118,7 +119,7 @@ xm_s32_t VmMapUserPage(partition_t *k, xmWord_t *ptdL1, xmAddress_t pAddr, xmAdd
     if (!(ReadByPassMmuWord(&ptdL1[l1e])&_PG_ARCH_PTD_PRESENT)) {
         if ((pT=alloc(k->cfg, PAGE_SIZE, PAGE_SIZE, pool, poolSize))==~0) {
            return -1;
-        }        
+        }
         WriteByPassMmuWord(&ptdL1[l1e], (pT>>4)|_PG_ARCH_PTD_PRESENT);
         if (!(pagePtdL2=PmmFindPage(pT, k, 0))) {
            return -1;
