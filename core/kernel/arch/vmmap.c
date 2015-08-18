@@ -102,6 +102,7 @@ xm_u32_t VmAttr2ArchAttr(xm_u32_t flags) {
     return attr|(flags&0xffff);
 }
 
+//interesting
 xm_s32_t VmMapUserPage(partition_t *k, xmWord_t *ptdL1, xmAddress_t pAddr, xmAddress_t vAddr, xm_u32_t flags, xmAddress_t (*alloc)(struct xmcPartition *, xmSize_t, xm_u32_t, xmAddress_t *, xmSSize_t *), xmAddress_t *pool, xmSSize_t *poolSize) {
     struct physPage *pagePtdL2, *pagePtdL3;
     xmWord_t *pPtdL2, *pPtdL3;
