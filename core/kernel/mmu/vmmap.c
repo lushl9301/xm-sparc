@@ -53,7 +53,7 @@ static xmAddress_t AllocMem(struct xmcPartition *cfg, xmSize_t size, xm_u32_t al
         WriteByPassMmuWord((void *)(addr+e), 0);
     }
 
-    // go throught this partition configured num of physical memory areas
+    // go through this partition configured num of physical memory areas
     addr=VAddr2PAddr(&xmcPhysMemAreaTab[cfg->physicalMemoryAreasOffset], cfg->noPhysicalMemoryAreas, addr);
     return addr;
 }
@@ -71,20 +71,21 @@ static inline int SetupLdr(partition_t *p, xmWord_t *pPtdL1, xmAddress_t at, xmA
 
     /*Partition Loader Stack*/
     if (!(p->vLdrStack)){
-       GET_MEMA(stack, 18*PAGE_SIZE,PAGE_SIZE);
-       p->vLdrStack=(xmAddress_t)stack;
-    }
-    else
-       stack=(void *)p->vLdrStack;
+        // 18? alignment is PAGE_SIZE = 4096
+        GET_MEMA(stack, 18*PAGE_SIZE,PAGE_SIZE);
+        p->vLdrStack=(xmAddress_t)stack;
+    } else
+        stack=(void *)p->vLdrStack;
 
     a=_VIRT2PHYS(stack);
     b=a+(18*PAGE_SIZE)-1;
     vAddr=at-18*PAGE_SIZE;
+    // before "at" is stack; after "at" is loader
 
     for (addr=a; (addr>=a)&&(addr<b); addr+=PAGE_SIZE, vAddr+=PAGE_SIZE) {
         if (VmMapUserPage(p, pPtdL1, addr, vAddr, _PG_ATTR_PRESENT|_PG_ATTR_USER|_PG_ATTR_CACHED|_PG_ATTR_RW, AllocMem, &pgTb,&size)<0){
-           kprintf("[SetupLdr(P%d)] Error mapping the Partition Loader Stack\n",p->cfg->id);
-           return -1;
+            kprintf("[SetupLdr(P%d)] Error mapping the Partition Loader Stack\n",p->cfg->id);
+            return -1;
         }
     }
 
@@ -94,8 +95,8 @@ static inline int SetupLdr(partition_t *p, xmWord_t *pPtdL1, xmAddress_t at, xmA
     vAddr=at;
     for (addr=a; (addr>=a)&&(addr<b); addr+=PAGE_SIZE, vAddr+=PAGE_SIZE) {
         if (VmMapUserPage(p, pPtdL1, addr, vAddr, _PG_ATTR_PRESENT|_PG_ATTR_USER|_PG_ATTR_CACHED, AllocMem, &pgTb,&size)<0){
-           kprintf("[SetupLdr(P%d)] Error mapping the Partition Loader Code\n",p->cfg->id);
-           return -1;
+            kprintf("[SetupLdr(P%d)] Error mapping the Partition Loader Code\n",p->cfg->id);
+            return -1;
         }
     }
 
@@ -103,6 +104,7 @@ static inline int SetupLdr(partition_t *p, xmWord_t *pPtdL1, xmAddress_t at, xmA
     a = xmcBootPartTab[p->cfg->id].imgStart;
     b = a+(xmcBootPartTab[p->cfg->id].imgSize)-1;
 //    vAddr=at+256*1024;
+    // not mapping anymore?
     vAddr=a;
     p->imgStart=vAddr;
     for (addr=a; (addr>=a)&&(addr<b); addr+=PAGE_SIZE, vAddr+=PAGE_SIZE) {
@@ -140,6 +142,7 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
         return ~0;
     }
 
+    ///??? pT = PTDL1, find page as double check?
     if (!(pagePtdL1=PmmFindPage(pT, p, 0))) {
         PWARN("(%d) Page 0x%x does not belong to this partition\n", p->cfg->id, pT);
         return ~0;
@@ -148,7 +151,7 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
     pagePtdL1->type=PPAG_PTDL1;
 
     // Incremented because it is load as the initial page table
-    PPagIncCounter(pagePtdL1);    
+    PPagIncCounter(pagePtdL1);
     pPtdL1=VCacheMapPage(pT, pagePtdL1);
     ASSERT(PTDL1SIZE<=PAGE_SIZE);
     for (e=0; e<PTDL1ENTRIES; e++)
@@ -178,6 +181,7 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
 
     attr=_PG_ATTR_PRESENT|_PG_ATTR_USER;
     ASSERT(p->pctArraySize);
+    //XM_PCTRLTAB_ADDR (CONFIG_XM_OFFSET-256*1024)
     for (vAddr=XM_PCTRLTAB_ADDR, addr=(xmAddress_t)_VIRT2PHYS(p->pctArray);
          addr<((xmAddress_t)_VIRT2PHYS(p->pctArray)+p->pctArraySize);
          addr+=PAGE_SIZE, vAddr+=PAGE_SIZE) {
@@ -187,11 +191,12 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
 
 //    xmAddress_t vAddrLdr=CONFIG_XM_OFFSET+16*1024*1024;
     xmAddress_t vAddrLdr=XM_PCTRLTAB_ADDR-256*1024;
-    if (SetupLdr(p, pPtdL1,vAddrLdr,pgTb, size)<0)
+    if (SetupLdr(p, pPtdL1, vAddrLdr, pgTb, size)<0)
        return ~0;
 
     attr=_PG_ATTR_PRESENT|_PG_ATTR_USER;
     // Set appropriate permissions
+    ///??? why set again?
     for (e=0; e<p->cfg->noPhysicalMemoryAreas; e++) {
         if (xmcPhysMemAreaTab[e+p->cfg->physicalMemoryAreasOffset].flags&XM_MEM_AREA_UNMAPPED)
             continue;
