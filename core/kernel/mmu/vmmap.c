@@ -33,8 +33,12 @@ static xmAddress_t AllocMem(struct xmcPartition *cfg, xmSize_t size, xm_u32_t al
     xmAddress_t addr;
     xm_s32_t e;
     
+    // if not aligned
     if (*pool&(align-1)) {
+    	// the unaligned part will be recover in the reset *pool += size
+
         *maxSize-=align-(*pool&(align-1));
+        // pay attention to ~(align-1) means that get a aligned page for request
         *pool=align+(*pool&~(align-1));
     }
 
@@ -49,6 +53,7 @@ static xmAddress_t AllocMem(struct xmcPartition *cfg, xmSize_t size, xm_u32_t al
         WriteByPassMmuWord((void *)(addr+e), 0);
     }
 
+    // go throught this partition configured num of physical memory areas
     addr=VAddr2PAddr(&xmcPhysMemAreaTab[cfg->physicalMemoryAreasOffset], cfg->noPhysicalMemoryAreas, addr);
     return addr;
 }
