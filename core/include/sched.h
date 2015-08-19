@@ -96,7 +96,7 @@ static inline void DoPreemption(void) {
     HwIrqSetMask(cpu->globalIrqMask);
     HwSti();
 
-    DoNop();
+    DoNop(); // DoNop only occurs here
 
     HwCli();
     HwIrqSetMask(sched->cKThread->ctrl.irqMask);
@@ -107,6 +107,7 @@ static inline void PreemptionOn(void) {
     localSched_t *sched=GET_LOCAL_SCHED();
 
     sched->cKThread->ctrl.irqMask=HwIrqGetMask();
+    ///??? bug here? should be GET_LOCAL_CPU()->globalIrqMask
     HwIrqSetMask(globalIrqMask);
     HwSti();
 #endif
@@ -148,10 +149,10 @@ static inline void HALT_VCPU(xmId_t partId, xmId_t vCpuId) {
     partitionTab[partId].kThread[vCpuId]->ctrl.g->opMode=XM_OPMODE_IDLE;
 #ifdef CONFIG_FP_SCHED
     xm_s32_t cpuId=xmcVCpuTab[(partitionTab[partId].cfg->id*xmcTab.hpv.noCpus)+vCpuId].cpu;
-        if(xmcTab.hpv.cpuTab[cpuId].schedPolicy==FP_SCHED){
-            DisarmKTimer(&partitionTab[partId].kThread[vCpuId]->ctrl.g->kTimer);
-            DisarmKTimer(&partitionTab[partId].kThread[vCpuId]->ctrl.g->watchdogTimer);
-        }
+	if(xmcTab.hpv.cpuTab[cpuId].schedPolicy==FP_SCHED){
+	    DisarmKTimer(&partitionTab[partId].kThread[vCpuId]->ctrl.g->kTimer);
+	    DisarmKTimer(&partitionTab[partId].kThread[vCpuId]->ctrl.g->watchdogTimer);
+	}
 #endif
 }
 

@@ -111,7 +111,8 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
 #endif
 
     if (cyclic->nextAct>cTime && !(cyclic->flags&RESCHED_ENABLED))
-            return (cyclic->kThread&&!AreKThreadFlagsSet(cyclic->kThread, KTHREAD_HALTED_F|KTHREAD_SUSPENDED_F)&&AreKThreadFlagsSet(cyclic->kThread, KTHREAD_READY_F))?cyclic->kThread:0;
+    	//not null, not halted, not suspend, read,
+        return (cyclic->kThread&&!AreKThreadFlagsSet(cyclic->kThread, KTHREAD_HALTED_F|KTHREAD_SUSPENDED_F)&&AreKThreadFlagsSet(cyclic->kThread, KTHREAD_READY_F))?cyclic->kThread:0;
 
     cyclic->flags&=~RESCHED_ENABLED;
     plan=cyclic->plan.current;
@@ -130,7 +131,7 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
 #endif
         MakePlanSwitch(cTime, cyclic);
         plan=cyclic->plan.current;
-	if (cyclic->slot>=0) {
+        if (cyclic->slot>=0) {
             while(cyclic->mjf<=cTime) {
                 cyclic->sExec=cyclic->mjf;
                 cyclic->mjf+=plan->majorFrame;
@@ -139,11 +140,11 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
         systemStatus.currentMaf++;
 #endif
         } else {
-	    cyclic->sExec=cTime;
-	    cyclic->mjf=plan->majorFrame+cyclic->sExec;
-	}
-
-	cyclic->slot=0;
+        	//slot == -1; means just made plan switch
+            cyclic->sExec=cTime;
+            cyclic->mjf=plan->majorFrame+cyclic->sExec;
+	    }
+	    cyclic->slot=0;
     }
 #ifdef CONFIG_PLAN_EXTSYNC
     extSync[nCpu]=0;
@@ -153,19 +154,19 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
 
     // Calculate our next slot
     if (cyclic->slot>=plan->noSlots)
-	goto out; // getting idle
+        goto out; // getting idle
 
     while (t>=xmcSchedCyclicSlotTab[plan->slotsOffset+cyclic->slot].eExec) {
-	cyclic->slot++;
-	if (cyclic->slot>=plan->noSlots)
-	    goto out; // getting idle
-    }
-    slotTabEntry=plan->slotsOffset+cyclic->slot;
+        cyclic->slot++;
+        if (cyclic->slot>=plan->noSlots)
+            goto out; // getting idle
+        }
+        slotTabEntry=plan->slotsOffset+cyclic->slot;
     
-    if (t>=xmcSchedCyclicSlotTab[slotTabEntry].sExec) {
-        ASSERT((xmcSchedCyclicSlotTab[slotTabEntry].partitionId>=0)&&(xmcSchedCyclicSlotTab[slotTabEntry].partitionId<xmcTab.noPartitions));
-        ASSERT(partitionTab[xmcSchedCyclicSlotTab[slotTabEntry].partitionId].kThread[xmcSchedCyclicSlotTab[slotTabEntry].vCpuId]);
-        newK=partitionTab[xmcSchedCyclicSlotTab[slotTabEntry].partitionId].kThread[xmcSchedCyclicSlotTab[slotTabEntry].vCpuId];
+        if (t>=xmcSchedCyclicSlotTab[slotTabEntry].sExec) {
+            ASSERT((xmcSchedCyclicSlotTab[slotTabEntry].partitionId>=0)&&(xmcSchedCyclicSlotTab[slotTabEntry].partitionId<xmcTab.noPartitions));
+            ASSERT(partitionTab[xmcSchedCyclicSlotTab[slotTabEntry].partitionId].kThread[xmcSchedCyclicSlotTab[slotTabEntry].vCpuId]);
+            newK=partitionTab[xmcSchedCyclicSlotTab[slotTabEntry].partitionId].kThread[xmcSchedCyclicSlotTab[slotTabEntry].vCpuId];
 
         if (!AreKThreadFlagsSet(newK, KTHREAD_HALTED_F|KTHREAD_SUSPENDED_F)&&
             AreKThreadFlagsSet(newK, KTHREAD_READY_F)) {
@@ -174,9 +175,9 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
             newK=0;
             if ((cyclic->slot+1)<plan->noSlots)
                 nextTime=xmcSchedCyclicSlotTab[slotTabEntry+1].sExec;
-        }        
+        }
     } else {
-	nextTime=xmcSchedCyclicSlotTab[slotTabEntry].sExec;
+        nextTime=xmcSchedCyclicSlotTab[slotTabEntry].sExec;
     }
 
 out:
@@ -186,14 +187,14 @@ out:
     slotTabEntry=plan->slotsOffset+cyclic->slot;
 #if 0
     if (newK) {
-	kprintf("[%d:%d:%d] cTime %lld -> sExec %lld eExec %lld\n", 
+        kprintf("[%d:%d:%d] cTime %lld -> sExec %lld eExec %lld\n",
                 GET_CPU_ID(),
 		cyclic->slot,
 		xmcSchedCyclicSlotTab[slotTabEntry].partitionId, 
 		cTime, xmcSchedCyclicSlotTab[slotTabEntry].sExec+cyclic->sExec, 
 		xmcSchedCyclicSlotTab[slotTabEntry].eExec+cyclic->sExec);
     } else {
-	kprintf("[%d] IDLE: %lld\n", GET_CPU_ID(), cTime);
+        kprintf("[%d] IDLE: %lld\n", GET_CPU_ID(), cTime);
     }
 #endif
   
