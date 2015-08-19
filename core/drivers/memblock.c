@@ -35,7 +35,7 @@ static xm_s32_t ReadMemBlock(const kDevice_t *kDev, xm_u8_t *buffer, xmSSize_t l
     xm_s32_t e;
     ASSERT(buffer);
     if (((xmSSize_t)xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size-(xmSSize_t)memBlockData[kDev->subId].pos-len)<0)
-	len=xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size-memBlockData[kDev->subId].pos;
+        len=xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size-memBlockData[kDev->subId].pos;
     
     if (len<=0) {
         return 0;

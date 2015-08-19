@@ -64,8 +64,8 @@ static xm_s32_t WriteConsoleObj(xmObjDesc_t desc, xm_u8_t *__gParam buffer, xmSi
 
     SpinLock(&consoleLock);
     for (e=0; e<length; e++) {
-	PreemptionOn();
-	PreemptionOff();
+        PreemptionOn();
+        PreemptionOff();
         if (!WriteMod(con, &buffer[e])) {
             SpinUnlock(&consoleLock);
             return e;
