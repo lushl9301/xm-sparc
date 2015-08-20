@@ -201,7 +201,7 @@ void __VBOOT SetupSysClock(void) {
     if (!sysHwClock||(sysHwClock->InitClock()<0)) {
         cpuCtxt_t ctxt;
         GetCpuCtxt(&ctxt);
-	SystemPanic(&ctxt, "No system clock available\n");
+        SystemPanic(&ctxt, "No system clock available\n");
     }
 
     kprintf(">> HWClocks [%s (%dKhz)]\n", sysHwClock->name, sysHwClock->freqKhz);

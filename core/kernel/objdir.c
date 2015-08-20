@@ -23,11 +23,12 @@ void SetupObjDir(void) {
     extern xm_s32_t (*objectSetupTab[])(void);
     xm_u32_t e;
     for (e=0; objectSetupTab[e]; e++) {
-	if (objectSetupTab[e])
-	    if ((objectSetupTab[e]())<0) {
+        // the two ifs can be written together
+        if (objectSetupTab[e])
+            if ((objectSetupTab[e]())<0) {
                 cpuCtxt_t ctxt;
                 GetCpuCtxt(&ctxt);
-		SystemPanic(&ctxt, "[ObjDir] Error setting up object at 0x%x\n", objectSetupTab);
+                SystemPanic(&ctxt, "[ObjDir] Error setting up object at 0x%x\n", objectSetupTab);
             }
     }
 }

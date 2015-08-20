@@ -204,8 +204,7 @@ static void __VBOOT SetupPartitions(void)
 				st = xmcPhysMemAreaTab[a + xmcPartitionTab[e].physicalMemoryAreasOffset].startAddr;
 				end = st + xmcPhysMemAreaTab[a + xmcPartitionTab[e].physicalMemoryAreasOffset].size - 1;
 				vSt = xmcPhysMemAreaTab[a + xmcPartitionTab[e].physicalMemoryAreasOffset].mappedAt;
-				vEnd = vSt + xmcPhysMemAreaTab[a + xmcPartitionTab[e].physicalMemoryAreasOffset].size
-						- 1;
+				vEnd = vSt + xmcPhysMemAreaTab[a + xmcPartitionTab[e].physicalMemoryAreasOffset].size - 1;
 
 				kprintf("    [0x%lx:0x%lx - 0x%lx:0x%lx]", st, vSt, end, vEnd);
 				kprintf(" flags: 0x%x",
@@ -218,7 +217,6 @@ static void __VBOOT SetupPartitions(void)
 					kprintf("Unable to reset partition %d\n", p->cfg->id);
 				p->opMode = XM_OPMODE_IDLE;
 			}
-
 		} else {
 			cpuCtxt_t ctxt;
 			GetCpuCtxt(&ctxt);
@@ -238,7 +236,7 @@ static void __VBOOT SetupPartitions(void)
 			xm_u32_t gIrqMask=~0;
 			xm_s32_t e;
 			for (e=0; e<xmcTab.hpv.cpuTab[cpuId].noFpEntries; e++)
-			gIrqMask&=~(xmcPartitionTab[xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].partitionId].hwIrqs);
+				gIrqMask&=~(xmcPartitionTab[xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].partitionId].hwIrqs);
 
 			lCpu->globalIrqMask&=gIrqMask;
 		}
@@ -295,31 +293,43 @@ void __VBOOT Setup(xm_s32_t cpuId, kThread_t *idle)
 #endif
 	LoadCfgTab();
 	InitRsvMem();
+	// mainly forcus on CPU setup
 	EarlySetupArchCommon();
+	//
 	SetupVirtMM();
+	//
 	SetupPhysMM();
+	// empty
 	SetupArchCommon();
+	// info for Cpu timer and sched
 	CreateLocalInfo();
+	// set up a serials of basic IRQ; like mmu trap handler
 	SetupIrqs();
-
+	// set up 7
 	SetupKDev();
+	// set up 9; the objs are already set to a map; use their own setup func
 	SetupObjDir();
 
 	kprintf("XM Hypervisor (%x.%x r%x)\n", (XM_VERSION >> 16) & 0xFF, (XM_VERSION >> 8) & 0xFF, XM_VERSION & 0xFF);
 	kprintf("Detected %lu.%luMHz processor.\n", (xm_u32_t)(cpuKhz / 1000), (xm_u32_t)(cpuKhz % 1000));
 	BarrierLock(&smpStartBarrier);
 	InitSched();
+	// sysHwClock->InitClock()
 	SetupSysClock();
+	// localSetup just for this CPU
+	// SetupArchLocl; HwTime; KTime; InitSchedLocal
 	LocalSetup(cpuId, idle);
 
 #ifdef CONFIG_SMP
 	SetupSmp();
 	BarrierWaitMask(&smpBarrierMask);
 #endif
+	// setup partition here?
 	SetupPartitions();
 #ifdef CONFIG_DEBUG
 	RsvMemDebug();
 #endif
+	// unlock; enable sched; schedule();
 	FreeBootMem();
 }
 
