@@ -216,6 +216,8 @@ out:
 
 #ifdef CONFIG_FP_SCHED
 
+
+// get the first ready FP when initSched
 static kThread_t *GetReadyKThreadFP(struct schedData *schedData) {
     struct fpData *fp=&schedData->fp;
     kThread_t *newK=0;
@@ -295,21 +297,21 @@ void Schedule(void) {
 
     CHECK_KTHR_SANITY(sched->cKThread);
     if (!(sched->flags&LOCAL_SCHED_ENABLED)) {
-	cpu->irqNestingCounter&=~(SCHED_PENDING);
-	return;
+        cpu->irqNestingCounter&=~(SCHED_PENDING);
+        return;
     }
 
     HwSaveFlagsCli(hwFlags);
     // When an interrupt is in-progress, the scheduler shouldn't be invoked
     if (cpu->irqNestingCounter&IRQ_IN_PROGRESS) {
-	cpu->irqNestingCounter|=SCHED_PENDING;
-	HwRestoreFlags(hwFlags);
-	return;
+        cpu->irqNestingCounter|=SCHED_PENDING;
+        HwRestoreFlags(hwFlags);
+        return;
     }
  
     cpu->irqNestingCounter&=(~SCHED_PENDING);
     if (!(newK=sched->GetReadyKThread(sched->data)))
-	newK=sched->idleKThread;
+        newK=sched->idleKThread;
 
     CHECK_KTHR_SANITY(newK);
     if (newK!=sched->cKThread) {
@@ -320,41 +322,41 @@ void Schedule(void) {
         RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_CONTEXT_SWITCH, 1, &auditArgs);
 #endif
 #if 0
-	if (newK->ctrl.g)
-	    kprintf("newK: [%d:%d] 0x%x ", KID2PARTID(newK->ctrl.g->id), KID2VCPUID(newK->ctrl.g->id), newK);
-	else
-	    kprintf("newK: idle ");
+		if (newK->ctrl.g)
+			kprintf("newK: [%d:%d] 0x%x ", KID2PARTID(newK->ctrl.g->id), KID2VCPUID(newK->ctrl.g->id), newK);
+		else
+			kprintf("newK: idle ");
 
-	if (sched->cKThread->ctrl.g)
-	    kprintf("curK: [%d:%d] 0x%x\n", KID2PARTID(sched->cKThread->ctrl.g->id), KID2VCPUID(sched->cKThread->ctrl.g->id));
-	else
-	    kprintf("curK: idle\n");
+		if (sched->cKThread->ctrl.g)
+			kprintf("curK: [%d:%d] 0x%x\n", KID2PARTID(sched->cKThread->ctrl.g->id), KID2VCPUID(sched->cKThread->ctrl.g->id));
+		else
+			kprintf("curK: idle\n");
 #endif
 
-	SwitchKThreadArchPre(newK, sched->cKThread);
+		SwitchKThreadArchPre(newK, sched->cKThread);
 /*#ifdef CONFIG_FP_SCHED
         if (xmcTab.hpv.cpuTab[GET_CPU_ID()].schedPolicy==CYCLIC_SCHED){
 	   if (sched->cKThread->ctrl.g) // not idle kthread
 	       StopVClock(&sched->cKThread->ctrl.g->vClock,  &sched->cKThread->ctrl.g->vTimer);
         }
 #else*/
-	if (sched->cKThread->ctrl.g) // not idle kthread
-	    StopVClock(&sched->cKThread->ctrl.g->vClock,  &sched->cKThread->ctrl.g->vTimer);
+		if (sched->cKThread->ctrl.g) // not idle kthread
+			StopVClock(&sched->cKThread->ctrl.g->vClock,  &sched->cKThread->ctrl.g->vTimer);
 //#endif
 
-	if (newK->ctrl.g)
-	    SetHwTimer(TraverseKTimerQueue(&newK->ctrl.localActiveKTimers, GetSysClockUsec()));
+		if (newK->ctrl.g)
+			SetHwTimer(TraverseKTimerQueue(&newK->ctrl.localActiveKTimers, GetSysClockUsec()));
 #ifdef CONFIG_FP_SCHED
-        if (xmcTab.hpv.cpuTab[GET_CPU_ID()].schedPolicy==CYCLIC_SCHED){
-	   sched->cKThread->ctrl.irqMask=HwIrqGetMask();
-        }
-	HwIrqSetMask(newK->ctrl.irqMask);
+		if (xmcTab.hpv.cpuTab[GET_CPU_ID()].schedPolicy==CYCLIC_SCHED) {
+			sched->cKThread->ctrl.irqMask=HwIrqGetMask();
+		}
+		HwIrqSetMask(newK->ctrl.irqMask);
 #else
-	sched->cKThread->ctrl.irqMask=HwIrqGetMask();
-	HwIrqSetMask(newK->ctrl.irqMask);
+		sched->cKThread->ctrl.irqMask=HwIrqGetMask();
+		HwIrqSetMask(newK->ctrl.irqMask);
 #endif
 
-	CONTEXT_SWITCH(newK, &sched->cKThread);
+		CONTEXT_SWITCH(newK, &sched->cKThread);
 
 /*#ifdef CONFIG_FP_SCHED
         if (xmcTab.hpv.cpuTab[GET_CPU_ID()].schedPolicy==CYCLIC_SCHED){
@@ -363,11 +365,12 @@ void Schedule(void) {
            }
         }
 #else*/
-	if (sched->cKThread->ctrl.g) {
-	    ResumeVClock(&sched->cKThread->ctrl.g->vClock, &sched->cKThread->ctrl.g->vTimer);
-        }
+		// now cKThread is our newK already
+		if (sched->cKThread->ctrl.g) {
+			ResumeVClock(&sched->cKThread->ctrl.g->vClock, &sched->cKThread->ctrl.g->vTimer);
+		}
 //#endif
-	SwitchKThreadArchPost(sched->cKThread);
+		SwitchKThreadArchPost(sched->cKThread);
     }
     HwRestoreFlags(hwFlags);
 }
