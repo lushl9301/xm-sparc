@@ -167,6 +167,7 @@ static void __VBOOT LocalSetup(xm_s32_t cpuId, kThread_t *idle)
 	ASSERT(!HwIsSti());
 	ASSERT(xmcTab.hpv.noCpus>cpuId);
 	SetupCpu();
+	// SetupArchLocal is empty
 	SetupArchLocal(cpuId);
 	SetupHwTimer();
 	SetupKTimers();

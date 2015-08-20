@@ -91,8 +91,8 @@ static xm_s32_t TimerHandler(void) {
     cTime=GetSysClockUsec();
     nextAct=TraverseKTimerQueue(&localTime->globalActiveKTimers, cTime);
     if (sched->cKThread->ctrl.g)
-	if ((nLocalAct=TraverseKTimerQueue(&sched->cKThread->ctrl.localActiveKTimers, cTime))&& (nLocalAct<nextAct))
-	    nextAct=nLocalAct;
+        if ((nLocalAct=TraverseKTimerQueue(&sched->cKThread->ctrl.localActiveKTimers, cTime))&& (nLocalAct<nextAct))
+            nextAct=nLocalAct;
     SetHwTimer(nextAct);
 
     return 0;
@@ -212,13 +212,13 @@ void __VBOOT SetupHwTimer(void) {
     if (!(localTime->sysHwTimer=GetSysHwTimer())||(localTime->sysHwTimer->InitHwTimer()<0)) {
         cpuCtxt_t ctxt;
         GetCpuCtxt(&ctxt);
-	SystemPanic(&ctxt, "No hwTimer available\n");
+        SystemPanic(&ctxt, "No hwTimer available\n");
     }
 
     if ((GET_NRCPUS()>1)&&!(localTime->sysHwTimer->flags&PER_CPU)) {
         cpuCtxt_t ctxt;
         GetCpuCtxt(&ctxt);
-	SystemPanic(&ctxt, "No hwTimer available\n");
+        SystemPanic(&ctxt, "No hwTimer available\n");
     }
 
     kprintf("[CPU%d] >> HwTimer [%s (%dKhz)]\n", GET_CPU_ID(), localTime->sysHwTimer->name, localTime->sysHwTimer->freqKhz);
