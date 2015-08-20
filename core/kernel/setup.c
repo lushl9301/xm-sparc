@@ -103,6 +103,7 @@ void IdleTask(void)
 void HaltSystem(void)
 {
 	extern void __HaltSystem(void);
+// may not have bug here; but it's easy to have ones.
 #ifdef CONFIG_SMP
 	if (GET_CPU_ID()==0)
 #endif
@@ -141,6 +142,7 @@ void ResetSystem(xm_u32_t resetMode)
 		sysResetCounter[0] = 0;
 		_Reset((xmAddress_t)start);
 	}
+	// should not reach here.
 	GetCpuCtxt(&ctxt);
 	SystemPanic(&ctxt, "Unreachable point\n");
 }
