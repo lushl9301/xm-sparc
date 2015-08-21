@@ -93,20 +93,21 @@ typedef struct {
 
 union samplingPortCmd {
     struct createSCmd {
-	char *__gParam portName; 
-	xm_u32_t maxMsgSize; 
-	xm_u32_t direction;
+        char *__gParam portName;
+        xm_u32_t maxMsgSize;
+        xm_u32_t direction;
         xmTime_t validPeriod;
     } create;
+    // are these the same?
     xmSamplingPortStatus_t status;
     xmSamplingPortInfo_t info;
 };
 #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
 union ttnocPortCmd {
     struct createTCmd {
-	char *__gParam portName; 
-	xm_u32_t maxMsgSize; 
-	xm_u32_t direction;
+        char *__gParam portName;
+        xm_u32_t maxMsgSize;
+        xm_u32_t direction;
         xmTime_t validPeriod;
     } create;
     xmTTnocPortStatus_t status;
@@ -116,10 +117,10 @@ union ttnocPortCmd {
 
 union queuingPortCmd {
     struct createQCmd {
-	char *__gParam portName; 
-	xm_u32_t maxNoMsgs;
-	xm_u32_t maxMsgSize;
-	xm_u32_t direction;
+        char *__gParam portName;
+        xm_u32_t maxNoMsgs;
+        xm_u32_t maxMsgSize;
+        xm_u32_t direction;
     } create;
     xmQueuingPortStatus_t status;
     xmQueuingPortInfo_t info;
@@ -143,6 +144,7 @@ union channel {
     } s;
 #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
     struct {
+//        Don't need buffer?
 //        char *buffer;
         xm_s32_t length;
         xmTime_t timestamp;
