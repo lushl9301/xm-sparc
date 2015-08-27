@@ -38,12 +38,12 @@ struct xefCustomFile {
 /* <track id="xmHdr"> */
 struct xmHdr {
 #define XMEF_XM_MAGIC 0x24584d68 // $XMh
-    xm_u32_t sSignature;
+    xm_u32_t sSignature; //magic
     xm_u32_t compilationXmAbiVersion; // XM's abi version
     xm_u32_t compilationXmApiVersion; // XM's api version
     xm_u32_t noCustomFiles;
     struct xefCustomFile customFileTab[CONFIG_MAX_NO_CUSTOMFILES];
-    xm_u32_t eSignature;
+    xm_u32_t eSignature; //magic
 } __PACKED;
 /* </track id="xmHdr"> */
 

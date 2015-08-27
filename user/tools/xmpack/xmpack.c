@@ -202,7 +202,7 @@ static void WriteContainerToFile(char *file) {
 	}
 	partitionTab[e].noCustomFiles=RWORD(partitionTab[e].noCustomFiles);
     }
-
+    // interprete the file
     lseek(fd, sizeof(struct xmefContainerHdr), SEEK_SET);
     pos=sizeof(struct xmefContainerHdr);
     pos=ALIGNTO(pos, 8);
