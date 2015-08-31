@@ -72,7 +72,7 @@ static xm_s32_t CtrlMem(xmObjDesc_t desc, xm_u32_t cmd, union memCmd *__gParam a
     switch(cmd) {
     case XM_OBJ_MEM_CPY_AREA:
         return CopyArea(args->cpyArea.dstAddr, args->cpyArea.dstId, args->cpyArea.srcAddr, args->cpyArea.srcId, args->cpyArea.size);
-     }
+    }
 
     return XM_INVALID_PARAM;
 }

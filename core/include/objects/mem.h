@@ -16,13 +16,13 @@
 #define XM_OBJ_MEM_CPY_AREA 0x1
 
 union memCmd {
-	struct cpyArea {
-            xmId_t dstId; 
-            xmAddress_t dstAddr;
-            xmId_t srcId;
-            xmAddress_t srcAddr;
-            xmSSize_t size;
-        } cpyArea;
+    struct cpyArea {
+        xmId_t dstId; 
+        xmAddress_t dstAddr;
+        xmId_t srcId;
+        xmAddress_t srcAddr;
+        xmSSize_t size;
+    } cpyArea;
 };
 
 /*#define XM_MEM_GET_PHYSMEMMAP 0x1
