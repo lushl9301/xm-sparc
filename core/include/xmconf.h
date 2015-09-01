@@ -137,7 +137,7 @@ struct xmcMemoryArea {
 //@% </track id="doc-xmc-memory-area">
 
 struct xmcRsw {
-    xm_s32_t noPhysicalMemoryAreas;    
+    xm_s32_t noPhysicalMemoryAreas;
     xm_u32_t physicalMemoryAreasOffset;
     //xmAddress_t entryPoint;
 };

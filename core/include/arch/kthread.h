@@ -31,7 +31,8 @@ struct kThreadArch {
     xm_u8_t mmuCtxt;
 #endif
     xm_u32_t tbr;
-    // Floating point registers
+    // Floating point 
+    // XM does not use fpu
     xm_u32_t fpuRegs[XM_FPU_REG_NR] ALIGNED_C;
 };
 

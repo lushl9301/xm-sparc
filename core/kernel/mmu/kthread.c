@@ -29,5 +29,6 @@ void SetupPctMm(partitionControlTable_t *partCtrlTab, kThread_t *k) {
     ///???
     // if defined MPU, ptdL1 will not be declared in kThreadArch struct
     // check include/arch/kthread.h
+    // better check before ->
     partCtrlTab->arch._ARCH_PTDL1_REG=k->ctrl.g->kArch.ptdL1;
 }
