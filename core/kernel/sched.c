@@ -328,7 +328,7 @@ void Schedule(void) {
 			kprintf("newK: idle ");
 
 		if (sched->cKThread->ctrl.g)
-			kprintf("curK: [%d:%d] 0x%x\n", KID2PARTID(sched->cKThread->ctrl.g->id), KID2VCPUID(sched->cKThread->ctrl.g->id));
+			kprintf("curK: [%d:%d] 0x%x\n", KID2PARTID(sched->cKThread->ctrl.g->id), KID2VCPUID(sched->cKThread->ctrl.g->id), sched->cKTHread);
 		else
 			kprintf("curK: idle\n");
 #endif
