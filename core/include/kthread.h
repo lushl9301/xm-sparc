@@ -118,7 +118,7 @@ static inline void ClearKThreadFlags(kThread_t *k, xm_u32_t f) {
 
 static inline xm_u32_t AreKThreadFlagsSet(kThread_t *k, xm_u32_t f) {
     xm_u32_t __r;
-
+    // why need lock here
     SpinLock(&k->ctrl.lock);
     __r = k->ctrl.flags & f;
     SpinUnlock(&k->ctrl.lock);

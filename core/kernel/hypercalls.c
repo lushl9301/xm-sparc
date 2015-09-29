@@ -41,6 +41,7 @@ extern struct {
  } hypercallFlagsTab[NR_HYPERCALLS];
 
 __hypercall xm_s32_t MulticallSys(void *__gParam startAddr, void *__gParam endAddr) {
+//get multiple hypercalls, and update startAddr to endAddr
 #define BATCH_GET_PARAM(_addr, _arg) *(xm_u32_t *)((_addr)+sizeof(xm_u32_t)*(2+(_arg)))
     extern xm_s32_t (*hypercallsTab[NR_HYPERCALLS])(xmWord_t, ...);
     xmAddress_t addr;
@@ -48,22 +49,22 @@ __hypercall xm_s32_t MulticallSys(void *__gParam startAddr, void *__gParam endAd
 
     ASSERT(!HwIsSti());
     if (endAddr<startAddr)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (CheckGParam(startAddr, (xmAddress_t)endAddr-(xmAddress_t)startAddr, 4, PFLAG_RW)<0)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     for (addr=(xmAddress_t)startAddr; addr<(xmAddress_t)endAddr;) {
-	noHyp=*(xm_u32_t *)addr;
-	*(xm_u32_t *)(addr+sizeof(xm_u32_t))&=~(0xffff<<16);
-	if ((noHyp>=NR_HYPERCALLS)||
+        noHyp=*(xm_u32_t *)addr;
+        *(xm_u32_t *)(addr+sizeof(xm_u32_t))&=~(0xffff<<16);
+        if ((noHyp>=NR_HYPERCALLS)||
             (*(xm_u32_t *)(addr+sizeof(xm_u32_t))!=HYP_NO_ARGS(hypercallFlagsTab[noHyp].noArgs))) {
-	    *(xm_u32_t *)(addr+sizeof(xm_u32_t))|=(XM_INVALID_PARAM<<16);
+            *(xm_u32_t *)(addr+sizeof(xm_u32_t))|=(XM_INVALID_PARAM<<16);
             PWARN("[MULTICALL] hyp %d no. params mismatches\n", noHyp);
-	    return XM_MULTICALL_ERROR;
-	}
-	*(xm_u32_t *)(addr+sizeof(xm_u32_t))|=hypercallsTab[noHyp](BATCH_GET_PARAM(addr, 0), BATCH_GET_PARAM(addr, 1), BATCH_GET_PARAM(addr, 2), BATCH_GET_PARAM(addr, 3), BATCH_GET_PARAM(addr, 4))<<16;
-	addr+=(HYP_NO_ARGS(hypercallFlagsTab[noHyp].noArgs)+2)*sizeof(xm_u32_t);
+            return XM_MULTICALL_ERROR;
+        }
+        *(xm_u32_t *)(addr+sizeof(xm_u32_t))|=hypercallsTab[noHyp](BATCH_GET_PARAM(addr, 0), BATCH_GET_PARAM(addr, 1), BATCH_GET_PARAM(addr, 2), BATCH_GET_PARAM(addr, 3), BATCH_GET_PARAM(addr, 4))<<16;
+        addr+=(HYP_NO_ARGS(hypercallFlagsTab[noHyp].noArgs)+2)*sizeof(xm_u32_t);
     }
 
 #undef BATCH_GET_PARAM
@@ -71,6 +72,7 @@ __hypercall xm_s32_t MulticallSys(void *__gParam startAddr, void *__gParam endAd
 }
 
 __hypercall xm_s32_t HaltPartitionSys(xmId_t partitionId) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     cpuCtxt_t ctxt;
     xm_s32_t e;
@@ -78,16 +80,16 @@ __hypercall xm_s32_t HaltPartitionSys(xmId_t partitionId) {
     ASSERT(!HwIsSti());
     if (partitionId!=KID2PARTID(sched->cKThread->ctrl.g->id)) {
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	    return XM_PERM_ERROR;
+            return XM_PERM_ERROR;
 
         if (partitionId>=xmcTab.noPartitions)
-	    return XM_INVALID_PARAM;
+            return XM_INVALID_PARAM;
 
-
+        //??? why need to find the first unsetted CPU
         for (e=0; e<partitionTab[partitionId].cfg->noVCpus; e++)
             if (!AreKThreadFlagsSet(partitionTab[partitionId].kThread[e], KTHREAD_HALTED_F))
                 break;
-
+        //???
         if (e>=partitionTab[partitionId].cfg->noVCpus)
             return XM_NO_ACTION;
 
@@ -102,10 +104,10 @@ __hypercall xm_s32_t HaltPartitionSys(xmId_t partitionId) {
 #ifdef CONFIG_DEBUG
     kprintf("[HYPERCALL] (0x%x) Halted\n", partitionId);
 #endif
+    // here to re-schedule
     Schedule();
     GetCpuCtxt(&ctxt);
     SystemPanic(&ctxt, "[HYPERCALL] A halted partition is being executed");
-
     return XM_OK;
 }
 
@@ -115,16 +117,16 @@ __hypercall xm_s32_t HaltPartitionNodeSys(xmId_t nodeId, xmId_t partitionId) {
 
     ASSERT(!HwIsSti());
     if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	   return XM_PERM_ERROR;
+        return XM_PERM_ERROR;
 
     if ((nodeId<0)||(nodeId>=CONFIG_TTNOC_NODES))
-    	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (ttnocNodes[nodeId].txSlot==NULL)
-    	return XM_INVALID_CONFIG;
+        return XM_INVALID_CONFIG;
 
     if (partitionId>xmMessageTTNoCRemoteRx[nodeId].infoNode.noParts)
-	    return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     setCommandPart(nodeId,partitionId,TTNOC_CMD_HALT);
     return XM_OK;
@@ -190,7 +192,7 @@ __hypercall xm_s32_t ResetVCpuSys(xmId_t vCpuId, xmAddress_t ptdL1, xmAddress_t 
         return XM_INVALID_PARAM;
 
     if (!(ptdL1Page=PmmFindPage(ptdL1, partition, 0)))
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (ptdL1Page->type!=PPAG_PTDL1)
         return XM_INVALID_PARAM;
@@ -242,7 +244,7 @@ __hypercall xm_s32_t HaltSystemSys(void) {
     ASSERT(!HwIsSti());
 
     if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	return XM_PERM_ERROR;
+        return XM_PERM_ERROR;
 
     HwCli();
     HaltSystem();
@@ -256,13 +258,13 @@ __hypercall xm_s32_t HaltSystemNodeSys(xmId_t nodeId) {
     ASSERT(!HwIsSti());
 
     if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	return XM_PERM_ERROR;
+        return XM_PERM_ERROR;
 
     if ((nodeId<0)||(nodeId>=CONFIG_TTNOC_NODES))
-    	return XM_INVALID_PARAM;
+            return XM_INVALID_PARAM;
 
     if (ttnocNodes[nodeId].txSlot==NULL)
-    	return XM_INVALID_CONFIG;
+            return XM_INVALID_CONFIG;
 
     setCommandHyp(nodeId,TTNOC_CMD_HALT);
 
@@ -277,7 +279,7 @@ __hypercall xm_s32_t ResetSystemSys(xm_u32_t resetMode) {
 
     ASSERT(!HwIsSti());
     if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	return XM_PERM_ERROR;
+        return XM_PERM_ERROR;
 
     if ((resetMode!=XM_COLD_RESET)&&(resetMode!=XM_WARM_RESET))
         return XM_INVALID_PARAM;
@@ -300,10 +302,10 @@ __hypercall xm_s32_t ResetSystemNodeSys(xmId_t nodeId, xm_u32_t resetMode) {
         return XM_INVALID_PARAM;
 
     if ((nodeId<0)||(nodeId>=CONFIG_TTNOC_NODES))
-    	return XM_INVALID_PARAM;
+            return XM_INVALID_PARAM;
 
     if (ttnocNodes[nodeId].txSlot==NULL)
-    	return XM_INVALID_CONFIG;
+            return XM_INVALID_CONFIG;
 
     if (resetMode==XM_COLD_RESET)
        setCommandHyp(nodeId,TTNOC_CMD_COLD_RESET);
@@ -375,10 +377,10 @@ __hypercall xm_s32_t SwitchSchedPlanNodeSys(xmId_t nodeId, xm_u32_t newPlanId, x
         return XM_PERM_ERROR;
 
     if ((nodeId<0)||(nodeId>=CONFIG_TTNOC_NODES))
-    	return XM_INVALID_PARAM;
+            return XM_INVALID_PARAM;
 
     if (ttnocNodes[nodeId].txSlot==NULL)
-    	return XM_INVALID_CONFIG;
+            return XM_INVALID_CONFIG;
 
     if (CheckGParam(currentPlanId, sizeof(xm_u32_t), 4, PFLAG_RW|PFLAG_NOT_NULL)<0)
         return XM_INVALID_PARAM;
@@ -387,7 +389,7 @@ __hypercall xm_s32_t SwitchSchedPlanNodeSys(xmId_t nodeId, xm_u32_t newPlanId, x
         return XM_NO_ACTION;
 
     if (newPlanId>= xmMessageTTNoCRemoteRx[nodeId].infoNode.noSchedPlans)
-	    return XM_INVALID_PARAM;
+            return XM_INVALID_PARAM;
 
     *currentPlanId=xmMessageTTNoCRemoteRx[nodeId].stateHyp.currSchedPlan;
     setCommandNewSchedPlan(nodeId,newPlanId);
@@ -402,10 +404,10 @@ __hypercall xm_s32_t SuspendPartitionSys(xmId_t partitionId) {
     ASSERT(!HwIsSti());
     if (partitionId!=KID2PARTID(sched->cKThread->ctrl.g->id)) {
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	    return XM_PERM_ERROR;
+            return XM_PERM_ERROR;
 
-	if (partitionId>=xmcTab.noPartitions)
-    	    return XM_INVALID_PARAM;
+        if (partitionId>=xmcTab.noPartitions)
+                return XM_INVALID_PARAM;
 
         for (e=0; e<partitionTab[partitionId].cfg->noVCpus; e++)
             if (!AreKThreadFlagsSet(partitionTab[partitionId].kThread[e], KTHREAD_SUSPENDED_F|KTHREAD_HALTED_F))
@@ -415,7 +417,7 @@ __hypercall xm_s32_t SuspendPartitionSys(xmId_t partitionId) {
             return XM_NO_ACTION;
 
         SUSPEND_PARTITION(partitionId);
-	return XM_OK;
+        return XM_OK;
     }
 
     SUSPEND_PARTITION(partitionId);
@@ -432,10 +434,10 @@ __hypercall xm_s32_t ResumePartitionSys(xmId_t partitionId) {
         return XM_NO_ACTION;
 
     if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	return XM_PERM_ERROR;
+        return XM_PERM_ERROR;
 
     if (partitionId>=xmcTab.noPartitions)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     for (e=0; e<partitionTab[partitionId].cfg->noVCpus; e++)
         if (AreKThreadFlagsSet(partitionTab[partitionId].kThread[e], KTHREAD_SUSPENDED_F)&&!AreKThreadFlagsSet(partitionTab[partitionId].kThread[e], KTHREAD_HALTED_F))
@@ -454,7 +456,7 @@ __hypercall xm_s32_t ResetPartitionSys(xmId_t partitionId, xm_u32_t resetMode, x
     ASSERT(!HwIsSti());
     if (partitionId!=KID2PARTID(sched->cKThread->ctrl.g->id)) {
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	    return XM_PERM_ERROR;
+            return XM_PERM_ERROR;
         if (partitionId>=xmcTab.noPartitions)
             return XM_INVALID_PARAM;
     }
@@ -475,24 +477,24 @@ __hypercall xm_s32_t ResetPartitionNodeSys(xmId_t nodeId, xmId_t partitionId, xm
     ASSERT(!HwIsSti());
 
     if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	   return XM_PERM_ERROR;
+           return XM_PERM_ERROR;
 
     if ((nodeId<0)||(nodeId>=CONFIG_TTNOC_NODES))
-    	return XM_INVALID_PARAM;
+            return XM_INVALID_PARAM;
 
     if (ttnocNodes[nodeId].txSlot==NULL)
-    	return XM_INVALID_CONFIG;
+            return XM_INVALID_CONFIG;
 
     if (partitionId>xmMessageTTNoCRemoteRx[nodeId].infoNode.noParts)
-	    return XM_INVALID_PARAM;
+            return XM_INVALID_PARAM;
 
     if ((resetMode!=XM_WARM_RESET)||(resetMode!=XM_COLD_RESET))
-    	return XM_INVALID_PARAM;
+            return XM_INVALID_PARAM;
 
     if (resetMode==XM_COLD_RESET)
         setCommandPart(nodeId,partitionId,TTNOC_CMD_COLD_RESET);
     else
-    	setCommandPart(nodeId,partitionId,TTNOC_CMD_WARM_RESET);
+            setCommandPart(nodeId,partitionId,TTNOC_CMD_WARM_RESET);
 
     return XM_OK;
 }
@@ -504,9 +506,9 @@ __hypercall xm_s32_t ShutdownPartitionSys(xmId_t partitionId) {
     ASSERT(!HwIsSti());
     if (partitionId!=KID2PARTID(sched->cKThread->ctrl.g->id)) {
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	    return XM_PERM_ERROR;
-	if (partitionId>=xmcTab.noPartitions)
-	    return XM_INVALID_PARAM;
+            return XM_PERM_ERROR;
+        if (partitionId>=xmcTab.noPartitions)
+            return XM_INVALID_PARAM;
     }
 
     SHUTDOWN_PARTITION(partitionId);
@@ -538,37 +540,37 @@ __hypercall xm_s32_t SetTimerSys(xm_u32_t clockId, xmTime_t abstime, xmTime_t in
     ASSERT(!HwIsSti());
 
     if ((abstime<0)||(interval<0))
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     // Disarming a timer
     if (!abstime) {
-	switch(clockId) {
-	case XM_HW_CLOCK:
-	    DisarmKTimer(&sched->cKThread->ctrl.g->kTimer);
-	    return XM_OK;
-	case XM_EXEC_CLOCK:
-	    DisarmVTimer(&sched->cKThread->ctrl.g->vTimer, &sched->cKThread->ctrl.g->vClock);
-	    return XM_OK;
-	case XM_WATCHDOG_TIMER:
-	    DisarmKTimer(&sched->cKThread->ctrl.g->watchdogTimer);
-	    return XM_OK;
-	default:
-	    return XM_INVALID_PARAM;
-	}
+        switch(clockId) {
+        case XM_HW_CLOCK:
+            DisarmKTimer(&sched->cKThread->ctrl.g->kTimer);
+            return XM_OK;
+        case XM_EXEC_CLOCK:
+            DisarmVTimer(&sched->cKThread->ctrl.g->vTimer, &sched->cKThread->ctrl.g->vClock);
+            return XM_OK;
+        case XM_WATCHDOG_TIMER:
+            DisarmKTimer(&sched->cKThread->ctrl.g->watchdogTimer);
+            return XM_OK;
+        default:
+            return XM_INVALID_PARAM;
+        }
     }
     // Arming a timer
     switch(clockId) {
     case XM_HW_CLOCK:
-	ret=ArmKTimer(&sched->cKThread->ctrl.g->kTimer, abstime, interval);
-	break;
+        ret=ArmKTimer(&sched->cKThread->ctrl.g->kTimer, abstime, interval);
+        break;
     case XM_EXEC_CLOCK:
-	ret=ArmVTimer(&sched->cKThread->ctrl.g->vTimer, &sched->cKThread->ctrl.g->vClock, abstime, interval);
-	break;
+        ret=ArmVTimer(&sched->cKThread->ctrl.g->vTimer, &sched->cKThread->ctrl.g->vClock, abstime, interval);
+        break;
     case XM_WATCHDOG_TIMER:
-	ret=ArmKTimer(&sched->cKThread->ctrl.g->watchdogTimer, abstime, interval);
-	break;
+        ret=ArmKTimer(&sched->cKThread->ctrl.g->watchdogTimer, abstime, interval);
+        break;
     default:
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
     }
 
     return ret;
@@ -582,14 +584,14 @@ __hypercall xm_s32_t GetTimeSys(xm_u32_t clockId, xmTime_t *__gParam time) {
 
     switch(clockId) {
     case XM_HW_CLOCK:
-	*time=GetSysClockUsec();
-	break;
+        *time=GetSysClockUsec();
+        break;
 
     case XM_EXEC_CLOCK:
-	*time=GetTimeUsecVClock(&sched->cKThread->ctrl.g->vClock);
-	break;
+        *time=GetTimeUsecVClock(&sched->cKThread->ctrl.g->vClock);
+        break;
     default:
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
     }
 
     return XM_OK;
@@ -828,7 +830,7 @@ __hypercall xm_s32_t RaiseIpviSys(xm_u8_t noIpvi) {
     ASSERT(!HwIsSti());
 
     if ((noIpvi<XM_VT_EXT_IPVI0)||(noIpvi>=XM_VT_EXT_IPVI0+CONFIG_XM_MAX_IPVI))
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
     ipvi=&GetPartition(sched->cKThread)->cfg->ipviTab[noIpvi-XM_VT_EXT_IPVI0];
     if (ipvi->noDsts<=0)
         return XM_NO_ACTION;
@@ -861,7 +863,7 @@ __hypercall xm_s32_t GetGidByNameSys(xm_u8_t *__gParam name, xm_u32_t entity) {
     xm_s32_t e, id=XM_INVALID_CONFIG;
 
     if (CheckGParam(name, CONFIG_ID_STRING_LENGTH, 1, PFLAG_NOT_NULL)<0)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     switch(entity) {
     case XM_PARTITION_NAME:
