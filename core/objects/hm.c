@@ -51,7 +51,7 @@ static xm_s32_t ReadHmLog(xmObjDesc_t desc, xmHmLog_t *__gParam log, xm_u32_t si
     for (e=0; e<noLogs; e++)
 	if (LogStreamGet(&hmLogStream, &log[e])<0)
 	    return e*sizeof(xmHmLog_t);
-    
+
     return noLogs*sizeof(xmHmLog_t);
 }
 
@@ -185,6 +185,7 @@ xm_s8_t *hmAction2Str[XM_HM_MAX_ACTIONS]={
 REGISTER_OBJ(SetupHm);
 
 xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
+//takeover different event and response with printf msg and corresponding operations
     xm_s32_t propagate=0;
 #ifdef CONFIG_CYCLIC_SCHED
     xm_s32_t  oldPlanId;
@@ -210,8 +211,10 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
     cTime=GetSysClockUsec();
     log->signature=XM_HMLOG_SIGNATURE;
     eventId=(log->opCodeL&HMLOG_OPCODE_EVENT_MASK)>>HMLOG_OPCODE_EVENT_BIT;
-    ASSERT((eventId>=0)&&(eventId<XM_HM_MAX_EVENTS));   
+    ASSERT((eventId>=0)&&(eventId<XM_HM_MAX_EVENTS));
     partitionId=(log->opCodeL&HMLOG_OPCODE_PARTID_MASK)>>HMLOG_OPCODE_PARTID_BIT;
+    //This is set to be |=HMLOG_OPCODE_SYS_MASK
+    //TODO this is used for checking nested raising events?
     system=(log->opCodeH&HMLOG_OPCODE_SYS_MASK)?1:0;
 #ifdef CONFIG_OBJ_STATUS_ACC
     systemStatus.noHmEvents++;
@@ -224,7 +227,7 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
         kprintf("%s ", hmEvent2Str[eventId]);
     else
         kprintf("unknown ");
-    
+
     kprintf("(%d)", eventId);
 
     if (system)
@@ -239,7 +242,7 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
             kprintf("0x%lx ", log->payload[e]);
         kprintf("\n");
     } else
-        PrintHmCpuCtxt(&log->cpuCtxt);   
+        PrintHmCpuCtxt(&log->cpuCtxt);
 #endif
     if (system) {
 #ifdef CONFIG_OBJ_HM_VERBOSE
@@ -249,7 +252,7 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
         else
             kprintf("unknown");
         kprintf("(%d) ", xmcTab.hpv.hmTab[eventId].action);
-        
+
         kprintf("%s\n", hmLog2Str[xmcTab.hpv.hmTab[eventId].log]);
 #endif
 #ifdef CONFIG_AUDIT_EVENTS
@@ -332,7 +335,7 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
                 HALT_PARTITION(partitionId);
                 Schedule();
             }
-                
+
 	    break;
 	case XM_HM_AC_PARTITION_WARM_RESET:
 #ifdef CONFIG_OBJ_HM_VERBOSE
@@ -342,7 +345,7 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
                 HALT_PARTITION(partitionId);
                 Schedule();
             }
-            
+
 	    break;
 	case XM_HM_AC_HYPERVISOR_COLD_RESET:
             resetStatusInit[0]=(XM_HM_RESET_STATUS_MODULE_RESTART<<XM_HM_RESET_STATUS_USER_CODE_BIT)|(eventId&XM_HM_RESET_STATUS_EVENT_MASK);
@@ -378,6 +381,7 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
             Schedule();
 	    break;
 #endif
+        //TODO don't understand
 	case XM_HM_AC_PROPAGATE:
 	    propagate=1;
 	    break;

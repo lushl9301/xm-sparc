@@ -66,6 +66,7 @@ void DefaultIrqHandler(cpuCtxt_t *ctxt, void *data) {
 }
 
 static void TriggerIrqHandler(cpuCtxt_t *ctxt, void *data) {
+//Trigger hw irq
     xmId_t partId;
     partId=xmcTab.hpv.hwIrqTab[ctxt->irqNr].owner;
 
@@ -74,14 +75,17 @@ static void TriggerIrqHandler(cpuCtxt_t *ctxt, void *data) {
 }
 
 void SetTrapPending(cpuCtxt_t *ctxt) {
-    localSched_t *sched=GET_LOCAL_SCHED();
 
-    //TODO why never use ctxt?
+    localSched_t *sched=GET_LOCAL_SCHED();
+    //TODO it doesn't matter if the flag is set or not
+    //     I think we should check if it is halted
+    //     or maybe it won't trigger trap when halted
     ASSERT(!AreKThreadFlagsSet(sched->cKThread, KTHREAD_TRAP_PENDING_F));
     SetKThreadFlags(sched->cKThread, KTHREAD_TRAP_PENDING_F);
 }
 
 static inline xmAddress_t IsInPartExTable(xmAddress_t addr) {
+//exPTablePtr is constructed by asm; a and b are pc?
     extern struct exPTable {
         xmAddress_t a;
         xmAddress_t b;
@@ -98,6 +102,7 @@ static inline xmAddress_t IsInPartExTable(xmAddress_t addr) {
 }
 
 void DoTrap(cpuCtxt_t *ctxt) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     xmHmLog_t hmLog;
     xm_s32_t action;
@@ -128,21 +133,24 @@ void DoTrap(cpuCtxt_t *ctxt) {
             return;
 
     if (sched->cKThread->ctrl.g){
-       if (!ArePCtrlTabTrapsSet(sched->cKThread->ctrl.g->partCtrlTab->iFlags))
-          DoUnrecovExcp(ctxt);
+        if (!ArePCtrlTabTrapsSet(sched->cKThread->ctrl.g->partCtrlTab->iFlags))
+            DoUnrecovExcp(ctxt);
+        // no need to return here; in DoUnrecovExcp, there is HmRaiseEvent
     }
 
     /*Fast propagation of partition events not logged.*/
     if (!IsSvIrqCtxt(ctxt)) {
-       ASSERT(hmEvent<XM_HM_MAX_EVENTS);
-       if ((GetPartition(sched->cKThread)->cfg->hmTab[hmEvent].action==XM_HM_AC_PROPAGATE)&&(!GetPartition(sched->cKThread)->cfg->hmTab[hmEvent].log)){
+        ASSERT(hmEvent<XM_HM_MAX_EVENTS);
+        // no hmEvent currently
+        if ((GetPartition(sched->cKThread)->cfg->hmTab[hmEvent].action==XM_HM_AC_PROPAGATE)
+         &&(!GetPartition(sched->cKThread)->cfg->hmTab[hmEvent].log)){
 #ifdef CONFIG_VERBOSE_TRAP
-          kprintf("[TRAP] %s(0x%x)\n", trap2Str[ctxt->irqNr], ctxt->irqNr);
-          DumpState(ctxt);
+            kprintf("[TRAP] %s(0x%x)\n", trap2Str[ctxt->irqNr], ctxt->irqNr);
+            DumpState(ctxt);
 #endif
-          SetTrapPending(ctxt);
-          return;
-       }
+            SetTrapPending(ctxt);
+            return;
+        }
     }
 
     memset(&hmLog, 0, sizeof(xmHmLog_t));
@@ -168,13 +176,15 @@ void DoTrap(cpuCtxt_t *ctxt) {
     if (IsSvIrqCtxt(ctxt)&&((hmLog.opCodeH&HMLOG_OPCODE_SYS_MASK)!=HMLOG_OPCODE_SYS_MASK))
         PartitionPanic(ctxt, "Partition in unrecoverable state\n");
     if (!IsSvIrqCtxt(ctxt)) {
-	if (action)
+        // if propagate in hm.c is 1;
+        if (action)
 	    SetTrapPending(ctxt);
     } else
 	SystemPanic(ctxt, "Unexpected/unhandled trap - TRAP: 0x%x ERROR CODE: 0x%x\n", sched->cKThread->ctrl.g->partCtrlTab->trap2Vector[ctxt->irqNr], GET_ECODE(ctxt));
 }
 
 void DoUnrecovExcp(cpuCtxt_t *ctxt) {
+// both default and unrecov exception need HmRaiseEvent and reset
     localSched_t *sched=GET_LOCAL_SCHED();
     xmHmLog_t hmLog;
 
@@ -195,6 +205,7 @@ void DoUnrecovExcp(cpuCtxt_t *ctxt) {
     DumpState(ctxt);
     HmRaiseEvent(&hmLog);
 
+    // if not recovered, panic
     PartitionPanic(ctxt, "Partition unrecoverable error : 0x%x\n", ctxt->irqNr);
 }
 
@@ -218,7 +229,7 @@ void DoIrq(cpuCtxt_t *ctxt) {
     HwEndIrq(ctxt->irqNr);
 #endif
 
-    //TODOfinished? so can just schedule here?
+    //TODO finished? so can just schedule here?
     cpu->irqNestingCounter--;
     do {
 	Schedule();
@@ -261,7 +272,6 @@ irqHandler_t SetIrqHandler(xm_s32_t irq, irqHandler_t irqHandler, void *data) {
     } else
 	irqHandlerTab[irq]=(struct irqTabEntry){
 	    .handler=DefaultIrqHandler,
-	    .data=0,
 	};
     return oldHandler;
 }

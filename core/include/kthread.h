@@ -179,7 +179,7 @@ static inline void SetPartitionHwIrqPending(partition_t *p, xm_s32_t irq) {
         if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
             continue;
         SpinLock(&k->ctrl.lock);
-        //TODO why need irq here. don't need on top
+        //TODO why need LOCK here. don't need on top
         k->ctrl.g->partCtrlTab->hwIrqsPend |= (1 << irq);
         SpinUnlock(&k->ctrl.lock);
         SetKThreadFlags(k, KTHREAD_READY_F);
