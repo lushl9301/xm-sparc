@@ -198,7 +198,7 @@ void SendIpi(xm_u8_t dst, xm_u8_t dstShortHand, xm_u8_t vector) {
         break;
     case ALL_INC_SELF:
         for (e=0; e<GET_NRCPUS(); e++) {
-            StoreIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_MASK_REG, LoadIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_MASK_REG)|((1<<vector)&IMASK_MASK));        
+            StoreIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_MASK_REG, LoadIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_MASK_REG)|((1<<vector)&IMASK_MASK));
             StoreIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_FORCE_REG, 1<<vector);
         }
         break;
@@ -206,11 +206,10 @@ void SendIpi(xm_u8_t dst, xm_u8_t dstShortHand, xm_u8_t vector) {
         for (e=0; e<GET_NRCPUS(); e++) {
             if (e==cpuIdSelf)
                 continue;
-            StoreIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_MASK_REG, LoadIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_MASK_REG)|((1<<vector)&IMASK_MASK));            
+            StoreIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_MASK_REG, LoadIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_MASK_REG)|((1<<vector)&IMASK_MASK));
             StoreIoReg(GET_APIC_BASE_NCPU(e)+PROC0_INT_FORCE_REG, 1<<vector);
         }
         break;
     }
 }
 #endif
-

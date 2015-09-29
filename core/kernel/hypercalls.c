@@ -38,7 +38,7 @@ extern xm_u32_t resetStatusInit[];
 extern struct {
     xm_u32_t noArgs;
 #define HYP_NO_ARGS(args) ((args)&~0x80000000)
- } hypercallFlagsTab[NR_HYPERCALLS];
+} hypercallFlagsTab[NR_HYPERCALLS];
 
 __hypercall xm_s32_t MulticallSys(void *__gParam startAddr, void *__gParam endAddr) {
 //get multiple hypercalls, and update startAddr to endAddr
@@ -72,7 +72,7 @@ __hypercall xm_s32_t MulticallSys(void *__gParam startAddr, void *__gParam endAd
 }
 
 __hypercall xm_s32_t HaltPartitionSys(xmId_t partitionId) {
-//
+//halt partition and reschedule
     localSched_t *sched=GET_LOCAL_SCHED();
     cpuCtxt_t ctxt;
     xm_s32_t e;
@@ -85,11 +85,11 @@ __hypercall xm_s32_t HaltPartitionSys(xmId_t partitionId) {
         if (partitionId>=xmcTab.noPartitions)
             return XM_INVALID_PARAM;
 
-        //??? why need to find the first unsetted CPU
+        ///??? why need to find the first unsetted CPU
         for (e=0; e<partitionTab[partitionId].cfg->noVCpus; e++)
             if (!AreKThreadFlagsSet(partitionTab[partitionId].kThread[e], KTHREAD_HALTED_F))
                 break;
-        //???
+        ///???
         if (e>=partitionTab[partitionId].cfg->noVCpus)
             return XM_NO_ACTION;
 
@@ -134,6 +134,7 @@ __hypercall xm_s32_t HaltPartitionNodeSys(xmId_t nodeId, xmId_t partitionId) {
 #endif
 
 __hypercall xm_s32_t SuspendVCpuSys(xmId_t vCpuId) {
+//suspendVCpu; if k is current running thread, reschedule
     localSched_t *sched=GET_LOCAL_SCHED();
     kThread_t *k;
 
@@ -156,6 +157,7 @@ __hypercall xm_s32_t SuspendVCpuSys(xmId_t vCpuId) {
 }
 
 __hypercall xm_s32_t ResumeVCpuSys(xmId_t vCpuId) {
+//RESUME_VCPU
     localSched_t *sched=GET_LOCAL_SCHED();
     kThread_t *k;
 
@@ -173,10 +175,11 @@ __hypercall xm_s32_t ResumeVCpuSys(xmId_t vCpuId) {
     if (k==sched->cKThread)
         Schedule();
 #ifdef CONFIG_SMP
-    else{
-    xm_u8_t cpu=xmcVCpuTab[(KID2PARTID(sched->cKThread->ctrl.g->id)*xmcTab.hpv.noCpus)+vCpuId].cpu;
-    if (cpu!=GET_CPU_ID())
-       SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
+    else {
+        xm_u8_t cpu=xmcVCpuTab[(KID2PARTID(sched->cKThread->ctrl.g->id)*xmcTab.hpv.noCpus)+vCpuId].cpu;
+        if (cpu!=GET_CPU_ID())
+            SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
+            ///here may contain bugs if there is only one cpu
     }
 #endif
 
@@ -184,6 +187,7 @@ __hypercall xm_s32_t ResumeVCpuSys(xmId_t vCpuId) {
 }
 
 __hypercall xm_s32_t ResetVCpuSys(xmId_t vCpuId, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u32_t status) {
+//halt VCpu; ResetKThread;
     localSched_t *sched=GET_LOCAL_SCHED();
     partition_t *partition=GetPartition(sched->cKThread);
     struct physPage *ptdL1Page;
@@ -211,11 +215,13 @@ __hypercall xm_s32_t ResetVCpuSys(xmId_t vCpuId, xmAddress_t ptdL1, xmAddress_t 
 }
 
 __hypercall xmId_t GetVCpuIdSys(void) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     return KID2VCPUID(sched->cKThread->ctrl.g->id);
 }
 
 __hypercall xm_s32_t HaltVCpuSys(xmId_t vCpuId) {
+//similar as above
     localSched_t *sched=GET_LOCAL_SCHED();
     kThread_t *k;
 
@@ -228,7 +234,7 @@ __hypercall xm_s32_t HaltVCpuSys(xmId_t vCpuId) {
 
     if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
         return XM_NO_ACTION;
-
+    ///??? how about smp
     HALT_VCPU(KID2PARTID(k->ctrl.g->id), KID2VCPUID(k->ctrl.g->id));
 
     if (k==sched->cKThread)
@@ -238,6 +244,7 @@ __hypercall xm_s32_t HaltVCpuSys(xmId_t vCpuId) {
 }
 
 __hypercall xm_s32_t HaltSystemSys(void) {
+//HaltSystem is implemented in setup.c
     localSched_t *sched=GET_LOCAL_SCHED();
     extern void HaltSystem(void);
 
@@ -274,6 +281,7 @@ __hypercall xm_s32_t HaltSystemNodeSys(xmId_t nodeId) {
 
 // XXX: the ".data" section is restored during the initialisation
 __hypercall xm_s32_t ResetSystemSys(xm_u32_t resetMode) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
 
 
@@ -318,6 +326,7 @@ __hypercall xm_s32_t ResetSystemNodeSys(xmId_t nodeId, xm_u32_t resetMode) {
 #endif
 
 __hypercall xm_s32_t FlushCacheSys(xm_u32_t cache) {
+//set current flag to ~(XM_DCACHE|XM_ICACHE)
     localSched_t *sched=GET_LOCAL_SCHED();
 
     ASSERT(!HwIsSti());
@@ -328,12 +337,14 @@ __hypercall xm_s32_t FlushCacheSys(xm_u32_t cache) {
 }
 
 __hypercall xm_s32_t SetCacheStateSys(xm_u32_t cache) {
+//enable cache and ...
     localSched_t *sched=GET_LOCAL_SCHED();
 
     ASSERT(!HwIsSti());
     if (cache&~(XM_DCACHE|XM_ICACHE))
         return XM_INVALID_PARAM;
 
+    //clear first then reset?
     ClearKThreadFlags(sched->cKThread, KTHREAD_CACHE_ENABLED_W);
     SetKThreadFlags(sched->cKThread, (cache&KTHREAD_CACHE_ENABLED_W)<<KTHREAD_CACHE_ENABLED_B);
 
@@ -341,6 +352,7 @@ __hypercall xm_s32_t SetCacheStateSys(xm_u32_t cache) {
 }
 
 __hypercall xm_s32_t SwitchSchedPlanSys(xm_u32_t newPlanId, xm_u32_t *__gParam currentPlanId) {
+//check plans and switch plan
 #ifdef CONFIG_CYCLIC_SCHED
     localSched_t *sched=GET_LOCAL_SCHED();
 
@@ -399,6 +411,7 @@ __hypercall xm_s32_t SwitchSchedPlanNodeSys(xmId_t nodeId, xm_u32_t newPlanId, x
 #endif
 
 __hypercall xm_s32_t SuspendPartitionSys(xmId_t partitionId) {
+//similar as HaltPartitionSys;
     localSched_t *sched=GET_LOCAL_SCHED();
     xm_s32_t e;
     ASSERT(!HwIsSti());
@@ -407,8 +420,8 @@ __hypercall xm_s32_t SuspendPartitionSys(xmId_t partitionId) {
             return XM_PERM_ERROR;
 
         if (partitionId>=xmcTab.noPartitions)
-                return XM_INVALID_PARAM;
-
+            return XM_INVALID_PARAM;
+        // if all VCpus are suspened or halted, then no action???
         for (e=0; e<partitionTab[partitionId].cfg->noVCpus; e++)
             if (!AreKThreadFlagsSet(partitionTab[partitionId].kThread[e], KTHREAD_SUSPENDED_F|KTHREAD_HALTED_F))
                 break;
@@ -426,6 +439,7 @@ __hypercall xm_s32_t SuspendPartitionSys(xmId_t partitionId) {
 }
 
 __hypercall xm_s32_t ResumePartitionSys(xmId_t partitionId) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     xm_s32_t e;
     ASSERT(!HwIsSti());
@@ -451,8 +465,8 @@ __hypercall xm_s32_t ResumePartitionSys(xmId_t partitionId) {
 }
 
 __hypercall xm_s32_t ResetPartitionSys(xmId_t partitionId, xm_u32_t resetMode, xm_u32_t status) {
+//iff current parition is system partition then do reset partition
     localSched_t *sched=GET_LOCAL_SCHED();
-
     ASSERT(!HwIsSti());
     if (partitionId!=KID2PARTID(sched->cKThread->ctrl.g->id)) {
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
@@ -501,6 +515,7 @@ __hypercall xm_s32_t ResetPartitionNodeSys(xmId_t nodeId, xmId_t partitionId, xm
 #endif
 
 __hypercall xm_s32_t ShutdownPartitionSys(xmId_t partitionId) {
+//similarly, iff current thread is system partition
     localSched_t *sched=GET_LOCAL_SCHED();
 
     ASSERT(!HwIsSti());
@@ -516,6 +531,7 @@ __hypercall xm_s32_t ShutdownPartitionSys(xmId_t partitionId) {
 }
 
 __hypercall xm_s32_t IdleSelfSys(void) {
+//sched yield to idleKThread and re-schedule
     localSched_t *sched=GET_LOCAL_SCHED();
 #ifdef CONFIG_AUDIT_EVENTS
     xmWord_t arg=KID2PARTID(sched->cKThread->ctrl.g->id);
@@ -534,6 +550,7 @@ __hypercall xm_s32_t IdleSelfSys(void) {
 }
 
 __hypercall xm_s32_t SetTimerSys(xm_u32_t clockId, xmTime_t abstime, xmTime_t interval) {
+//combine disarm and arm timer in the same func
     localSched_t *sched=GET_LOCAL_SCHED();
     xm_s32_t ret=XM_OK;
 
@@ -577,6 +594,7 @@ __hypercall xm_s32_t SetTimerSys(xm_u32_t clockId, xmTime_t abstime, xmTime_t in
 }
 
 __hypercall xm_s32_t GetTimeSys(xm_u32_t clockId, xmTime_t *__gParam time) {
+///???everyone can get hw clock
     localSched_t *sched=GET_LOCAL_SCHED();
 
     if (CheckGParam(time, sizeof(xm_s64_t), 8, PFLAG_RW|PFLAG_NOT_NULL)<0)
@@ -611,6 +629,7 @@ __hypercall xm_s32_t SetIrqLevelSys(xm_u32_t level) {
 */
 
 __hypercall xm_s32_t ClearIrqMaskSys(xm_u32_t hwIrqsMask, xm_u32_t extIrqsPend) {
+//hwIrqCtrl[irq].Enable(irq);
     localSched_t *sched=GET_LOCAL_SCHED();
     xm_u32_t unmasked;
     xm_s32_t e;
@@ -618,17 +637,17 @@ __hypercall xm_s32_t ClearIrqMaskSys(xm_u32_t hwIrqsMask, xm_u32_t extIrqsPend) 
     ASSERT(!HwIsSti());
     sched->cKThread->ctrl.g->partCtrlTab->hwIrqsMask&=~hwIrqsMask;
     sched->cKThread->ctrl.g->partCtrlTab->extIrqsMask&=~extIrqsPend;
-    unmasked=hwIrqsMask&GetPartition(sched->cKThread)->cfg->hwIrqs;
+    unmasked = hwIrqsMask & GetPartition(sched->cKThread)->cfg->hwIrqs;
     for (e=0; unmasked; e++)
         if (unmasked&(1<<e)) {
             HwEnableIrq(e);
             unmasked&=~(1<<e);
         }
-
     return XM_OK;
 }
 
 __hypercall xm_s32_t SetIrqMaskSys(xm_u32_t hwIrqsMask, xm_u32_t extIrqsPend) {
+//disable
     localSched_t *sched=GET_LOCAL_SCHED();
     xm_u32_t masked;
     xm_s32_t e;
@@ -636,7 +655,8 @@ __hypercall xm_s32_t SetIrqMaskSys(xm_u32_t hwIrqsMask, xm_u32_t extIrqsPend) {
     ASSERT(!HwIsSti());
     sched->cKThread->ctrl.g->partCtrlTab->hwIrqsMask|=hwIrqsMask;
     sched->cKThread->ctrl.g->partCtrlTab->extIrqsMask|=extIrqsPend;
-    masked=hwIrqsMask&GetPartition(sched->cKThread)->cfg->hwIrqs;
+    masked=hwIrqsMask & GetPartition(sched->cKThread)->cfg->hwIrqs;
+    /// maybe here we can delete the last line in the if-clause
     for (e=0; masked; e++)
         if (masked&(1<<e)) {
             HwDisableIrq(e);
@@ -646,6 +666,7 @@ __hypercall xm_s32_t SetIrqMaskSys(xm_u32_t hwIrqsMask, xm_u32_t extIrqsPend) {
 }
 
 __hypercall xm_s32_t ForceIrqsSys(xm_u32_t hwIrqMask, xm_u32_t extIrqMask) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     xm_u32_t forced;
     xm_s32_t e;
@@ -670,6 +691,7 @@ __hypercall xm_s32_t ForceIrqsSys(xm_u32_t hwIrqMask, xm_u32_t extIrqMask) {
 }
 
 __hypercall xm_s32_t ClearIrqsSys(xm_u32_t hwIrqMask, xm_u32_t extIrqMask) {
+//clear; not doing anymore?
     localSched_t *sched=GET_LOCAL_SCHED();
     xm_u32_t pending;
     xm_s32_t e;
@@ -688,6 +710,7 @@ __hypercall xm_s32_t ClearIrqsSys(xm_u32_t hwIrqMask, xm_u32_t extIrqMask) {
 }
 
 __hypercall xm_s32_t RouteIrqSys(xm_u32_t type, xm_u32_t irq, xm_u16_t vector) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     ASSERT(!HwIsSti());
 
@@ -711,6 +734,7 @@ __hypercall xm_s32_t RouteIrqSys(xm_u32_t type, xm_u32_t irq, xm_u16_t vector) {
 }
 
 __hypercall xm_s32_t ReadObjectSys(xmObjDesc_t objDesc, void *__gParam buffer, xmSize_t size, xm_u32_t *__gParam flags) {
+//use object->read; get object reference from objDesc
     xm_u32_t class;
 
     ASSERT(!HwIsSti());
@@ -728,6 +752,7 @@ __hypercall xm_s32_t ReadObjectSys(xmObjDesc_t objDesc, void *__gParam buffer, x
 }
 
 __hypercall xm_s32_t WriteObjectSys(xmObjDesc_t objDesc, void *__gParam buffer, xmSize_t size, xm_u32_t *__gParam flags) {
+//
     xm_u32_t class;
 
     ASSERT(!HwIsSti());
@@ -744,6 +769,7 @@ __hypercall xm_s32_t WriteObjectSys(xmObjDesc_t objDesc, void *__gParam buffer, 
 }
 
 __hypercall xm_s32_t SeekObjectSys(xmObjDesc_t objDesc, xmAddress_t offset, xm_u32_t whence) {
+//
     xm_u32_t class;
 
     ASSERT(!HwIsSti());
@@ -760,6 +786,7 @@ __hypercall xm_s32_t SeekObjectSys(xmObjDesc_t objDesc, xmAddress_t offset, xm_u
 }
 
 __hypercall xm_s32_t CtrlObjectSys(xmObjDesc_t objDesc, xm_u32_t cmd, void *__gParam arg) {
+//
     xm_u32_t class;
 
     ASSERT(!HwIsSti());
@@ -777,6 +804,7 @@ __hypercall xm_s32_t CtrlObjectSys(xmObjDesc_t objDesc, xm_u32_t cmd, void *__gP
 }
 
 __hypercall xm_s32_t RaisePartitionIpviSys(xmId_t partitionId, xm_u8_t noIpvi) {
+///???
     localSched_t *sched=GET_LOCAL_SCHED();
     struct xmcPartIpvi *ipvi;
     kThread_t *k;
@@ -784,7 +812,7 @@ __hypercall xm_s32_t RaisePartitionIpviSys(xmId_t partitionId, xm_u8_t noIpvi) {
     ASSERT(!HwIsSti());
 
     if ((partitionId<0)&&(partitionId>=xmcTab.noPartitions))
-       return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if ((noIpvi<XM_VT_EXT_IPVI0)||(noIpvi>=XM_VT_EXT_IPVI0+CONFIG_XM_MAX_IPVI))
         return XM_INVALID_PARAM;
@@ -794,35 +822,35 @@ __hypercall xm_s32_t RaisePartitionIpviSys(xmId_t partitionId, xm_u8_t noIpvi) {
         return XM_INVALID_CONFIG;
 
     for (e=0; e<ipvi->noDsts; e++){
-
         if (partitionId==xmcDstIpvi[ipvi->dstOffset+e]){
-           partition_t *p=&partitionTab[xmcDstIpvi[ipvi->dstOffset+e]];
-           if (ArePartitionExtIrqPendingSet(p, noIpvi))
-              return XM_NO_ACTION;
+            partition_t *p=&partitionTab[xmcDstIpvi[ipvi->dstOffset+e]];
+            if (ArePartitionExtIrqPendingSet(p, noIpvi))
+                return XM_NO_ACTION;
 
-//           SetPartitionExtIrqPending(p, noIpvi);
-           for (vcpu=0; vcpu<p->cfg->noVCpus; vcpu++) {
-               k=p->kThread[vcpu];
+//            SetPartitionExtIrqPending(p, noIpvi);
+            for (vcpu=0; vcpu<p->cfg->noVCpus; vcpu++) {
+                k=p->kThread[vcpu];
 
-               if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
-                  continue;
-               if (AreExtIrqPendingSet(k, noIpvi))
-                  continue;
-               SetExtIrqPending(k, noIpvi);
+                if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
+                    continue;
+                if (AreExtIrqPendingSet(k, noIpvi))
+                    continue;
+                SetExtIrqPending(k, noIpvi);
 #ifdef CONFIG_SMP
-               xm_u8_t cpu=xmcVCpuTab[(KID2PARTID(k->ctrl.g->id)*xmcTab.hpv.noCpus)+KID2VCPUID(k->ctrl.g->id)].cpu;
-               if (cpu!=GET_CPU_ID())
-                  SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
+                xm_u8_t cpu=xmcVCpuTab[(KID2PARTID(k->ctrl.g->id)*xmcTab.hpv.noCpus)+KID2VCPUID(k->ctrl.g->id)].cpu;
+                if (cpu!=GET_CPU_ID())
+                    SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
 #endif
-           }
-           return XM_OK;
-       }
+            }
+            return XM_OK;
+        }
     }
 
     return XM_INVALID_CONFIG;
 }
 
 __hypercall xm_s32_t RaiseIpviSys(xm_u8_t noIpvi) {
+// general version of RaisePartitionIpviSys
     localSched_t *sched=GET_LOCAL_SCHED();
     struct xmcPartIpvi *ipvi;
     kThread_t *k;
@@ -843,14 +871,14 @@ __hypercall xm_s32_t RaiseIpviSys(xm_u8_t noIpvi) {
             k=p->kThread[vcpu];
 
             if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
-               continue;
+                continue;
             if (AreExtIrqPendingSet(k, noIpvi))
-               continue;
+                continue;
             SetExtIrqPending(k, noIpvi);
 #ifdef CONFIG_SMP
             xm_u8_t cpu=xmcVCpuTab[(KID2PARTID(k->ctrl.g->id)*xmcTab.hpv.noCpus)+KID2VCPUID(k->ctrl.g->id)].cpu;
             if (cpu!=GET_CPU_ID())
-               SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
+                SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
 #endif
 
         }
@@ -860,6 +888,7 @@ __hypercall xm_s32_t RaiseIpviSys(xm_u8_t noIpvi) {
 }
 
 __hypercall xm_s32_t GetGidByNameSys(xm_u8_t *__gParam name, xm_u32_t entity) {
+//get General id by name
     xm_s32_t e, id=XM_INVALID_CONFIG;
 
     if (CheckGParam(name, CONFIG_ID_STRING_LENGTH, 1, PFLAG_NOT_NULL)<0)
