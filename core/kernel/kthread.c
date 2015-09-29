@@ -47,7 +47,7 @@ static void KThrWatchdogTimerHndl(kTimer_t *kTimer, void *args) {
 
 void SetupKThreads(void) { 
     xm_s32_t e;
-    ///??? didn't do much. just count noVCpus?
+    //TODO didn't do much. just count noVCpus?
     ASSERT(GET_CPU_ID()==0);
     for (e=0, noVCpus=0; e<xmcTab.noPartitions; e++)
         noVCpus+=xmcPartitionTab[e].noVCpus;
@@ -81,7 +81,7 @@ void StartUpGuest(xmAddress_t entry) {
     SetKThreadFlags(sched->cKThread, KTHREAD_DCACHE_ENABLED_F|KTHREAD_ICACHE_ENABLED_F);
     SetCacheState(DCACHE|ICACHE);
     ResumeVClock(&k->ctrl.g->vClock, &k->ctrl.g->vTimer);
-    ///??? .... okay...
+    //TODO .... okay...
     SwitchKThreadArchPost(k);
 
     // JMP_PARTITION must enable interrupts
@@ -141,7 +141,7 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
 
         scK=(xmcTab.hpv.cpuTab[cpuId].schedPolicy==CYCLIC_SCHED)?k:0;
 
-        ///???
+        //TODO
         InitKTimer(cpuId,&k->ctrl.g->kTimer, KThrTimerHndl, k, scK);
         InitKTimer(cpuId,&k->ctrl.g->watchdogTimer, KThrWatchdogTimerHndl, k, scK);
         InitVTimer(cpuId,&k->ctrl.g->vTimer, k);
@@ -226,13 +226,13 @@ static inline void SetupPct(partitionControlTable_t *partCtrlTab, kThread_t *k, 
 }
 
 
-///??? don't need to lock anything? or stop anything
+//TODO don't need to lock anything? or stop anything
 void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u32_t status) {
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page=NULL;
     xmAddress_t vPtd;
    
-    ///??? enable by pass mmu acctually did nothing
+    //TODO enable by pass mmu acctually did nothing
     vPtd=EnableByPassMmu(ptdL1,GetPartition(k),&page);
 
     SetupPtdL1((xmWord_t *)vPtd, k);

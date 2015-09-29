@@ -141,7 +141,7 @@ typedef struct {
 /* </track id="doc-Partition-Control-Table">  */
 
 
-///??? what?
+//TODO what?
 static inline void xmSetBit(xmWord_t bm[], xm_u32_t bp, xm_s32_t maxBits) {
     xm_u32_t e=bp>>XM_LOG2_WORD_SZ, b=bp&((1<<XM_LOG2_WORD_SZ)-1);
     if (bp>=maxBits)
@@ -149,12 +149,12 @@ static inline void xmSetBit(xmWord_t bm[], xm_u32_t bp, xm_s32_t maxBits) {
     bm[e]|=(1<<b);
 }
 
-///???
+//TODO
 static inline void xmClearBit(xmWord_t bm[], xm_u32_t bp, xm_s32_t maxBits) {
     xm_u32_t e=bp>>XM_LOG2_WORD_SZ, b=bp&((1<<XM_LOG2_WORD_SZ)-1);
     if (bp>=maxBits)
         return;
-        ///??? why not return earlier
+        //TODO why not return earlier
     bm[e]&=~(1<<b);
 }
 
@@ -175,7 +175,7 @@ static inline void xmClearBitmap(xmWord_t bm[], xm_s32_t maxBits) {
 }
 
 
-///??? this is initialize not set
+//TODO this is initialize not set
 static inline void xmSetBitmap(xmWord_t bm[], xm_s32_t maxBits) {
     xm_u32_t e;
     for (e=0; e<((maxBits&((1<<(XM_LOG2_WORD_SZ))-1))?

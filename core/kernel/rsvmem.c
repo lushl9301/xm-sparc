@@ -24,7 +24,7 @@ void InitRsvMem(void) {
 
 void *AllocRsvMem(xm_u32_t size, xm_u32_t align) {
     xm_s32_t e;
-    ///??? only use size to justify?
+    //TODO only use size to justify?
     for (e=0; xmcRsvMemTab[e].obj; e++) {
         if (!(xmcRsvMemTab[e].usedAlign&RSV_MEM_USED)&&((xmcRsvMemTab[e].usedAlign&~RSV_MEM_USED)==align)&&(xmcRsvMemTab[e].size==size)) {
             xmcRsvMemTab[e].usedAlign|=RSV_MEM_USED;

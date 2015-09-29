@@ -142,7 +142,7 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
         return ~0;
     }
 
-    ///??? pT = PTDL1, find page as double check?
+    //TODO pT = PTDL1, find page as double check?
     if (!(pagePtdL1=PmmFindPage(pT, p, 0))) {
         PWARN("(%d) Page 0x%x does not belong to this partition\n", p->cfg->id, pT);
         return ~0;
@@ -196,7 +196,7 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
 
     attr=_PG_ATTR_PRESENT|_PG_ATTR_USER;
     // Set appropriate permissions
-    ///??? why set again?
+    //TODO why set again?
     for (e=0; e<p->cfg->noPhysicalMemoryAreas; e++) {
         if (xmcPhysMemAreaTab[e+p->cfg->physicalMemoryAreasOffset].flags&XM_MEM_AREA_UNMAPPED)
             continue;

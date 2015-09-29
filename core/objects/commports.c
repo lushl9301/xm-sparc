@@ -64,7 +64,7 @@ static inline xm_s32_t CreateSamplingPort(xmObjDesc_t desc, xm_s8_t *__gParam po
         return XM_INVALID_CONFIG;
 
     SpinLock(&portTab[port].lock);
-    ///??? read flags; need lock?
+    //TODO read flags; need lock?
     flags=portTab[port].flags;
     SpinUnlock(&portTab[port].lock);
 

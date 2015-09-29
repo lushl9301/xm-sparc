@@ -154,8 +154,8 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
     "add "#_sp", 32, "#_sp"\n\t"
 
 
-///??? REGWIN?
-///??? Window Invalid Mask? WIM =. =
+//TODO REGWIN?
+//TODO Window Invalid Mask? WIM =. =
 
 #define SAVE_REGWIN(_sp) \
     "sub "#_sp", 64, "#_sp"\n\t" \

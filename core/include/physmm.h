@@ -43,7 +43,7 @@ struct physPage {
 
 static inline void PPagIncCounter(struct physPage *page) {
     xm_u32_t cnt;
-    ///??? No null-pointer error?
+    //TODO No null-pointer error?
     SpinLock(&page->lock);
     cnt=page->counter;
     page->counter++;

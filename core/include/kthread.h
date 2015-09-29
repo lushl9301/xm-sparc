@@ -131,7 +131,7 @@ typedef struct partition {
     xmSize_t pctArraySize;
     xm_u32_t opMode;
     xmAddress_t imgStart; /*Partition Memory address in the container*/
-    ///??? container?
+    //TODO container?
     xmAddress_t vLdrStack; /*Stack address allocated by XM*/
     struct xmcPartition *cfg;
 } partition_t;
@@ -179,7 +179,7 @@ static inline void SetPartitionHwIrqPending(partition_t *p, xm_s32_t irq) {
         if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
             continue;
         SpinLock(&k->ctrl.lock);
-        ///??? why need irq here. don't need on top
+        //TODO why need irq here. don't need on top
         k->ctrl.g->partCtrlTab->hwIrqsPend |= (1 << irq);
         SpinUnlock(&k->ctrl.lock);
         SetKThreadFlags(k, KTHREAD_READY_F);

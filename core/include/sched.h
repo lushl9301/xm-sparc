@@ -107,7 +107,7 @@ static inline void PreemptionOn(void) {
     localSched_t *sched=GET_LOCAL_SCHED();
 
     sched->cKThread->ctrl.irqMask=HwIrqGetMask();
-    ///??? bug here? should be GET_LOCAL_CPU()->globalIrqMask
+    //TODO bug here? should be GET_LOCAL_CPU()->globalIrqMask
     HwIrqSetMask(globalIrqMask);
     HwSti();
 #endif

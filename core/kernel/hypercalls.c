@@ -85,11 +85,11 @@ __hypercall xm_s32_t HaltPartitionSys(xmId_t partitionId) {
         if (partitionId>=xmcTab.noPartitions)
             return XM_INVALID_PARAM;
 
-        ///??? why need to find the first unsetted CPU
+        //TODO why need to find the first unsetted CPU
         for (e=0; e<partitionTab[partitionId].cfg->noVCpus; e++)
             if (!AreKThreadFlagsSet(partitionTab[partitionId].kThread[e], KTHREAD_HALTED_F))
                 break;
-        ///???
+        //TODO
         if (e>=partitionTab[partitionId].cfg->noVCpus)
             return XM_NO_ACTION;
 
@@ -234,7 +234,7 @@ __hypercall xm_s32_t HaltVCpuSys(xmId_t vCpuId) {
 
     if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
         return XM_NO_ACTION;
-    ///??? how about smp
+    //TODO how about smp
     HALT_VCPU(KID2PARTID(k->ctrl.g->id), KID2VCPUID(k->ctrl.g->id));
 
     if (k==sched->cKThread)
@@ -594,7 +594,7 @@ __hypercall xm_s32_t SetTimerSys(xm_u32_t clockId, xmTime_t abstime, xmTime_t in
 }
 
 __hypercall xm_s32_t GetTimeSys(xm_u32_t clockId, xmTime_t *__gParam time) {
-///???everyone can get hw clock
+//TODOeveryone can get hw clock
     localSched_t *sched=GET_LOCAL_SCHED();
 
     if (CheckGParam(time, sizeof(xm_s64_t), 8, PFLAG_RW|PFLAG_NOT_NULL)<0)
@@ -804,7 +804,7 @@ __hypercall xm_s32_t CtrlObjectSys(xmObjDesc_t objDesc, xm_u32_t cmd, void *__gP
 }
 
 __hypercall xm_s32_t RaisePartitionIpviSys(xmId_t partitionId, xm_u8_t noIpvi) {
-///???
+//TODO
     localSched_t *sched=GET_LOCAL_SCHED();
     struct xmcPartIpvi *ipvi;
     kThread_t *k;

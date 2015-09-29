@@ -35,6 +35,7 @@ hwIrqCtrl_t hwIrqCtrl[CONFIG_NO_HWIRQS];
 void DoUnrecovExcp(cpuCtxt_t *ctxt);
 
 void DefaultIrqHandler(cpuCtxt_t *ctxt, void *data) {
+//if (xmcTab.hpv.hwIrqTab[irqNr].owner == XM_IRQ_NO_OWNER); then we use DefaultIrqHandler
     localSched_t *sched=GET_LOCAL_SCHED();
     xmHmLog_t hmLog;
 
@@ -42,21 +43,23 @@ void DefaultIrqHandler(cpuCtxt_t *ctxt, void *data) {
     hmLog.opCodeL|=XM_HM_EV_UNEXPECTED_TRAP<<HMLOG_OPCODE_EVENT_BIT;
 
     hmLog.opCodeL|=(ctxt->irqNr&HMLOG_OPCODE_EVENT_MASK)<<(HMLOG_OPCODE_EVENT_BIT+8);
-  
+
     if (sched->cKThread!=sched->idleKThread) {
         hmLog.opCodeL|=KID2PARTID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_PARTID_BIT;
         hmLog.opCodeL|=KID2VCPUID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_VCPUID_BIT;
     } else {
+
+        //TODO why use ~0 & xxx not just xxx
         hmLog.opCodeL|=(~0&HMLOG_OPCODE_PARTID_MASK)<<HMLOG_OPCODE_PARTID_BIT;
         hmLog.opCodeL|=(~0&HMLOG_OPCODE_VCPUID_MASK)<<HMLOG_OPCODE_VCPUID_BIT;
     }
 
     hmLog.opCodeH|=HMLOG_OPCODE_SYS_MASK;
-    
+
     CpuCtxt2HmCpuCtxt(ctxt, &hmLog.cpuCtxt);
     hmLog.opCodeH|=HMLOG_OPCODE_VALID_CPUCTXT_MASK;
 
-    ///??? TOP important for irq?
+    //TODO TOP important for irq?
     HmRaiseEvent(&hmLog);
 
     kprintf("Unexpected irq %d\n", ctxt->irqNr);
@@ -72,8 +75,8 @@ static void TriggerIrqHandler(cpuCtxt_t *ctxt, void *data) {
 
 void SetTrapPending(cpuCtxt_t *ctxt) {
     localSched_t *sched=GET_LOCAL_SCHED();
-    
-    ///??? why never use ctxt?
+
+    //TODO why never use ctxt?
     ASSERT(!AreKThreadFlagsSet(sched->cKThread, KTHREAD_TRAP_PENDING_F));
     SetKThreadFlags(sched->cKThread, KTHREAD_TRAP_PENDING_F);
 }
@@ -85,7 +88,7 @@ static inline xmAddress_t IsInPartExTable(xmAddress_t addr) {
     } exPTable[];
     struct exPTable *exPTablePtr;
     xm_s32_t e;
-    ///??? e must be 0?
+    //TODO e must be 0?
     for (exPTablePtr=exPTable; exPTablePtr; exPTablePtr=(struct exPTable *)exPTablePtr[e].b) {
         for (e=0; exPTablePtr[e].a; e++)
             if (addr==exPTablePtr[e].a)
@@ -141,7 +144,7 @@ void DoTrap(cpuCtxt_t *ctxt) {
           return;
        }
     }
- 
+
     memset(&hmLog, 0, sizeof(xmHmLog_t));
     hmLog.opCodeL|=hmEvent<<HMLOG_OPCODE_EVENT_BIT;
 
@@ -149,7 +152,7 @@ void DoTrap(cpuCtxt_t *ctxt) {
         hmLog.opCodeL|=KID2PARTID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_PARTID_BIT;
         hmLog.opCodeL|=KID2VCPUID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_VCPUID_BIT;
     }
-    
+
     if (IsSvIrqCtxt(ctxt)) {
         if (ArchTrapIsSysCtxt(ctxt))
             hmLog.opCodeH|=HMLOG_OPCODE_SYS_MASK;
@@ -215,7 +218,7 @@ void DoIrq(cpuCtxt_t *ctxt) {
     HwEndIrq(ctxt->irqNr);
 #endif
 
-    ///???finished? so can just schedule here?
+    //TODOfinished? so can just schedule here?
     cpu->irqNestingCounter--;
     do {
 	Schedule();
@@ -230,12 +233,12 @@ void __VBOOT SetupIrqs(void) {
     for (irqNr=0; irqNr<CONFIG_NO_HWIRQS; irqNr++) {
 	if (xmcTab.hpv.hwIrqTab[irqNr].owner!=XM_IRQ_NO_OWNER) {
 	    irqHandlerTab[irqNr]=(struct irqTabEntry){
-		.handler=TriggerIrqHandler, 
+		.handler=TriggerIrqHandler,
 		.data=0,
 	    };
 	} else  {
 	    irqHandlerTab[irqNr]=(struct irqTabEntry){
-		.handler=DefaultIrqHandler, 
+		.handler=DefaultIrqHandler,
 		.data=0,
 	    };
 	}
@@ -274,7 +277,7 @@ static inline xm_s32_t AreHwIrqsPending(partitionControlTable_t *partCtrlTab) {
     xm_s32_t eIrq;
 
     // select pending status
-    ///??? how about nested irq
+    //TODO how about nested irq
     eIrq=partCtrlTab->hwIrqsPend&~partCtrlTab->hwIrqsMask;
     if (eIrq) {
 #ifdef CONFIG_HWIRQ_PRIO_FBS
@@ -282,16 +285,16 @@ static inline xm_s32_t AreHwIrqsPending(partitionControlTable_t *partCtrlTab) {
 #else
         eIrq=_Fls(eIrq);
 #endif
-        ASSERT(eIrq>=0&&eIrq<CONFIG_NO_HWIRQS);	    
+        ASSERT(eIrq>=0&&eIrq<CONFIG_NO_HWIRQS);
         return eIrq;
     }
-    
+
     return -1;
 }
 
 static inline xm_s32_t AreExtIrqsPending(partitionControlTable_t *partCtrlTab) {
     xm_s32_t eIrq;
-    
+
     eIrq=partCtrlTab->extIrqsPend&~partCtrlTab->extIrqsMask;
     if (eIrq) {
 #ifdef CONFIG_HWIRQ_PRIO_FBS
@@ -300,8 +303,8 @@ static inline xm_s32_t AreExtIrqsPending(partitionControlTable_t *partCtrlTab) {
         eIrq=_Fls(eIrq);
 #endif
 	return eIrq;
-    }       
-  
+    }
+
     return -1;
 }
 
@@ -317,7 +320,7 @@ static inline xm_s32_t AreExtTrapsPending(partitionControlTable_t *partCtrlTab) 
 #endif
 	return eIrq;
     }
-  
+
     return -1;
 }
 
@@ -359,7 +362,7 @@ xm_s32_t RaisePendIrqs(cpuCtxt_t *ctxt) {
     }
 
 
-    ///??? detect IRQ in a very strange manner
+    //TODO detect IRQ in a very strange manner
 
     // 2) Check pending extended trap
     if ((eIrq=AreExtTrapsPending(partCtrlTab))>-1) {

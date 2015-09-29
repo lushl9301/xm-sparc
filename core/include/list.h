@@ -160,7 +160,7 @@ static inline xm_s32_t DynListRemoveElement(struct dynList *l, struct dynListNod
     SpinUnlock(&(_l)->lock); \
 } while(0)
 
-///??? not used. don't know what for
+//TODO not used. don't know what for
 #define DYNLIST_FOR_EACH_ELEMENT_EXIT(_l) SpinUnlock(&(_l)->lock)
 
 #endif

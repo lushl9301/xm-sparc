@@ -91,6 +91,6 @@ void __VBOOT SetupCpu(void) {
 }
 
 void __VBOOT EarlySetupCpu(void) {
-	///??? extern xm_u32_t cpuKhz;???
+	//TODO extern xm_u32_t cpuKhz;???
     cpuKhz=GetCpuKhz();
 }

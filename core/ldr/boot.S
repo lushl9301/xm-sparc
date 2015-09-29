@@ -26,12 +26,12 @@ start:
         set stack, %fp
         set STACK_SIZE-8, %g1 //the next slot is stack size
         add %fp, %g1, %fp
-        mov %g1, %o0    ///??? mv to %x0?
+        mov %g1, %o0    //TODO mv to %x0?
         call MainLdr
         sub %fp, MIN_STACK_FRAME, %sp
         
         set partCtrlTabPtr, %g2
-        ld [%g2], %g1  ///???store Main into
+        ld [%g2], %g1  //TODOstore Main into
         jmp %o0
         nop
 1:      b 1b

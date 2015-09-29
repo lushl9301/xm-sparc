@@ -53,7 +53,7 @@ static inline void BarrierWaitMask(barrierMask_t *m){
    while(BarrierCheckMask(m));
 }
 
-///??? where is b->v?
+//TODO where is b->v?
 static inline void BarrierWait(barrier_t *b) {
     while(b->v);
 }
