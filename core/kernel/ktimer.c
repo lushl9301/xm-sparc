@@ -7,7 +7,7 @@
  *
  * $AUTHOR$
  *
- * $LICENSE:  
+ * $LICENSE:
  * COPYRIGHT (c) Fent Innovative Software Solutions S.L.
  *     Read LICENSE.txt file for the license terms.
  *
@@ -25,6 +25,7 @@
 static xm_s32_t TimerHandler(void);
 
 inline void SetHwTimer(xmTime_t nextAct) {
+//
     localTime_t *localTime=GET_LOCAL_TIME();
     xmTime_t nextTime, cTime;
 
@@ -32,7 +33,7 @@ inline void SetHwTimer(xmTime_t nextAct) {
     ASSERT(nextAct>=0);
     if (!nextAct) return;
     if ((localTime->flags&NEXT_ACT_IS_VALID)&&(nextAct>=localTime->nextAct))
-	return;
+        return;
     localTime->flags|=NEXT_ACT_IS_VALID;
     localTime->nextAct=nextAct;
     cTime=GetSysClockUsec();
@@ -42,10 +43,11 @@ inline void SetHwTimer(xmTime_t nextAct) {
         //ASSERT(nextTime>0);
         if (nextTime<localTime->sysHwTimer->GetMinInterval())
             nextTime=localTime->sysHwTimer->GetMinInterval();
-        
+
         if (nextTime>localTime->sysHwTimer->GetMaxInterval())
             nextTime=localTime->sysHwTimer->GetMaxInterval();
         localTime->nextAct=nextTime+cTime;
+        //set hwtimer to trigger int nextTime;
         localTime->sysHwTimer->SetHwTimer(nextTime);
     } else
         TimerHandler();
@@ -56,26 +58,27 @@ xmTime_t TraverseKTimerQueue(struct dynList *l, xmTime_t cTime) {
     kTimer_t *kTimer;
 
     DYNLIST_FOR_EACH_ELEMENT_BEGIN(l, kTimer, 1) {
-	ASSERT(kTimer);
-	if (kTimer->flags&KTIMER_ARMED){
-	    if (kTimer->value<=cTime) {
+        ASSERT(kTimer);
+        if (kTimer->flags&KTIMER_ARMED){
+            if (kTimer->value<=cTime) {
                 if (kTimer->Action)
-		    kTimer->Action(kTimer, kTimer->actionArgs);
+                    kTimer->Action(kTimer, kTimer->actionArgs);
 
-		if (kTimer->interval>0) {
-		    // To be optimised		    
-		    do {
-			kTimer->value+=kTimer->interval;
-		    } while(kTimer->value<=cTime);
-		    if (nextAct>kTimer->value)
-			nextAct=kTimer->value;
-		} else        
-		    kTimer->flags&=~KTIMER_ARMED;
-	    } else {
-		if (nextAct>kTimer->value)
-		    nextAct=kTimer->value;
-	    }
-	}
+                if (kTimer->interval>0) {
+                    // To be optimised
+                    // update all timer to cTime
+                    do {
+                        kTimer->value+=kTimer->interval;
+                    } while(kTimer->value<=cTime);
+                    if (nextAct>kTimer->value)
+                        nextAct=kTimer->value;
+                } else
+                    kTimer->flags&=~KTIMER_ARMED;
+            } else {
+                if (nextAct>kTimer->value)
+                    nextAct=kTimer->value;
+            }
+        }
     } DYNLIST_FOR_EACH_ELEMENT_END(l);
 
     return nextAct;
@@ -99,7 +102,9 @@ static xm_s32_t TimerHandler(void) {
 }
 
 void InitKTimer(int cpuId, kTimer_t *kTimer, void (*Act)(kTimer_t *, void *), void *args, void *kThread) {
+//init timer and add it to kThread->ctrl linked list
     localTime_t *localTime=&localTimeInfo[cpuId];;
+    //TODO why not just pass in kThead as k
     kThread_t *k=(kThread_t *)kThread;
 
     memset((xm_s8_t *)kTimer, 0, sizeof(kTimer_t));
@@ -108,23 +113,24 @@ void InitKTimer(int cpuId, kTimer_t *kTimer, void (*Act)(kTimer_t *, void *), vo
     if(DynListInsertHead((k)?&k->ctrl.localActiveKTimers:&localTime->globalActiveKTimers, &kTimer->dynListPtrs)) {
         cpuCtxt_t ctxt;
         GetCpuCtxt(&ctxt);
-	SystemPanic(&ctxt, "[KTIMER] Error allocating ktimer");
+        SystemPanic(&ctxt, "[KTIMER] Error allocating ktimer");
     }
 }
 
 void UninitKTimer(kTimer_t *kTimer, void *kThread) {
-  localTime_t *localTime=GET_LOCAL_TIME();
-  kThread_t *k=(kThread_t *)kThread;
-
-  kTimer->flags=0;
-  if (DynListRemoveElement((k)?&k->ctrl.localActiveKTimers:&localTime->globalActiveKTimers, &kTimer->dynListPtrs)) {
-      cpuCtxt_t ctxt;
-      GetCpuCtxt(&ctxt);
-      SystemPanic(&ctxt, "[KTIMER] Error freeing ktimer");      
-  }
+//remove the timer
+    localTime_t *localTime=GET_LOCAL_TIME();
+    kThread_t *k=(kThread_t *)kThread;
+    kTimer->flags=0;
+    if (DynListRemoveElement((k)?&k->ctrl.localActiveKTimers:&localTime->globalActiveKTimers, &kTimer->dynListPtrs)) {
+        cpuCtxt_t ctxt;
+        GetCpuCtxt(&ctxt);
+        SystemPanic(&ctxt, "[KTIMER] Error freeing ktimer");
+    }
 }
 
 xm_s32_t ArmKTimer(kTimer_t *kTimer, xmTime_t value, xmTime_t interval) {
+//TODO what is the difference between ArmTimer and InitKTimer
     ASSERT(!HwIsSti());
     ASSERT(kTimer);
     kTimer->value=value;
@@ -136,61 +142,70 @@ xm_s32_t ArmKTimer(kTimer_t *kTimer, xmTime_t value, xmTime_t interval) {
 }
 
 xm_s32_t DisarmKTimer(kTimer_t *kTimer) {
+//
     ASSERT(kTimer);
     if (!(kTimer->flags&KTIMER_ARMED))
-	return -1;
+        return -1;
     kTimer->flags&=~VTIMER_ARMED;
     return 0;
 }
 
 static void VTimerHndl(kTimer_t *kTimer, void *args) {
+//used as timer->action
     kThread_t *k=(kThread_t *)args;
     ASSERT(k->ctrl.g->vClock.flags&VCLOCK_ENABLED);
     ASSERT(k->ctrl.g->vTimer.flags&VTIMER_ARMED);
     CHECK_KTHR_SANITY(k);
     if (k->ctrl.g->vTimer.interval>0)
-	k->ctrl.g->vTimer.value+=k->ctrl.g->vTimer.interval;
+        k->ctrl.g->vTimer.value+=k->ctrl.g->vTimer.interval;
     else
-	k->ctrl.g->vTimer.flags&=~VTIMER_ARMED;
+        //TODO why not DisarmVTimer
+        k->ctrl.g->vTimer.flags&=~VTIMER_ARMED;
 
     SetExtIrqPending(k, XM_VT_EXT_EXEC_TIMER);
 }
 
 xm_s32_t InitVTimer(int cpuId, vTimer_t *vTimer, void *k) {
+//add vTimer's kTimer to thread k
     kThread_t *scK;
-    
+
     scK=(xmcTab.hpv.cpuTab[cpuId].schedPolicy==CYCLIC_SCHED)?k:0;
+    //TODO k is void *args; sck is void *kThread in the arguments. and they maybe the same....
     InitKTimer(cpuId,&vTimer->kTimer, VTimerHndl, k, scK);
     return 0;
 }
 
 xm_s32_t ArmVTimer(vTimer_t *vTimer, vClock_t *vClock, xmTime_t value, xmTime_t interval) {
+//vtimer corresponds to a kTimer
     vTimer->value=value;
-    
+
     vTimer->interval=interval;
     vTimer->flags|=VTIMER_ARMED;
     if (vClock->flags&VCLOCK_ENABLED)
-	ArmKTimer(&vTimer->kTimer, value-vClock->acc+vClock->delta, interval);
+        ArmKTimer(&vTimer->kTimer, value-vClock->acc+vClock->delta, interval);
 
     return 0;
 }
 
 xm_s32_t DisarmVTimer(vTimer_t *vTimer, vClock_t *vClock) {
+//
     if (!(vTimer->flags&KTIMER_ARMED))
-	return -1;
+        return -1;
     vTimer->flags&=~KTIMER_ARMED;
     return 0;
 }
 
 // Busy wait
 xm_s32_t UDelay(xm_u32_t usec) {
+
     xmTime_t waitUntil=(xmTime_t)usec+GetSysClockUsec();
-  
+
     while (waitUntil>GetSysClockUsec());
     return 0;
 }
 
 xm_s32_t __VBOOT SetupKTimers(void) {
+//get local time and init dynlist with it.
     localTime_t *localTime=GET_LOCAL_TIME();
     DynListInit(&localTime->globalActiveKTimers);
     localTime->sysHwTimer->SetTimerHandler(TimerHandler);
@@ -198,6 +213,8 @@ xm_s32_t __VBOOT SetupKTimers(void) {
 }
 
 void __VBOOT SetupSysClock(void) {
+// better version than setup.c:317 directly call;
+// sysHwClock == pitClock
     if (!sysHwClock||(sysHwClock->InitClock()<0)) {
         cpuCtxt_t ctxt;
         GetCpuCtxt(&ctxt);
@@ -208,6 +225,7 @@ void __VBOOT SetupSysClock(void) {
 }
 
 void __VBOOT SetupHwTimer(void) {
+//localtime->sysHwTimer
     localTime_t *localTime=GET_LOCAL_TIME();
     if (!(localTime->sysHwTimer=GetSysHwTimer())||(localTime->sysHwTimer->InitHwTimer()<0)) {
         cpuCtxt_t ctxt;

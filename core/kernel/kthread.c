@@ -45,7 +45,7 @@ static void KThrWatchdogTimerHndl(kTimer_t *kTimer, void *args) {
     RaiseHmPartEvent(XM_HM_EV_WATCHDOG_TIMER,  KID2PARTID(k->ctrl.g->id), KID2VCPUID(k->ctrl.g->id), 0);
 }
 
-void SetupKThreads(void) { 
+void SetupKThreads(void) {
     xm_s32_t e;
     //TODO didn't do much. just count noVCpus?
     ASSERT(GET_CPU_ID()==0);
@@ -71,11 +71,11 @@ void InitIdle(kThread_t *idle, xm_s32_t cpu) {
 }
 
 void StartUpGuest(xmAddress_t entry) {
-    localSched_t *sched=GET_LOCAL_SCHED();   
+    localSched_t *sched=GET_LOCAL_SCHED();
     kThread_t *k=sched->cKThread;
     //partition_t *p=GetPartition(sched->cKThread);
     cpuCtxt_t ctxt;
-    
+
     //entry=xmcBootPartTab[p->cfg->id].entryPoint;
     KThreadArchInit(k);
     SetKThreadFlags(sched->cKThread, KTHREAD_DCACHE_ENABLED_F|KTHREAD_ICACHE_ENABLED_F);
@@ -86,7 +86,7 @@ void StartUpGuest(xmAddress_t entry) {
 
     // JMP_PARTITION must enable interrupts
     JMP_PARTITION(entry, k);
-    
+
     GetCpuCtxt(&ctxt);
     PartitionPanic(&ctxt, __XM_FILE__":%u:0x%x: executing unreachable code!", __LINE__, k);
 }
@@ -115,12 +115,12 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
     p=&partitionTab[cfg->id];
     GET_MEMAZ(p->kThread, cfg->noVCpus * sizeof(kThread_t *), ALIGNMENT);
     p->cfg=cfg;
-    
+
     pctSize=sizeof(partitionControlTable_t)+sizeof(struct xmPhysicalMemMap) * cfg->noPhysicalMemoryAreas+(cfg->noPorts>>XM_LOG2_WORD_SZ);
-    
+
     if (cfg->noPorts&((1<<XM_LOG2_WORD_SZ)-1))
         pctSize+=sizeof(xmWord_t);
-    
+
     GET_MEMAZ(pct, pctSize*cfg->noVCpus, PAGE_SIZE);
     p->pctArraySize=pctSize*cfg->noVCpus;
     p->pctArray=(xmAddress_t)pct;
@@ -145,13 +145,13 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
         InitKTimer(cpuId,&k->ctrl.g->kTimer, KThrTimerHndl, k, scK);
         InitKTimer(cpuId,&k->ctrl.g->watchdogTimer, KThrWatchdogTimerHndl, k, scK);
         InitVTimer(cpuId,&k->ctrl.g->vTimer, k);
-        
+
         SetKThreadFlags(k, KTHREAD_HALTED_F);
         localIrqMask=localCpuInfo[cpuId].globalIrqMask;
         for (e=0; e<CONFIG_NO_HWIRQS; e++)
             if (xmcTab.hpv.hwIrqTab[e].owner==cfg->id)
                localIrqMask&=~(1<<e);
-            
+
 #ifdef CONFIG_FP_SCHED
         if (xmcTab.hpv.cpuTab[cpuId].schedPolicy==FP_SCHED) {
             xm_u32_t lPriority=~0;
@@ -174,7 +174,7 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
         k->ctrl.g->partCtrlTab->partCtrlTabSize=pctSize;
         SetupKThreadArch(k);
     }
-    
+
     return p;
 }
 
@@ -220,7 +220,7 @@ static inline void SetupPct(partitionControlTable_t *partCtrlTab, kThread_t *k, 
 
     xmClearBitmap(commPortBitmap, cfg->noPorts);
     partCtrlTab->noCommPorts=cfg->noPorts;
-    
+
     SetupPctMm(partCtrlTab, k);
     SetupPctArch(partCtrlTab, k);
 }
@@ -231,7 +231,7 @@ void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u3
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page=NULL;
     xmAddress_t vPtd;
-   
+
     //TODO enable by pass mmu acctually did nothing
     vPtd=EnableByPassMmu(ptdL1,GetPartition(k),&page);
 
@@ -282,22 +282,22 @@ xm_s32_t ResetPartition(partition_t *p, xm_u32_t cold, xm_u32_t status) {
     // All the VCpus are halted
     HALT_PARTITION(p->cfg->id);
     xmcBootPart=&xmcBootPartTab[p->cfg->id];
-    
+
     // Is partition image valid?
     if (!(xmcBootPart->flags&XM_PART_BOOT))
         return -1;
 
     if (!PmmFindArea(xmcBootPart->hdrPhysAddr, sizeof(struct xmImageHdr), p, 0))
         return -1;
- 
+
     xmImageHdr=(struct xmImageHdr *)xmcBootPart->hdrPhysAddr;
-    
+
     if ((ReadByPassMmuWord(&xmImageHdr->sSignature)!=XMEF_PARTITION_MAGIC)||
         (ReadByPassMmuWord(&xmImageHdr->eSignature)!=XMEF_PARTITION_MAGIC))
         return -1;
-    
+
     if (ReadByPassMmuWord(&xmImageHdr->compilationXmAbiVersion)!=XM_SET_VERSION(XM_ABI_VERSION, XM_ABI_SUBVERSION, XM_ABI_REVISION)) return -1;
-    
+
     if (ReadByPassMmuWord(&xmImageHdr->compilationXmApiVersion)!=XM_SET_VERSION(XM_API_VERSION, XM_API_SUBVERSION, XM_API_REVISION)) return -1;
 
     if (sched->cKThread==p->kThread[0])
@@ -337,7 +337,6 @@ xm_s32_t ResetPartition(partition_t *p, xm_u32_t cold, xm_u32_t status) {
 
     if (sched->cKThread==p->kThread[0])
         LoadPartitionPageTable(p->kThread[0]);
-    
+
     return 0;
 }
-
