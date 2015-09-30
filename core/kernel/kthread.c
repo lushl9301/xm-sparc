@@ -32,12 +32,14 @@
 static xm_s32_t noVCpus;
 
 static void KThrTimerHndl(kTimer_t *kTimer, void *args) {
+//set ext irq on hw timer
     kThread_t *k=(kThread_t *)args;
     CHECK_KTHR_SANITY(k);
     SetExtIrqPending(k, XM_VT_EXT_HW_TIMER);
 }
 
 static void KThrWatchdogTimerHndl(kTimer_t *kTimer, void *args) {
+///??? check watch dog later
     kThread_t *k=(kThread_t *)args;
 
     CHECK_KTHR_SANITY(k);
@@ -54,6 +56,7 @@ void SetupKThreads(void) {
 }
 
 void InitIdle(kThread_t *idle, xm_s32_t cpu) {
+//init passed kthread (idle)
     localCpu_t *lCpu=GET_LOCAL_CPU();
 
     // clear everything for idle
@@ -71,17 +74,19 @@ void InitIdle(kThread_t *idle, xm_s32_t cpu) {
 }
 
 void StartUpGuest(xmAddress_t entry) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     kThread_t *k=sched->cKThread;
     //partition_t *p=GetPartition(sched->cKThread);
     cpuCtxt_t ctxt;
 
     //entry=xmcBootPartTab[p->cfg->id].entryPoint;
+    //this function is empty
     KThreadArchInit(k);
     SetKThreadFlags(sched->cKThread, KTHREAD_DCACHE_ENABLED_F|KTHREAD_ICACHE_ENABLED_F);
     SetCacheState(DCACHE|ICACHE);
     ResumeVClock(&k->ctrl.g->vClock, &k->ctrl.g->vTimer);
-    //TODO .... okay...
+    //used by context switch
     SwitchKThreadArchPost(k);
 
     // JMP_PARTITION must enable interrupts
@@ -92,6 +97,7 @@ void StartUpGuest(xmAddress_t entry) {
 }
 
 static inline kThread_t *AllocKThread(xmId_t id) {
+//create new KThread
     kThread_t *k;
 
     GET_MEMAZ(k, sizeof(kThread_t), ALIGNMENT);
@@ -105,6 +111,7 @@ static inline kThread_t *AllocKThread(xmId_t id) {
 }
 
 partition_t *CreatePartition(struct xmcPartition *cfg) {
+//
     xm_u8_t *pct;
     xmSize_t pctSize;
     xm_u32_t localIrqMask;
@@ -116,6 +123,7 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
     GET_MEMAZ(p->kThread, cfg->noVCpus * sizeof(kThread_t *), ALIGNMENT);
     p->cfg=cfg;
 
+    //part ctrl table + phyMemMap * no + cfg->noPorts>>word_sz
     pctSize=sizeof(partitionControlTable_t)+sizeof(struct xmPhysicalMemMap) * cfg->noPhysicalMemoryAreas+(cfg->noPorts>>XM_LOG2_WORD_SZ);
 
     if (cfg->noPorts&((1<<XM_LOG2_WORD_SZ)-1))
@@ -128,8 +136,13 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
         kThread_t *k, *scK;
         xm_s32_t e;
         xm_u32_t cpuId;
+        //create new thread
         p->kThread[i]=k=AllocKThread(PART_VCPU_ID2KID(cfg->id, i));
         if (cfg->flags&XM_PART_SYSTEM) {
+            //if this is system partition
+
+            // #define KTHREAD_NO_PARTITIONS_FIELD (0xff<<16)
+            // clear all
             ClearKThreadFlags(k, KTHREAD_NO_PARTITIONS_FIELD);
             SetKThreadFlags(k, (xmcTab.noPartitions<<16)&KTHREAD_NO_PARTITIONS_FIELD);
         }
@@ -146,28 +159,31 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
         InitKTimer(cpuId,&k->ctrl.g->watchdogTimer, KThrWatchdogTimerHndl, k, scK);
         InitVTimer(cpuId,&k->ctrl.g->vTimer, k);
 
+        //halted; not running
         SetKThreadFlags(k, KTHREAD_HALTED_F);
         localIrqMask=localCpuInfo[cpuId].globalIrqMask;
+        //clear all Irq
         for (e=0; e<CONFIG_NO_HWIRQS; e++)
             if (xmcTab.hpv.hwIrqTab[e].owner==cfg->id)
-               localIrqMask&=~(1<<e);
+                localIrqMask&=~(1<<e);
 
 #ifdef CONFIG_FP_SCHED
         if (xmcTab.hpv.cpuTab[cpuId].schedPolicy==FP_SCHED) {
             xm_u32_t lPriority=~0;
             for (e=0; e<xmcTab.hpv.cpuTab[cpuId].noFpEntries; e++) {
                 if ((xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].partitionId==cfg->id)&&(xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].vCpuId==i)){
-                   lPriority=xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].priority;
+                    lPriority=xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].priority;
                 }
             }
             for (e=0; e<xmcTab.hpv.cpuTab[cpuId].noFpEntries; e++) {
                 if (lPriority>=xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].priority){
-                   localIrqMask&=~(xmcPartitionTab[xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].partitionId].hwIrqs);
+                    localIrqMask&=~(xmcPartitionTab[xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].partitionId].hwIrqs);
                 }
             }
         }
 #endif
 
+        //
         k->ctrl.irqCpuCtxt=0;
         k->ctrl.irqMask=localIrqMask;
         k->ctrl.g->partCtrlTab=(partitionControlTable_t *)(pct+pctSize*i);

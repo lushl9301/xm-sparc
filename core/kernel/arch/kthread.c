@@ -48,6 +48,7 @@ void SwitchKThreadArchPre(kThread_t *new, kThread_t *current) {
 }
 
 void SwitchKThreadArchPost(kThread_t *current) {
+//called by StartUpGuest and schedule()-> if newK != cKThread (CS)
     xm_u32_t cache=0;
     ASSERT(!HwIsSti());
     // Disabling FPU
@@ -56,29 +57,32 @@ void SwitchKThreadArchPost(kThread_t *current) {
         cpuCtxt_t *cpuCtxt=current->ctrl.irqCpuCtxt;
         if (cpuCtxt) {
             ASSERT((cpuCtxt->psr&0xff000000)==(GetPsr()&0xff000000));
+            //EF bit Set if a floating-point coprocessor is available
             cpuCtxt->psr&=~PSR_EF_BIT;
         }
     }
     // Flushing the cache
 
-    //TODO what ...; must set and check separately if it is enable or not
+    //TODO do we need to check cache enable first?
 #ifdef CONFIG_FLUSH_CACHE_AFTER_CS
     if (current->ctrl.g&&(current!=cSPrevPart))
-        SetKThreadFlags(current, KTHREAD_FLUSH_DCACHE_F|KTHREAD_FLUSH_ICACHE_F);    
+        SetKThreadFlags(current, KTHREAD_FLUSH_DCACHE_F|KTHREAD_FLUSH_ICACHE_F);
 #endif
     if (AreKThreadFlagsSet(current, KTHREAD_DCACHE_ENABLED_F))
         cache|=DCACHE;
-    
+
     if (AreKThreadFlagsSet(current, KTHREAD_DCACHE_ENABLED_F))
         cache|=ICACHE;
-    
+
     SetCacheState(cache);
 }
 
 void KThreadArchInit(kThread_t *k) {
+//TODO empty
 }
 
 void SetupKThreadArch(kThread_t *k) {
+//TODO empty
 }
 
 void SetupKStack(kThread_t *k, void *StartUp, xmAddress_t entryPoint) {
@@ -95,7 +99,7 @@ void SetupKStack(kThread_t *k, void *StartUp, xmAddress_t entryPoint) {
 void SetupPctArch(partitionControlTable_t *partCtrlTab, kThread_t *k) {
     xm_s32_t e;
     partCtrlTab->trap2Vector[0]=DATA_STORE_ERROR;
-    partCtrlTab->trap2Vector[1]=INSTRUCTION_ACCESS_MMU_MISS;    
+    partCtrlTab->trap2Vector[1]=INSTRUCTION_ACCESS_MMU_MISS;
     partCtrlTab->trap2Vector[2]=INSTRUCTION_ACCESS_ERROR;
     partCtrlTab->trap2Vector[3]=R_REGISTER_ACCESS_ERROR;
     partCtrlTab->trap2Vector[4]=INSTRUCTION_ACCESS_EXCEPTION;
