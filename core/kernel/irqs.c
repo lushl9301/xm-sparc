@@ -178,9 +178,9 @@ void DoTrap(cpuCtxt_t *ctxt) {
     if (!IsSvIrqCtxt(ctxt)) {
         // if propagate in hm.c is 1;
         if (action)
-	    SetTrapPending(ctxt);
+            SetTrapPending(ctxt);
     } else
-	SystemPanic(ctxt, "Unexpected/unhandled trap - TRAP: 0x%x ERROR CODE: 0x%x\n", sched->cKThread->ctrl.g->partCtrlTab->trap2Vector[ctxt->irqNr], GET_ECODE(ctxt));
+        SystemPanic(ctxt, "Unexpected/unhandled trap - TRAP: 0x%x ERROR CODE: 0x%x\n", sched->cKThread->ctrl.g->partCtrlTab->trap2Vector[ctxt->irqNr], GET_ECODE(ctxt));
 }
 
 void DoUnrecovExcp(cpuCtxt_t *ctxt) {
@@ -210,6 +210,7 @@ void DoUnrecovExcp(cpuCtxt_t *ctxt) {
 }
 
 void DoIrq(cpuCtxt_t *ctxt) {
+//if has irq handler then do; otherwise use DefaultIrqHandler
     localCpu_t *cpu=GET_LOCAL_CPU();
     ASSERT(!HwIsSti());
 #ifdef CONFIG_AUDIT_EVENTS
@@ -221,62 +222,66 @@ void DoIrq(cpuCtxt_t *ctxt) {
 #endif
     cpu->irqNestingCounter++;
     HwAckIrq(ctxt->irqNr);
+    //TODO this is taken over by SetupIrqs(void) as below
     if (irqHandlerTab[ctxt->irqNr].handler)
-	(*(irqHandlerTab[ctxt->irqNr].handler))(ctxt, irqHandlerTab[ctxt->irqNr].data);
+        (*(irqHandlerTab[ctxt->irqNr].handler))(ctxt, irqHandlerTab[ctxt->irqNr].data);
     else
-	DefaultIrqHandler(ctxt, 0);
+        DefaultIrqHandler(ctxt, 0);
 #ifndef CONFIG_MASKING_VT_HW_IRQS
     HwEndIrq(ctxt->irqNr);
 #endif
 
-    //TODO finished? so can just schedule here?
+    //finished; just schedule here
     cpu->irqNestingCounter--;
     do {
-	Schedule();
+        Schedule();
     } while (cpu->irqNestingCounter==SCHED_PENDING);
     ASSERT(!HwIsSti());
     ASSERT(!(cpu->irqNestingCounter&SCHED_PENDING));
 }
 
 void __VBOOT SetupIrqs(void) {
+//set handler; and ArchSetupIrqs;
     xm_s32_t irqNr;
 
     for (irqNr=0; irqNr<CONFIG_NO_HWIRQS; irqNr++) {
-	if (xmcTab.hpv.hwIrqTab[irqNr].owner!=XM_IRQ_NO_OWNER) {
-	    irqHandlerTab[irqNr]=(struct irqTabEntry){
-		.handler=TriggerIrqHandler,
-		.data=0,
-	    };
-	} else  {
-	    irqHandlerTab[irqNr]=(struct irqTabEntry){
-		.handler=DefaultIrqHandler,
-		.data=0,
-	    };
-	}
+        if (xmcTab.hpv.hwIrqTab[irqNr].owner!=XM_IRQ_NO_OWNER) {
+            irqHandlerTab[irqNr]=(struct irqTabEntry){
+                .handler=TriggerIrqHandler,
+                .data=0,
+            };
+        } else  {
+            irqHandlerTab[irqNr]=(struct irqTabEntry){
+                .handler=DefaultIrqHandler,
+                .data=0,
+            };
+        }
     }
 
     for (irqNr=0; irqNr<NO_TRAPS; irqNr++)
-	trapHandlerTab[irqNr]=0;
-
+        trapHandlerTab[irqNr]=0;
+    //
     ArchSetupIrqs();
 }
 
 irqHandler_t SetIrqHandler(xm_s32_t irq, irqHandler_t irqHandler, void *data) {
+//set handler and data
     irqHandler_t oldHandler=irqHandlerTab[irq].handler;
 
     if (irqHandler) {
-	irqHandlerTab[irq]=(struct irqTabEntry){
-	    .handler=irqHandler,
-	    .data=data,
-	};
+        irqHandlerTab[irq]=(struct irqTabEntry){
+            .handler=irqHandler,
+            .data=data,
+        };
     } else
-	irqHandlerTab[irq]=(struct irqTabEntry){
-	    .handler=DefaultIrqHandler,
-	};
+        irqHandlerTab[irq]=(struct irqTabEntry){
+            .handler=DefaultIrqHandler,
+        };
     return oldHandler;
 }
 
 trapHandler_t SetTrapHandler(xm_s32_t trap, trapHandler_t trapHandler) {
+//set trap handler
     trapHandler_t oldHandler=trapHandlerTab[trap];
 
     trapHandlerTab[trap]=trapHandler;
@@ -284,15 +289,19 @@ trapHandler_t SetTrapHandler(xm_s32_t trap, trapHandler_t trapHandler) {
 }
 
 static inline xm_s32_t AreHwIrqsPending(partitionControlTable_t *partCtrlTab) {
+//change pend flag to the index of eIrq
     xm_s32_t eIrq;
 
     // select pending status
     //TODO how about nested irq
-    eIrq=partCtrlTab->hwIrqsPend&~partCtrlTab->hwIrqsMask;
+    eIrq=partCtrlTab->hwIrqsPend & ~partCtrlTab->hwIrqsMask;
     if (eIrq) {
+//This is somehow arch depended
 #ifdef CONFIG_HWIRQ_PRIO_FBS
+        //for x86
         eIrq=_Ffs(eIrq);
 #else
+        //for sparc
         eIrq=_Fls(eIrq);
 #endif
         ASSERT(eIrq>=0&&eIrq<CONFIG_NO_HWIRQS);
@@ -303,6 +312,7 @@ static inline xm_s32_t AreHwIrqsPending(partitionControlTable_t *partCtrlTab) {
 }
 
 static inline xm_s32_t AreExtIrqsPending(partitionControlTable_t *partCtrlTab) {
+//similar to AreHwIrqsPending
     xm_s32_t eIrq;
 
     eIrq=partCtrlTab->extIrqsPend&~partCtrlTab->extIrqsMask;
@@ -312,13 +322,14 @@ static inline xm_s32_t AreExtIrqsPending(partitionControlTable_t *partCtrlTab) {
 #else
         eIrq=_Fls(eIrq);
 #endif
-	return eIrq;
+        return eIrq;
     }
 
     return -1;
 }
 
 static inline xm_s32_t AreExtTrapsPending(partitionControlTable_t *partCtrlTab) {
+//similar as AreHwIrqsPending
     xm_s32_t eIrq;
 
     eIrq=partCtrlTab->extIrqsPend&XM_EXT_TRAPS;
@@ -328,7 +339,7 @@ static inline xm_s32_t AreExtTrapsPending(partitionControlTable_t *partCtrlTab) 
 #else
         eIrq=_Fls(eIrq);
 #endif
-	return eIrq;
+        return eIrq;
     }
 
     return -1;
@@ -346,14 +357,17 @@ static inline xm_s32_t AreExtTrapsPending(partitionControlTable_t *partCtrlTab) 
 #endif
 
 xm_s32_t RaisePendIrqs(cpuCtxt_t *ctxt) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     partitionControlTable_t *partCtrlTab;
     xm_s32_t eIrq, emul;
 
+    // if guest==null or recent trap occurred
+    //TODO the usage is avoid nested irq?
     if (!sched->cKThread->ctrl.g||IsSvIrqCtxt(ctxt))
-	return ~0;
+        return ~0;
 
-    // SwTrap
+    // SwTrap; then return trap vector address
     if (sched->cKThread->ctrl.g->swTrap&0x1) {
         emul=sched->cKThread->ctrl.g->swTrap>>1;
         sched->cKThread->ctrl.g->swTrap=0;
@@ -366,7 +380,7 @@ xm_s32_t RaisePendIrqs(cpuCtxt_t *ctxt) {
     if (AreKThreadFlagsSet(sched->cKThread, KTHREAD_TRAP_PENDING_F)) {
         ClearKThreadFlags(sched->cKThread, KTHREAD_TRAP_PENDING_F);
         DisablePCtrlTabIrqs(&partCtrlTab->iFlags);
-	emul=ArchEmulTrapIrq(ctxt, partCtrlTab, ctxt->irqNr);
+        emul=ArchEmulTrapIrq(ctxt, partCtrlTab, ctxt->irqNr);
         RAISE_PENDIRQ_AUDIT_EVENT(emul);
         return IrqVector2Address(emul);
     }
@@ -378,7 +392,7 @@ xm_s32_t RaisePendIrqs(cpuCtxt_t *ctxt) {
     if ((eIrq=AreExtTrapsPending(partCtrlTab))>-1) {
         partCtrlTab->extIrqsPend&=~(1<<eIrq);
         DisablePCtrlTabIrqs(&partCtrlTab->iFlags);
-	emul=ArchEmulExtIrq(ctxt, partCtrlTab, eIrq);
+        emul=ArchEmulExtIrq(ctxt, partCtrlTab, eIrq);
         RAISE_PENDIRQ_AUDIT_EVENT(emul);
         return IrqVector2Address(emul);
     }
@@ -392,7 +406,7 @@ xm_s32_t RaisePendIrqs(cpuCtxt_t *ctxt) {
         partCtrlTab->hwIrqsPend&=~(1<<eIrq);
         MaskPCtrlTabIrq(&partCtrlTab->hwIrqsMask, (1<<eIrq));
         DisablePCtrlTabIrqs(&partCtrlTab->iFlags);
-	emul=ArchEmulHwIrq(ctxt, partCtrlTab, eIrq);
+        emul=ArchEmulHwIrq(ctxt, partCtrlTab, eIrq);
         RAISE_PENDIRQ_AUDIT_EVENT(emul);
         return IrqVector2Address(emul);
     }
@@ -402,7 +416,7 @@ xm_s32_t RaisePendIrqs(cpuCtxt_t *ctxt) {
         partCtrlTab->extIrqsPend&=~(1<<eIrq);
         MaskPCtrlTabIrq(&partCtrlTab->extIrqsMask, (1<<eIrq));
         DisablePCtrlTabIrqs(&partCtrlTab->iFlags);
-	emul=ArchEmulExtIrq(ctxt, partCtrlTab, eIrq);
+        emul=ArchEmulExtIrq(ctxt, partCtrlTab, eIrq);
         RAISE_PENDIRQ_AUDIT_EVENT(emul);
         return IrqVector2Address(emul);
     }

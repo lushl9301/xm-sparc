@@ -125,10 +125,10 @@ typedef struct {
     xm_s32_t noPhysicalMemAreas;
     xm_s32_t noCommPorts;
     xm_u8_t name[CONFIG_ID_STRING_LENGTH]; //seems to be 16?
-    xm_u32_t iFlags; // As defined by the ARCH (ET+PIL in sparc)
+    xm_u32_t iFlags; // As defined by the ARCH (ET+PIL in sparc) PIL Processor Interrupt Level;
     xm_u32_t hwIrqsPend; // pending hw irqs //cannot nested IRQ?
     xm_u32_t hwIrqsMask; // masked hw irqs
-    
+
     xm_u32_t extIrqsPend; // pending extended irqs
     xm_u32_t extIrqsMask; // masked extended irqs
 

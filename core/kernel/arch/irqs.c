@@ -61,7 +61,7 @@ xm_s32_t ArchTrapIsSysCtxt(cpuCtxt_t *ctxt) {
 
     if ((ctxt->pc>=(xmAddress_t)WindowOverflowTrap)&&(ctxt->pc<(xmAddress_t)EWindowOverflowTrap))
         return 0;
-    
+
     if ((ctxt->pc>=(xmAddress_t)WindowUnderflowTrap)&&(ctxt->pc<(xmAddress_t)EWindowUnderflowTrap))
         return 0;
 
@@ -85,7 +85,7 @@ static xm_s32_t SparcTrapPageFault(cpuCtxt_t *ctxt, xm_u16_t *hmEvent) {
     sched->cKThread->ctrl.g->partCtrlTab->arch.faultAddressReg=faultAddress;
     if (faultAddress>=CONFIG_XM_OFFSET)
         *hmEvent=XM_HM_EV_MEM_PROTECTION;
-    
+
     return 0;
 }
 #endif
@@ -108,11 +108,12 @@ xmAddress_t IrqVector2Address(xm_s32_t vector) {
     cpuCtxt_t *ctxt=sched->cKThread->ctrl.irqCpuCtxt;
     if (CheckGParam(tbr, 256*16, 4, 0)<0)
         PartitionPanic(ctxt, "Incorrect TBR address (0x%x)\n", tbr);
-
+    //TODO why 4? sizeof trap vector?; 4 * 8 bit = 32 bit.
     return (xmAddress_t)&(tbr[vector*4]);
 }
 
 void ArchSetupIrqs(void) {
+//InitPic: assign APIC Ops to hwIrqCtrl[e] function pointers;
     extern void InitPic(void);
 #ifdef CONFIG_SMP
     int e;

@@ -91,6 +91,9 @@ static inline void MaskPCtrlTabIrq(xm_u32_t *mask, xm_u32_t bitmap) {
 }
 
 static inline xm_s32_t IsSvIrqCtxt(cpuCtxt_t *ctxt){
+//Value of S bit when the most recent trap occurred
+//PS_BIT is the 6th bit from lsb
+//http://www.enchantedlearning.com/sparc/architecture/psr.shtml
     return (ctxt->psr&PSR_PS_BIT);
 }
 
@@ -110,7 +113,7 @@ static inline xm_s32_t ArchEmulExtIrq(cpuCtxt_t *ctxt, partitionControlTable_t *
 
 #endif
 
-/* stack offsets */ 
+/* stack offsets */
 #define REG_WND_FRAME 0x40
 
 #define L0_OFFS 0x0

@@ -30,8 +30,9 @@ struct kThreadArch {
     xmAddress_t xPtdL1;
     xm_u8_t mmuCtxt;
 #endif
+    //Trap vector base address register
     xm_u32_t tbr;
-    // Floating point 
+    // Floating point
     // XM does not use fpu
     xm_u32_t fpuRegs[XM_FPU_REG_NR] ALIGNED_C;
 };

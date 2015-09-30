@@ -20,8 +20,9 @@
 #ifndef ARCH_HAS_FFS
 
 static __inline__ xm_s32_t _Ffs(xm_s32_t x) {
+//get last nonzero bit position
     xm_s32_t r=0;
-  
+
     if (!x)
 	return -1;
     if (!(x&0xffff)) {
@@ -51,6 +52,7 @@ static __inline__ xm_s32_t _Ffs(xm_s32_t x) {
 
 #ifndef ARCH_HAS_FFZ
 
+//get last zero bit
 #define _Ffz(x) _Ffs(~(x))
 
 #endif
@@ -58,8 +60,9 @@ static __inline__ xm_s32_t _Ffs(xm_s32_t x) {
 #ifndef ARCH_HAS_FLS
 
 static __inline__ xm_s32_t _Fls(xm_s32_t x) {
+//get first nonzero bit position
     xm_s32_t r=31;
-  
+
     if (!x)
 	return -1;
     if (!(x&0xffff0000u)) {

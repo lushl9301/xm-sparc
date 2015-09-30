@@ -68,32 +68,33 @@ extern hwIrqCtrl_t hwIrqCtrl[CONFIG_NO_HWIRQS];
 
 static inline void HwDisableIrq(xm_s32_t irq) {
     if ((irq<CONFIG_NO_HWIRQS)&&hwIrqCtrl[irq].Disable)
-	hwIrqCtrl[irq].Disable(irq);
+        hwIrqCtrl[irq].Disable(irq);
 }
 
 static inline void HwEnableIrq(xm_s32_t irq) {
     if ((irq<CONFIG_NO_HWIRQS)&&hwIrqCtrl[irq].Enable)
-	hwIrqCtrl[irq].Enable(irq);
+        hwIrqCtrl[irq].Enable(irq);
 }
 
 static inline void HwAckIrq(xm_s32_t irq) {
+//ACK is disable in the implementation
     if ((irq<CONFIG_NO_HWIRQS)&&hwIrqCtrl[irq].Ack)
-	hwIrqCtrl[irq].Ack(irq);
+        hwIrqCtrl[irq].Ack(irq);
 }
 
 static inline void HwEndIrq(xm_s32_t irq) {
     if ((irq<CONFIG_NO_HWIRQS)&&hwIrqCtrl[irq].End)
-	hwIrqCtrl[irq].End(irq);
+        hwIrqCtrl[irq].End(irq);
 }
 
 static inline void HwForceIrq(xm_s32_t irq) {
     if ((irq<CONFIG_NO_HWIRQS)&&hwIrqCtrl[irq].Force)
-	hwIrqCtrl[irq].Force(irq);
+        hwIrqCtrl[irq].Force(irq);
 }
 
 static inline void HwClearIrq(xm_s32_t irq) {
     if ((irq<CONFIG_NO_HWIRQS)&&hwIrqCtrl[irq].Clear)
-	hwIrqCtrl[irq].Clear(irq);
+        hwIrqCtrl[irq].Clear(irq);
 }
 
 extern xm_s32_t MaskHwIrq(xm_s32_t irq);
