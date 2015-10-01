@@ -188,6 +188,7 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
         k->ctrl.irqMask=localIrqMask;
         k->ctrl.g->partCtrlTab=(partitionControlTable_t *)(pct+pctSize*i);
         k->ctrl.g->partCtrlTab->partCtrlTabSize=pctSize;
+        //this function is empty
         SetupKThreadArch(k);
     }
 
@@ -195,6 +196,7 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
 }
 
 static inline void SetupPct(partitionControlTable_t *partCtrlTab, kThread_t *k, struct xmcPartition *cfg) {
+//setup partCtrlTab; only used in ResetKThread;
     struct xmPhysicalMemMap *memMap=(struct xmPhysicalMemMap *)((xmAddress_t)partCtrlTab+sizeof(partitionControlTable_t));
     struct xmcMemoryArea *xmcMemArea;
     xmWord_t *commPortBitmap;
@@ -219,11 +221,13 @@ static inline void SetupPct(partitionControlTable_t *partCtrlTab, kThread_t *k, 
     strncpy(partCtrlTab->name, &xmcStringTab[cfg->nameOffset], CONFIG_ID_STRING_LENGTH);
     partCtrlTab->hwIrqsMask|=~0;
     partCtrlTab->extIrqsMask|=~0;
+    //TODO the only usage of pointer p in this function
     partCtrlTab->imgStart=p->imgStart;
 
     InitPCtrlTabIrqs(&partCtrlTab->iFlags);
     partCtrlTab->noPhysicalMemAreas=cfg->noPhysicalMemoryAreas;
     partCtrlTab->partCtrlTabSize=sizeof(partitionControlTable_t)+partCtrlTab->noPhysicalMemAreas*sizeof(struct xmPhysicalMemMap);
+    //TODO this is for?
     for (e=0; e<cfg->noPhysicalMemoryAreas; e++) {
         xmcMemArea=&xmcPhysMemAreaTab[e+cfg->physicalMemoryAreasOffset];
         if (xmcMemArea->flags&XM_MEM_AREA_TAGGED)
@@ -238,12 +242,14 @@ static inline void SetupPct(partitionControlTable_t *partCtrlTab, kThread_t *k, 
     partCtrlTab->noCommPorts=cfg->noPorts;
 
     SetupPctMm(partCtrlTab, k);
+    //setup irq trap vector; k parameter is useless
     SetupPctArch(partCtrlTab, k);
 }
 
 
 //TODO don't need to lock anything? or stop anything
 void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u32_t status) {
+//used in hcall_ResetVCpuSys and ResetPartition
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page=NULL;
     xmAddress_t vPtd;
@@ -267,12 +273,10 @@ void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u3
 #ifdef CONFIG_AUDIT_EVENTS
     RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_VCPU_RESET, 1, &k->ctrl.g->id);
 #endif
-    //cKThread means core thread?
-    //I think so
     if (k!=sched->cKThread) {
         SetupKStack(k, StartUpGuest, entryPoint);
 #ifdef CONFIG_SMP
-        if (k->ctrl.g){
+        if (k->ctrl.g) {
             xm_u8_t cpu=xmcVCpuTab[(KID2PARTID(k->ctrl.g->id)*xmcTab.hpv.noCpus)+KID2VCPUID(k->ctrl.g->id)].cpu;
             if (cpu!=GET_CPU_ID())
                 SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
@@ -283,12 +287,15 @@ void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u3
         Schedule();
 #endif
     } else {
+        //SetMmuCtxt(k->ctrl.g->kArch.mmuCtxt)
         LoadPartitionPageTable(k);
+        //mainly operating on cKThread
         StartUpGuest(entryPoint);
     }
 }
 
 xm_s32_t ResetPartition(partition_t *p, xm_u32_t cold, xm_u32_t status) {
+//
     extern void ResetPartPorts(partition_t *p);
     localSched_t *sched=GET_LOCAL_SCHED();
     struct xmcBootPart *xmcBootPart;
@@ -319,6 +326,7 @@ xm_s32_t ResetPartition(partition_t *p, xm_u32_t cold, xm_u32_t status) {
     if (sched->cKThread==p->kThread[0])
         LoadXmPageTable();
 
+    //reset physical memory
     PmmResetPartition(p);
     ptdL1=SetupPageTable(p, ReadByPassMmuWord(&xmImageHdr->pageTable), ReadByPassMmuWord(&xmImageHdr->pageTableSize));
     if (ptdL1==~0)
@@ -351,6 +359,7 @@ xm_s32_t ResetPartition(partition_t *p, xm_u32_t cold, xm_u32_t status) {
        ResetKThread(p->kThread[0], ptdL1,xmcBootPartTab[p->cfg->id].entryPoint, status);
 */
 
+    //idle state
     if (sched->cKThread==p->kThread[0])
         LoadPartitionPageTable(p->kThread[0]);
 

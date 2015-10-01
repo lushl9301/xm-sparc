@@ -97,6 +97,7 @@ void SetupKStack(kThread_t *k, void *StartUp, xmAddress_t entryPoint) {
 }
 
 void SetupPctArch(partitionControlTable_t *partCtrlTab, kThread_t *k) {
+//update trap vector; hwIrq; extIrq
     xm_s32_t e;
     partCtrlTab->trap2Vector[0]=DATA_STORE_ERROR;
     partCtrlTab->trap2Vector[1]=INSTRUCTION_ACCESS_MMU_MISS;

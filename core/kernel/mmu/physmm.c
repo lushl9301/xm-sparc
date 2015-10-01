@@ -62,7 +62,7 @@ struct physPage *PmmFindAnonymousPage(xmAddress_t pAddr) {
 }
 
 struct physPage *PmmFindPage(xmAddress_t pAddr, partition_t *p, xm_u32_t *flags) {
-    struct xmcMemoryArea *memArea;    
+    struct xmcMemoryArea *memArea;
     struct xmcPartition *cfg;
     xm_s32_t l, r, c;
     xmAddress_t a, b;
@@ -186,12 +186,14 @@ xm_s32_t PmmFindArea(xmAddress_t pAddr, xmSSize_t size, partition_t *p, xm_u32_t
 }
 
 void PmmResetPartition(partition_t *p) {
+//reset partition clear memory part; only called by ResetPartition from kthread.c
     struct xmcMemoryRegion *memRegion;
     struct xmcMemoryArea *memArea;
     struct physPage *page;
     xmAddress_t addr;
     xm_s32_t e;
-    
+
+    //clear memRegion and clear each page
     for (e=0; e<p->cfg->noPhysicalMemoryAreas; e++) {
         memArea=&xmcPhysMemAreaTab[e+p->cfg->physicalMemoryAreasOffset];
         memRegion=&xmcMemRegTab[memArea->memoryRegionOffset];
@@ -259,7 +261,7 @@ void VCacheUnlockPage(struct physPage *page) {
 
 void SetupPhysMM(void) {
     xm_s32_t e, i;
-    
+
     DynListInit(&cacheLRU);
     GET_MEMZ(physPageTab, sizeof(struct physPage *)*xmcTab.noRegions);
     for (e=0; e<xmcTab.noRegions; e++) {
@@ -273,5 +275,3 @@ void SetupPhysMM(void) {
         }
     }
 }
-
-
