@@ -48,6 +48,7 @@ static void KThrWatchdogTimerHndl(kTimer_t *kTimer, void *args) {
 }
 
 void SetupKThreads(void) {
+//just sum up noVCpus
     xm_s32_t e;
     //TODO didn't do much. just count noVCpus?
     ASSERT(GET_CPU_ID()==0);

@@ -41,6 +41,8 @@ static const struct xmcSchedCyclicPlan idleCyclicPlanTab= {
 
 
 #ifdef CONFIG_PLAN_EXTSYNC
+//not set for sparc by default
+//it is set for spartan6_fpga.c?
 static volatile xm_s32_t extSync[CONFIG_NO_CPUS];
 static volatile xm_s32_t actExtSync[CONFIG_NO_CPUS];
 
@@ -55,6 +57,7 @@ static void SchedSyncHandler(cpuCtxt_t *irqCtxt, void *extra) {
 
 ////////////////// CYCLIC SCHEDULER
 xm_s32_t SwitchSchedPlan(xm_s32_t newPlanId, xm_s32_t *oldPlanId) {
+//oldPlanId is kind of return type; get current plan id;
     localSched_t *sched=GET_LOCAL_SCHED();
     xm_s32_t e;
 
@@ -76,6 +79,8 @@ xm_s32_t SwitchSchedPlan(xm_s32_t newPlanId, xm_s32_t *oldPlanId) {
 }
 
 inline void MakePlanSwitch(xmTime_t cTime, struct cyclicData *cyclic) {
+//the naming is confusing; MakePlanSwitch vs SwitchSchedPlan
+//this function is for getting ready to switch in cTime
     extern void IdleTask(void);
 #ifdef CONFIG_AUDIT_EVENTS
     xmWord_t planIds[2];
@@ -89,6 +94,7 @@ inline void MakePlanSwitch(xmTime_t cTime, struct cyclicData *cyclic) {
 #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
         updateStateHyp(XM_STATUS_READY);
 #endif
+        //majorFrame == 0 means IdleTask
         if (!cyclic->plan.new->majorFrame)
             IdleTask();
 #ifdef CONFIG_AUDIT_EVENTS
@@ -100,6 +106,7 @@ inline void MakePlanSwitch(xmTime_t cTime, struct cyclicData *cyclic) {
 }
 
 static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
+//get started with idle state;
     const struct xmcSchedCyclicPlan *plan;
     xmTime_t cTime=GetSysClockUsec();
     struct cyclicData *cyclic=&schedData->cyclic;
@@ -116,6 +123,7 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
 
     cyclic->flags&=~RESCHED_ENABLED;
     plan=cyclic->plan.current;
+    //if this plan haven't finished yet
     if (cyclic->mjf<=cTime) {
 #ifdef CONFIG_PLAN_EXTSYNC
         if (actExtSync[nCpu]&&!extSync[nCpu]) {
@@ -129,6 +137,7 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
         sendStateToAllNodes();
         receiveStateFromAllNodes();
 #endif
+        //schedule to switch to next plan here
         MakePlanSwitch(cTime, cyclic);
         plan=cyclic->plan.current;
         if (cyclic->slot>=0) {
@@ -137,10 +146,10 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
                 cyclic->mjf+=plan->majorFrame;
             }
 #ifdef CONFIG_OBJ_STATUS_ACC
-        systemStatus.currentMaf++;
+            systemStatus.currentMaf++;
 #endif
         } else {
-            //slot == -1; means just made plan switch
+            //slot == -1; means just made plan switch or just start
             cyclic->sExec=cTime;
             cyclic->mjf=plan->majorFrame+cyclic->sExec;
         }
@@ -156,6 +165,7 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
     if (cyclic->slot>=plan->noSlots)
         goto out; // getting idle
 
+    // if exceed end of this slot; go to next slot
     while (t>=xmcSchedCyclicSlotTab[plan->slotsOffset+cyclic->slot].eExec) {
         cyclic->slot++;
         if (cyclic->slot>=plan->noSlots)
@@ -168,20 +178,21 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
             ASSERT(partitionTab[xmcSchedCyclicSlotTab[slotTabEntry].partitionId].kThread[xmcSchedCyclicSlotTab[slotTabEntry].vCpuId]);
             newK=partitionTab[xmcSchedCyclicSlotTab[slotTabEntry].partitionId].kThread[xmcSchedCyclicSlotTab[slotTabEntry].vCpuId];
 
-        if (!AreKThreadFlagsSet(newK, KTHREAD_HALTED_F|KTHREAD_SUSPENDED_F)&&
-            AreKThreadFlagsSet(newK, KTHREAD_READY_F)) {
-            nextTime=xmcSchedCyclicSlotTab[slotTabEntry].eExec;
+            if (!AreKThreadFlagsSet(newK, KTHREAD_HALTED_F|KTHREAD_SUSPENDED_F)&&
+                AreKThreadFlagsSet(newK, KTHREAD_READY_F)) {
+                    nextTime=xmcSchedCyclicSlotTab[slotTabEntry].eExec;
+            } else {
+                newK=0;
+                if ((cyclic->slot+1)<plan->noSlots)
+                    nextTime=xmcSchedCyclicSlotTab[slotTabEntry+1].sExec;
+            }
         } else {
-            newK=0;
-            if ((cyclic->slot+1)<plan->noSlots)
-                nextTime=xmcSchedCyclicSlotTab[slotTabEntry+1].sExec;
-        }
-    } else {
-        nextTime=xmcSchedCyclicSlotTab[slotTabEntry].sExec;
+            nextTime=xmcSchedCyclicSlotTab[slotTabEntry].sExec;
     }
 
 out:
 //    ASSERT(cyclic->nextAct<(nextTime+cyclic->sExec));
+    //next action time; nextime + current start time;
     cyclic->nextAct=nextTime+cyclic->sExec;
     ArmKTimer(&cyclic->kTimer, cyclic->nextAct, 0);
     slotTabEntry=plan->slotsOffset+cyclic->slot;
@@ -203,6 +214,7 @@ out:
         newK->ctrl.g->partCtrlTab->schedInfo.noSlot=cyclic->slot;
         newK->ctrl.g->partCtrlTab->schedInfo.id=xmcSchedCyclicSlotTab[slotTabEntry].id;
         newK->ctrl.g->partCtrlTab->schedInfo.slotDuration=xmcSchedCyclicSlotTab[slotTabEntry].eExec-xmcSchedCyclicSlotTab[slotTabEntry].sExec;
+        //start of cyclic scheduling?
         SetExtIrqPending(newK, XM_VT_EXT_CYCLIC_SLOT_START);
     }
 
@@ -219,6 +231,7 @@ out:
 
 // get the first ready FP when initSched
 static kThread_t *GetReadyKThreadFP(struct schedData *schedData) {
+//fix plan? get first runnable thread; if it is able to run, then run
     struct fpData *fp=&schedData->fp;
     kThread_t *newK=0;
     xm_s32_t e;
@@ -238,6 +251,7 @@ static kThread_t *GetReadyKThreadFP(struct schedData *schedData) {
 #endif
 
 void __VBOOT InitSched(void) {
+//init; allocate mem
     extern void SetupKThreads(void);
 
     SetupKThreads();
@@ -246,6 +260,8 @@ void __VBOOT InitSched(void) {
 }
 
 void __VBOOT InitSchedLocal(kThread_t *idle) {
+//this function update directly to localSchedInfo which is *sched
+//memory allocation already finished before this function is invoked
     localSched_t *sched=GET_LOCAL_SCHED();
 #ifdef CONFIG_CYCLIC_SCHED
 #ifdef CONFIG_PLAN_EXTSYNC
@@ -285,11 +301,13 @@ void __VBOOT InitSchedLocal(kThread_t *idle) {
 }
 
 void SetSchedPending(void) {
+//action function for InitKTimer
     localCpu_t *cpu=GET_LOCAL_CPU();
     cpu->irqNestingCounter|=SCHED_PENDING;
 }
 
 void Schedule(void) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     localCpu_t *cpu=GET_LOCAL_CPU();
     xmWord_t hwFlags;
@@ -297,6 +315,7 @@ void Schedule(void) {
 
     CHECK_KTHR_SANITY(sched->cKThread);
     if (!(sched->flags&LOCAL_SCHED_ENABLED)) {
+        //clear SCHED_PENDING signal
         cpu->irqNestingCounter&=~(SCHED_PENDING);
         return;
     }
@@ -309,6 +328,7 @@ void Schedule(void) {
         return;
     }
 
+    //disable irq pending, get ready kthread
     cpu->irqNestingCounter&=(~SCHED_PENDING);
     if (!(newK=sched->GetReadyKThread(sched->data)))
         newK=sched->idleKThread;
@@ -322,6 +342,7 @@ void Schedule(void) {
         RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_CONTEXT_SWITCH, 1, &auditArgs);
 #endif
 #if 0
+        //debug infor before context switch
         if (newK->ctrl.g)
             kprintf("newK: [%d:%d] 0x%x ", KID2PARTID(newK->ctrl.g->id), KID2VCPUID(newK->ctrl.g->id), newK);
         else
@@ -344,7 +365,7 @@ void Schedule(void) {
             StopVClock(&sched->cKThread->ctrl.g->vClock,  &sched->cKThread->ctrl.g->vTimer);
 //#endif
 
-        if (newK->ctrl.g)
+        if (newK->ctrl.g) // newK is not idle
             SetHwTimer(TraverseKTimerQueue(&newK->ctrl.localActiveKTimers, GetSysClockUsec()));
 #ifdef CONFIG_FP_SCHED
         if (xmcTab.hpv.cpuTab[GET_CPU_ID()].schedPolicy==CYCLIC_SCHED) {
@@ -365,7 +386,7 @@ void Schedule(void) {
             }
         }
 #else*/
-        // now cKThread is our newK already
+        // now, cKThread is our newK already
         if (sched->cKThread->ctrl.g) {
             ResumeVClock(&sched->cKThread->ctrl.g->vClock, &sched->cKThread->ctrl.g->vTimer);
         }
