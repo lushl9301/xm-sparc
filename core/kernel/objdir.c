@@ -20,6 +20,7 @@
 const struct object *objectTab[OBJ_NO_CLASSES]={[0 ... OBJ_NO_CLASSES-1] = 0};
 
 void SetupObjDir(void) {
+//set up obj by calling objectSetupTab[e]()
     extern xm_s32_t (*objectSetupTab[])(void);
     xm_u32_t e;
     for (e=0; objectSetupTab[e]; e++) {
