@@ -320,6 +320,7 @@ void Schedule(void) {
         return;
     }
 
+    //save flag
     HwSaveFlagsCli(hwFlags);
     // When an interrupt is in-progress, the scheduler shouldn't be invoked
     if (cpu->irqNestingCounter&IRQ_IN_PROGRESS) {
@@ -393,5 +394,6 @@ void Schedule(void) {
 //#endif
         SwitchKThreadArchPost(sched->cKThread);
     }
+    //restore back
     HwRestoreFlags(hwFlags);
 }

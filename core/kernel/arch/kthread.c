@@ -27,6 +27,7 @@ static kThread_t *cSPrevPart=0;
 #endif
 
 void SwitchKThreadArchPre(kThread_t *new, kThread_t *current) {
+//flush tlb; record which guest is using cache;
     ASSERT(!HwIsSti());
 
 #ifdef CONFIG_MMU
@@ -38,17 +39,19 @@ void SwitchKThreadArchPre(kThread_t *new, kThread_t *current) {
     }
 #else
     if (new->ctrl.g) {
-	StoreIoReg(LEON_MEMORY_WPR_BASE+WPR1_REG, new->ctrl.g->kArch.wpReg);
+        StoreIoReg(LEON_MEMORY_WPR_BASE+WPR1_REG, new->ctrl.g->kArch.wpReg);
     }
 #endif
 #ifdef CONFIG_FLUSH_CACHE_AFTER_CS
     if (current->ctrl.g)
-	cSPrevPart=current;
+        cSPrevPart=current;
 #endif
 }
 
 void SwitchKThreadArchPost(kThread_t *current) {
 //called by StartUpGuest and schedule()-> if newK != cKThread (CS)
+//called by schedule() in "pre, ..., post" manner
+//mainly focus on cache
     xm_u32_t cache=0;
     ASSERT(!HwIsSti());
     // Disabling FPU
@@ -65,6 +68,8 @@ void SwitchKThreadArchPost(kThread_t *current) {
 
     //TODO do we need to check cache enable first?
 #ifdef CONFIG_FLUSH_CACHE_AFTER_CS
+    //lazy flush;
+    //if current is same as the one who used cache then don't flush cache
     if (current->ctrl.g&&(current!=cSPrevPart))
         SetKThreadFlags(current, KTHREAD_FLUSH_DCACHE_F|KTHREAD_FLUSH_ICACHE_F);
 #endif
@@ -136,7 +141,7 @@ void SetupPctArch(partitionControlTable_t *partCtrlTab, kThread_t *k) {
     partCtrlTab->hwIrq2Vector[15]=INTERRUPT_LEVEL_15; // UNUSED
 
     for (e=0; e<XM_VT_EXT_MAX; e++)
-	partCtrlTab->extIrq2Vector[e]=224+e;
+        partCtrlTab->extIrq2Vector[e]=224+e;
 
     if (KTHREAD_FP_F & partCtrlTab->flags)
        partCtrlTab->iFlags|=PSR_EF_BIT;
