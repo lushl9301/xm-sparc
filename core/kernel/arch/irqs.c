@@ -55,6 +55,7 @@ RESERVE_HWIRQ(SCHED_PENDING_IPI_VECTOR);
 extern localCpu_t localCpuInfo[CONFIG_NO_CPUS];
 
 xm_s32_t ArchTrapIsSysCtxt(cpuCtxt_t *ctxt) {
+//if not in system trap then return 0
     extern xm_u8_t WindowOverflowTrap[], EWindowOverflowTrap[];
     extern xm_u8_t WindowUnderflowTrap[], EWindowUnderflowTrap[];
     extern xm_u8_t SIRetCheckRetAddr[], EIRetCheckRetAddr[];
@@ -72,6 +73,7 @@ xm_s32_t ArchTrapIsSysCtxt(cpuCtxt_t *ctxt) {
 }
 
 static xm_s32_t SparcFpFault(cpuCtxt_t *ctxt, xm_u16_t *hmEvent) {
+//disable
     *hmEvent=XM_HM_EV_SPARC_FP_DISABLED;
     return 0;
 }
@@ -92,10 +94,12 @@ static xm_s32_t SparcTrapPageFault(cpuCtxt_t *ctxt, xm_u16_t *hmEvent) {
 
 #ifdef CONFIG_SMP
 static void SmpHaltAllHndl(cpuCtxt_t *ctxt, void *data) {
+//TODO not implemented well
     HaltSystem();
 }
 
 static void SmpSchedPendingIPIHndl(cpuCtxt_t *ctxt, void *data) {
+//
     localSched_t *sched=GET_LOCAL_SCHED();
     SetSchedPending();
     sched->data->cyclic.flags|=RESCHED_ENABLED;
@@ -103,6 +107,7 @@ static void SmpSchedPendingIPIHndl(cpuCtxt_t *ctxt, void *data) {
 #endif
 
 xmAddress_t IrqVector2Address(xm_s32_t vector) {
+//tbr; trap vector base address register
     localSched_t *sched=GET_LOCAL_SCHED();
     xmAddress_t *tbr=(xmAddress_t *)sched->cKThread->ctrl.g->partCtrlTab->arch.tbr;
     cpuCtxt_t *ctxt=sched->cKThread->ctrl.irqCpuCtxt;
