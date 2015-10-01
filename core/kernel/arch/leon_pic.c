@@ -129,6 +129,7 @@ xm_u32_t HwIrqGetMask(void) {
 }
 
 void HwIrqSetMask(xm_u32_t mask) {
+//IMASK_MASK irq mask's mask?
     StoreIoReg(GET_APIC_BASE()+PROC0_INT_MASK_REG, (~mask)&IMASK_MASK);
 }
 
