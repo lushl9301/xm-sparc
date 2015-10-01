@@ -38,7 +38,7 @@ static xm_s32_t ReadHmLog(xmObjDesc_t desc, xmHmLog_t *__gParam log, xm_u32_t si
     localSched_t *sched=GET_LOCAL_SCHED();
 
     if (OBJDESC_GET_PARTITIONID(desc)!=XM_HYPERVISOR_ID)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
         return XM_PERM_ERROR;
@@ -46,11 +46,11 @@ static xm_s32_t ReadHmLog(xmObjDesc_t desc, xmHmLog_t *__gParam log, xm_u32_t si
     if (CheckGParam(log, size, 4, PFLAG_NOT_NULL|PFLAG_RW)<0) return XM_INVALID_PARAM;
 
     if (!log||!noLogs)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     for (e=0; e<noLogs; e++)
-	if (LogStreamGet(&hmLogStream, &log[e])<0)
-	    return e*sizeof(xmHmLog_t);
+        if (LogStreamGet(&hmLogStream, &log[e])<0)
+            return e*sizeof(xmHmLog_t);
 
     return noLogs*sizeof(xmHmLog_t);
 }
@@ -58,7 +58,7 @@ static xm_s32_t ReadHmLog(xmObjDesc_t desc, xmHmLog_t *__gParam log, xm_u32_t si
 static xm_s32_t SeekHmLog(xmObjDesc_t desc, xm_u32_t offset, xm_u32_t whence) {
     localSched_t *sched=GET_LOCAL_SCHED();
     if (OBJDESC_GET_PARTITIONID(desc)!=XM_HYPERVISOR_ID)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
         return XM_PERM_ERROR;
@@ -71,17 +71,17 @@ static xm_s32_t SeekHmLog(xmObjDesc_t desc, xm_u32_t offset, xm_u32_t whence) {
 static xm_s32_t CtrlHmLog(xmObjDesc_t desc, xm_u32_t cmd, union hmCmd *__gParam args) {
     localSched_t *sched=GET_LOCAL_SCHED();
     if (OBJDESC_GET_PARTITIONID(desc)!=XM_HYPERVISOR_ID)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
         return XM_PERM_ERROR;
     if (CheckGParam(args, sizeof(union hmCmd), 4, PFLAG_NOT_NULL|PFLAG_RW)<0) return XM_INVALID_PARAM;
     switch(cmd) {
     case XM_HM_GET_STATUS:
-	args->status.noEvents=hmLogStream.ctrl.elem;
-	args->status.maxEvents=hmLogStream.info.maxNoElem;
-	args->status.currentEvent=hmLogStream.ctrl.d;
-	return XM_OK;
+        args->status.noEvents=hmLogStream.ctrl.elem;
+        args->status.maxEvents=hmLogStream.info.maxNoElem;
+        args->status.currentEvent=hmLogStream.ctrl.d;
+        return XM_OK;
     case XM_HM_LOCK_EVENTS:
         LogStreamLock(&hmLogStream);
         return XM_OK;
@@ -259,7 +259,7 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
         auditArgs[0]=((xmcTab.hpv.hmTab[eventId].log)?1<<31:0)|xmcTab.hpv.hmTab[eventId].action;
         RaiseAuditEvent(TRACE_HM_MODULE, AUDIT_HM_HPV_ACTION, 1, auditArgs);
 #endif
-	if (xmcTab.hpv.hmTab[eventId].log) {
+        if (xmcTab.hpv.hmTab[eventId].log) {
             xm_u32_t tmpSeq;
             log->checksum=0;
             tmpSeq=seq++;
@@ -268,32 +268,32 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
             log->checksum=CalcCheckSum((xm_u16_t *)log, sizeof(struct xmHmLog));
             LogStreamInsert(&hmLogStream, log);
         }
-	switch(xmcTab.hpv.hmTab[eventId].action) {
-	case XM_HM_AC_IGNORE:
-	    // Doing nothing
-	    break;
-	case XM_HM_AC_HYPERVISOR_COLD_RESET:
+        switch(xmcTab.hpv.hmTab[eventId].action) {
+        case XM_HM_AC_IGNORE:
+            // Doing nothing
+            break;
+        case XM_HM_AC_HYPERVISOR_COLD_RESET:
             resetStatusInit[0]=(XM_HM_RESET_STATUS_MODULE_RESTART<<XM_HM_RESET_STATUS_USER_CODE_BIT)|(eventId&XM_HM_RESET_STATUS_EVENT_MASK);
             ResetSystem(XM_COLD_RESET);
-	    break;
-	case XM_HM_AC_HYPERVISOR_WARM_RESET:
+            break;
+        case XM_HM_AC_HYPERVISOR_WARM_RESET:
             resetStatusInit[0]=(XM_HM_RESET_STATUS_MODULE_RESTART<<XM_HM_RESET_STATUS_USER_CODE_BIT)|(eventId&XM_HM_RESET_STATUS_EVENT_MASK);
             ResetSystem(XM_WARM_RESET);
-	    break;
+            break;
 #ifdef CONFIG_CYCLIC_SCHED
         case XM_HM_AC_SWITCH_TO_MAINTENANCE:
             SwitchSchedPlan(1, &oldPlanId);
-	    MakePlanSwitch(cTime, &GET_LOCAL_SCHED()->data->cyclic);
+            MakePlanSwitch(cTime, &GET_LOCAL_SCHED()->data->cyclic);
             Schedule();
-	    break;
+            break;
 #endif
         case XM_HM_AC_HYPERVISOR_HALT:
-	    HaltSystem();
-	    break;
-	default:
+            HaltSystem();
+            break;
+        default:
             GetCpuCtxt(&ctxt);
-	    SystemPanic(&ctxt, "Unknown health-monitor action %d\n", xmcTab.hpv.hmTab[eventId].action);
-	}
+            SystemPanic(&ctxt, "Unknown health-monitor action %d\n", xmcTab.hpv.hmTab[eventId].action);
+        }
     } else {
 #ifdef CONFIG_OBJ_HM_VERBOSE
         kprintf("[HM] ");
@@ -316,79 +316,80 @@ xm_s32_t HmRaiseEvent(xmHmLog_t *log) {
             log->opCodeH&=~HMLOG_OPCODE_SEQ_MASK;
             log->opCodeH|=tmpSeq<<HMLOG_OPCODE_SEQ_BIT;
             log->checksum=CalcCheckSum((xm_u16_t *)log, sizeof(struct xmHmLog));
-	    LogStreamInsert(&hmLogStream, log);
+            LogStreamInsert(&hmLogStream, log);
         }
 
-	ASSERT(partitionId<xmcTab.noPartitions);
+        ASSERT(partitionId<xmcTab.noPartitions);
         switch(partitionTab[partitionId].cfg->hmTab[eventId].action) {
-	case XM_HM_AC_IGNORE:
-	    // Doing nothing
-	    break;
-	case XM_HM_AC_SHUTDOWN:
+        case XM_HM_AC_IGNORE:
+            // Doing nothing
+            break;
+        case XM_HM_AC_SHUTDOWN:
             SHUTDOWN_PARTITION(partitionId);
-	    break;
-	case XM_HM_AC_PARTITION_COLD_RESET:
+            break;
+        case XM_HM_AC_PARTITION_COLD_RESET:
 #ifdef CONFIG_OBJ_HM_VERBOSE
-	    kprintf("[HM] Partition %d cold reseted\n", partitionId);
+            kprintf("[HM] Partition %d cold reseted\n", partitionId);
 #endif
-	    if (ResetPartition(&partitionTab[partitionId], XM_COLD_RESET, eventId)<0) {
+            if (ResetPartition(&partitionTab[partitionId], XM_COLD_RESET, eventId)<0) {
                 HALT_PARTITION(partitionId);
                 Schedule();
             }
 
-	    break;
-	case XM_HM_AC_PARTITION_WARM_RESET:
+            break;
+        case XM_HM_AC_PARTITION_WARM_RESET:
 #ifdef CONFIG_OBJ_HM_VERBOSE
-	    kprintf("[HM] Partition %d warm reseted\n", partitionId);
+            kprintf("[HM] Partition %d warm reseted\n", partitionId);
 #endif
-	    if (ResetPartition(&partitionTab[partitionId], XM_WARM_RESET, eventId)<0) {
+            if (ResetPartition(&partitionTab[partitionId], XM_WARM_RESET, eventId)<0) {
                 HALT_PARTITION(partitionId);
                 Schedule();
             }
 
-	    break;
-	case XM_HM_AC_HYPERVISOR_COLD_RESET:
+            break;
+        case XM_HM_AC_HYPERVISOR_COLD_RESET:
             resetStatusInit[0]=(XM_HM_RESET_STATUS_MODULE_RESTART<<XM_HM_RESET_STATUS_USER_CODE_BIT)|(eventId&XM_HM_RESET_STATUS_EVENT_MASK);
             ResetSystem(XM_COLD_RESET);
-	    break;
-	case XM_HM_AC_HYPERVISOR_WARM_RESET:
+            break;
+        case XM_HM_AC_HYPERVISOR_WARM_RESET:
             resetStatusInit[0]=(XM_HM_RESET_STATUS_MODULE_RESTART<<XM_HM_RESET_STATUS_USER_CODE_BIT)|(eventId&XM_HM_RESET_STATUS_EVENT_MASK);
             ResetSystem(XM_WARM_RESET);
-	    break;
-	case XM_HM_AC_SUSPEND:
-	    ASSERT(partitionId!=XM_HYPERVISOR_ID);
+            break;
+        case XM_HM_AC_SUSPEND:
+            ASSERT(partitionId!=XM_HYPERVISOR_ID);
 #ifdef CONFIG_OBJ_HM_VERBOSE
-	    kprintf("[HM] Partition %d suspended\n", partitionId);
+            kprintf("[HM] Partition %d suspended\n", partitionId);
 #endif
             SUSPEND_PARTITION(partitionId);
-	    Schedule();
-	    break;
+            Schedule();
+            break;
         case XM_HM_AC_PARTITION_HALT:
-	    ASSERT(partitionId!=XM_HYPERVISOR_ID);
+            ASSERT(partitionId!=XM_HYPERVISOR_ID);
 #ifdef CONFIG_OBJ_HM_VERBOSE
-	    kprintf("[HM] Partition %d halted\n", partitionId);
+            kprintf("[HM] Partition %d halted\n", partitionId);
 #endif
+            //halt to idle and re-schedule
             HALT_PARTITION(partitionId);
-	    Schedule();
-	    break;
+            Schedule();
+            break;
         case XM_HM_AC_HYPERVISOR_HALT:
-	    HaltSystem();
-	    break;
+            HaltSystem();
+            break;
 #ifdef CONFIG_CYCLIC_SCHED
         case XM_HM_AC_SWITCH_TO_MAINTENANCE:
             SwitchSchedPlan(1, &oldPlanId);
-	    MakePlanSwitch(cTime, &GET_LOCAL_SCHED()->data->cyclic);
+            MakePlanSwitch(cTime, &GET_LOCAL_SCHED()->data->cyclic);
             Schedule();
-	    break;
+            break;
 #endif
         //TODO don't understand
-	case XM_HM_AC_PROPAGATE:
-	    propagate=1;
-	    break;
-	default:
+        case XM_HM_AC_PROPAGATE:
+            propagate=1;
+            break;
+        default:
             GetCpuCtxt(&ctxt);
             SystemPanic(&ctxt, "Unknown health-monitor action %d\n", partitionTab[partitionId].cfg->hmTab[eventId].action);
-	}
+        }
     }
 
     return propagate;
