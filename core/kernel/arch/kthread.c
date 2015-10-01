@@ -91,6 +91,7 @@ void SetupKThreadArch(kThread_t *k) {
 }
 
 void SetupKStack(kThread_t *k, void *StartUp, xmAddress_t entryPoint) {
+//only called from ResetKThread()
     extern xm_u32_t ArchStartupGuest;
     k->ctrl.kStack=(xm_u32_t *)&k->kStack[CONFIG_KSTACK_SIZE-MIN_STACK_FRAME-8];
     *--(k->ctrl.kStack)=(xm_u32_t)0; /* o1 */
