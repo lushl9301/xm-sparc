@@ -46,24 +46,24 @@ static inline xm_u32_t IoPortLogSearch(xm_u32_t port) {
     xm_u32_t a0, a1;
 
     for (s=0, e=GetPartition(sched->cKThread)->cfg->noIoPorts, m=(s+e)>>1; (m<e); m=(s+e)>>1) {
-	ioPort=&xmcIoPortTab[m+GetPartition(sched->cKThread)->cfg->ioPortsOffset];
-	if (ioPort->type==XM_RESTRICTED_IOPORT) {
-	    a0=ioPort->restricted.address;
-	    a1=a0+sizeof(xm_u32_t);
-	    if (port>=a0&&port<a1)
-		return ioPort->restricted.mask;
-	} else {
-	    a0=ioPort->range.base;
-	    a1=a0+sizeof(xm_u32_t)*ioPort->range.noPorts;
-	    if (port>=a0&&port<a1)
-		return ~0UL;
-	}
-	if (a0>port) 
-	    e=m;
-	else 
-	    s=m+1;
+        ioPort=&xmcIoPortTab[m+GetPartition(sched->cKThread)->cfg->ioPortsOffset];
+        if (ioPort->type==XM_RESTRICTED_IOPORT) {
+            a0=ioPort->restricted.address;
+            a1=a0+sizeof(xm_u32_t);
+            if (port>=a0&&port<a1)
+                return ioPort->restricted.mask;
+        } else {
+            a0=ioPort->range.base;
+            a1=a0+sizeof(xm_u32_t)*ioPort->range.noPorts;
+            if (port>=a0&&port<a1)
+                return ~0UL;
+        }
+        if (a0>port)
+            e=m;
+        else
+            s=m+1;
     }
-    
+
     return 0;
 }
 
@@ -73,32 +73,32 @@ __hypercall xm_s32_t SparcIoOutportSys(xm_u32_t port, xm_u32_t value) {
     ASSERT(!HwIsSti());
     if (port&0x3) return XM_INVALID_PARAM;
     if (!(mask=IoPortLogSearch(port)))
-	return XM_PERM_ERROR;
-    
+        return XM_PERM_ERROR;
+
     if (mask==~0UL) {  /* If no mask then write directly into the port */
-	StoreIoReg(port, value);
+        StoreIoReg(port, value);
     } else {           /* Otherwise read first the value of the port */
-	/* <track id="restricted-port-mask"> */
-	oldValue=LoadIoReg(port);
-	StoreIoReg(port, ((oldValue&~(mask))|(value&mask)));
-	/* </track id="restricted-port-mask"> */
+        /* <track id="restricted-port-mask"> */
+        oldValue=LoadIoReg(port);
+        StoreIoReg(port, ((oldValue&~(mask))|(value&mask)));
+        /* </track id="restricted-port-mask"> */
     }
     return XM_OK;
 }
 
 __hypercall xm_u32_t SparcIoInportSys(xm_u32_t port, xm_u32_t *__gParam value) {
     xm_u32_t mask=0;
-    
+
     ASSERT(!HwIsSti());
     if (CheckGParam(value, 4, sizeof(xm_u32_t), 1)<0)
         return XM_INVALID_PARAM;
-    
+
     if (!value) return XM_INVALID_PARAM;
     if (port&0x3) return XM_INVALID_PARAM;
     if (!(mask=IoPortLogSearch(port)))
-	return XM_PERM_ERROR;
-    
-    *value=(LoadIoReg(port)&mask); 
+        return XM_PERM_ERROR;
+
+    *value=(LoadIoReg(port)&mask);
 
     return XM_OK;
 }
@@ -118,18 +118,18 @@ __hypercall xm_s32_t SparcWritePtdL1Sys(xmWord_t val) {
 #if 0
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *ptdL1Page;
-    
+
     if (!IS_PTD_PRESENT(val))
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (!(ptdL1Page=PmmFindPage(GET_PTD_ADDR(val), sched->cKThread, 0)))
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (ptdL1Page->type!=PPAG_PTD1) {
-	PWARN("Page %x is not PTD1\n", GET_PTD_ADDR(val));
-	return XM_INVALID_PARAM;
+        PWARN("Page %x is not PTD1\n", GET_PTD_ADDR(val));
+        return XM_INVALID_PARAM;
     }
-    
+
     sched->cKThread->ctrl.g->partCtrlTab->arch.ptdL1=val;
     contextTab[sched->cKThread->ctrl.g->cfg->id+1]=val;
     //FlushTlbCtxt();
