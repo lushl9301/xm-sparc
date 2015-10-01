@@ -19,6 +19,7 @@
 #include <sched.h>
 
 __hypercall xm_s32_t SparcAtomicAddSys(xm_u32_t *__gParam addr, xm_u32_t val) {
+//TODO is this atomic for SMP?
     if (CheckGParam(addr, sizeof(xm_u32_t), 4, PFLAG_RW|PFLAG_NOT_NULL)<0)
         return XM_INVALID_PARAM;
     *addr=*addr+val;
@@ -40,6 +41,7 @@ __hypercall xm_u32_t SparcAtomicOrSys(xm_u32_t *__gParam addr, xm_u32_t val) {
 }
 
 static inline xm_u32_t IoPortLogSearch(xm_u32_t port) {
+//binary search for port
     localSched_t *sched=GET_LOCAL_SCHED();
     struct xmcIoPort *ioPort;
     xm_s32_t s, m, e;
@@ -68,10 +70,12 @@ static inline xm_u32_t IoPortLogSearch(xm_u32_t port) {
 }
 
 __hypercall xm_s32_t SparcIoOutportSys(xm_u32_t port, xm_u32_t value) {
+//
     xm_u32_t mask=0, oldValue;
 
     ASSERT(!HwIsSti());
     if (port&0x3) return XM_INVALID_PARAM;
+    // no port found
     if (!(mask=IoPortLogSearch(port)))
         return XM_PERM_ERROR;
 
@@ -95,6 +99,7 @@ __hypercall xm_u32_t SparcIoInportSys(xm_u32_t port, xm_u32_t *__gParam value) {
 
     if (!value) return XM_INVALID_PARAM;
     if (port&0x3) return XM_INVALID_PARAM;
+    // no port found
     if (!(mask=IoPortLogSearch(port)))
         return XM_PERM_ERROR;
 
@@ -110,11 +115,13 @@ __hypercall void SparcWriteTbrSys(xmWord_t val) {
 }
 
 __hypercall xm_s32_t OverrideTrapHndlSys(xm_s32_t entry, struct trapHandler *__gParam handler) {
+//TODO this is empty
     return XM_OK;
 }
 
 #ifdef CONFIG_MMU
 __hypercall xm_s32_t SparcWritePtdL1Sys(xmWord_t val) {
+//TODO this is empty
 #if 0
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *ptdL1Page;
