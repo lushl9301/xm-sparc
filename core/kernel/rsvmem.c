@@ -17,19 +17,21 @@
 #include <processor.h>
 
 void InitRsvMem(void) {
+//mark as unused
     xm_s32_t e;
     for (e=0; xmcRsvMemTab[e].obj; e++)
         xmcRsvMemTab[e].usedAlign&=~RSV_MEM_USED;
 }
 
 void *AllocRsvMem(xm_u32_t size, xm_u32_t align) {
+//
     xm_s32_t e;
     //TODO only use size to justify?
     for (e=0; xmcRsvMemTab[e].obj; e++) {
         if (!(xmcRsvMemTab[e].usedAlign&RSV_MEM_USED)&&((xmcRsvMemTab[e].usedAlign&~RSV_MEM_USED)==align)&&(xmcRsvMemTab[e].size==size)) {
             xmcRsvMemTab[e].usedAlign|=RSV_MEM_USED;
             return (void *)((xmAddress_t)xmcRsvMemTab[e].obj+(xmAddress_t)&xmcTab);
-	    }
+        }
     }
     return 0;
 }
@@ -38,9 +40,8 @@ void *AllocRsvMem(xm_u32_t size, xm_u32_t align) {
 void RsvMemDebug(void) {
     xm_s32_t e;
     for (e=0; xmcRsvMemTab[e].obj; e++)
-	if (!(xmcRsvMemTab[e].usedAlign&RSV_MEM_USED))
+        if (!(xmcRsvMemTab[e].usedAlign&RSV_MEM_USED))
             PWARN("RsvMem not used %d:%d:0x%x\n", xmcRsvMemTab[e].usedAlign&~RSV_MEM_USED, xmcRsvMemTab[e].size, xmcRsvMemTab[e].obj);
     //SystemPanic("RsvMem not used %d:%d:%x\n", xmcRsvMemTab[e].align,xmcRsvMemTab[e].size, xmcRsvMemTab[e].obj);
 }
 #endif
-
