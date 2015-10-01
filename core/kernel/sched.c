@@ -76,7 +76,7 @@ xm_s32_t SwitchSchedPlan(xm_s32_t newPlanId, xm_s32_t *oldPlanId) {
 }
 
 inline void MakePlanSwitch(xmTime_t cTime, struct cyclicData *cyclic) {
-    extern void IdleTask(void);    
+    extern void IdleTask(void);
 #ifdef CONFIG_AUDIT_EVENTS
     xmWord_t planIds[2];
 #endif
@@ -111,7 +111,7 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
 #endif
 
     if (cyclic->nextAct>cTime && !(cyclic->flags&RESCHED_ENABLED))
-    	//not null, not halted, not suspend, read,
+        //not null, not halted, not suspend, read,
         return (cyclic->kThread&&!AreKThreadFlagsSet(cyclic->kThread, KTHREAD_HALTED_F|KTHREAD_SUSPENDED_F)&&AreKThreadFlagsSet(cyclic->kThread, KTHREAD_READY_F))?cyclic->kThread:0;
 
     cyclic->flags&=~RESCHED_ENABLED;
@@ -140,11 +140,11 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
         systemStatus.currentMaf++;
 #endif
         } else {
-        	//slot == -1; means just made plan switch
+            //slot == -1; means just made plan switch
             cyclic->sExec=cTime;
             cyclic->mjf=plan->majorFrame+cyclic->sExec;
-	    }
-	    cyclic->slot=0;
+        }
+        cyclic->slot=0;
     }
 #ifdef CONFIG_PLAN_EXTSYNC
     extSync[nCpu]=0;
@@ -162,7 +162,7 @@ static kThread_t *GetReadyKThreadCyclic(struct schedData *schedData) {
             goto out; // getting idle
         }
         slotTabEntry=plan->slotsOffset+cyclic->slot;
-    
+
         if (t>=xmcSchedCyclicSlotTab[slotTabEntry].sExec) {
             ASSERT((xmcSchedCyclicSlotTab[slotTabEntry].partitionId>=0)&&(xmcSchedCyclicSlotTab[slotTabEntry].partitionId<xmcTab.noPartitions));
             ASSERT(partitionTab[xmcSchedCyclicSlotTab[slotTabEntry].partitionId].kThread[xmcSchedCyclicSlotTab[slotTabEntry].vCpuId]);
@@ -189,15 +189,15 @@ out:
     if (newK) {
         kprintf("[%d:%d:%d] cTime %lld -> sExec %lld eExec %lld\n",
                 GET_CPU_ID(),
-		cyclic->slot,
-		xmcSchedCyclicSlotTab[slotTabEntry].partitionId, 
-		cTime, xmcSchedCyclicSlotTab[slotTabEntry].sExec+cyclic->sExec, 
-		xmcSchedCyclicSlotTab[slotTabEntry].eExec+cyclic->sExec);
+                cyclic->slot,
+                xmcSchedCyclicSlotTab[slotTabEntry].partitionId,
+                cTime, xmcSchedCyclicSlotTab[slotTabEntry].sExec+cyclic->sExec,
+                xmcSchedCyclicSlotTab[slotTabEntry].eExec+cyclic->sExec);
     } else {
         kprintf("[%d] IDLE: %lld\n", GET_CPU_ID(), cTime);
     }
 #endif
-  
+
     if (newK&&newK->ctrl.g) {
         newK->ctrl.g->opMode=XM_OPMODE_NORMAL;
         newK->ctrl.g->partCtrlTab->schedInfo.noSlot=cyclic->slot;
@@ -209,7 +209,7 @@ out:
     cyclic->kThread=newK;
 
     return newK;
-} 
+}
 
 
 #endif
@@ -308,7 +308,7 @@ void Schedule(void) {
         HwRestoreFlags(hwFlags);
         return;
     }
- 
+
     cpu->irqNestingCounter&=(~SCHED_PENDING);
     if (!(newK=sched->GetReadyKThread(sched->data)))
         newK=sched->idleKThread;
@@ -316,61 +316,61 @@ void Schedule(void) {
     CHECK_KTHR_SANITY(newK);
     if (newK!=sched->cKThread) {
 #ifdef CONFIG_AUDIT_EVENTS
-        xmWord_t auditArgs;         
+        xmWord_t auditArgs;
 
         auditArgs=(newK!=sched->idleKThread)?newK->ctrl.g->id:-1;
         RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_CONTEXT_SWITCH, 1, &auditArgs);
 #endif
 #if 0
-		if (newK->ctrl.g)
-			kprintf("newK: [%d:%d] 0x%x ", KID2PARTID(newK->ctrl.g->id), KID2VCPUID(newK->ctrl.g->id), newK);
-		else
-			kprintf("newK: idle ");
+        if (newK->ctrl.g)
+            kprintf("newK: [%d:%d] 0x%x ", KID2PARTID(newK->ctrl.g->id), KID2VCPUID(newK->ctrl.g->id), newK);
+        else
+            kprintf("newK: idle ");
 
-		if (sched->cKThread->ctrl.g)
-			kprintf("curK: [%d:%d] 0x%x\n", KID2PARTID(sched->cKThread->ctrl.g->id), KID2VCPUID(sched->cKThread->ctrl.g->id), sched->cKTHread);
-		else
-			kprintf("curK: idle\n");
+        if (sched->cKThread->ctrl.g)
+            kprintf("curK: [%d:%d] 0x%x\n", KID2PARTID(sched->cKThread->ctrl.g->id), KID2VCPUID(sched->cKThread->ctrl.g->id), sched->cKTHread);
+        else
+            kprintf("curK: idle\n");
 #endif
 
-		SwitchKThreadArchPre(newK, sched->cKThread);
+        SwitchKThreadArchPre(newK, sched->cKThread);
 /*#ifdef CONFIG_FP_SCHED
         if (xmcTab.hpv.cpuTab[GET_CPU_ID()].schedPolicy==CYCLIC_SCHED){
-	   if (sched->cKThread->ctrl.g) // not idle kthread
-	       StopVClock(&sched->cKThread->ctrl.g->vClock,  &sched->cKThread->ctrl.g->vTimer);
+        if (sched->cKThread->ctrl.g) // not idle kthread
+            StopVClock(&sched->cKThread->ctrl.g->vClock,  &sched->cKThread->ctrl.g->vTimer);
         }
 #else*/
-		if (sched->cKThread->ctrl.g) // not idle kthread
-			StopVClock(&sched->cKThread->ctrl.g->vClock,  &sched->cKThread->ctrl.g->vTimer);
+        if (sched->cKThread->ctrl.g) // not idle kthread
+            StopVClock(&sched->cKThread->ctrl.g->vClock,  &sched->cKThread->ctrl.g->vTimer);
 //#endif
 
-		if (newK->ctrl.g)
-			SetHwTimer(TraverseKTimerQueue(&newK->ctrl.localActiveKTimers, GetSysClockUsec()));
+        if (newK->ctrl.g)
+            SetHwTimer(TraverseKTimerQueue(&newK->ctrl.localActiveKTimers, GetSysClockUsec()));
 #ifdef CONFIG_FP_SCHED
-		if (xmcTab.hpv.cpuTab[GET_CPU_ID()].schedPolicy==CYCLIC_SCHED) {
-			sched->cKThread->ctrl.irqMask=HwIrqGetMask();
-		}
-		HwIrqSetMask(newK->ctrl.irqMask);
+        if (xmcTab.hpv.cpuTab[GET_CPU_ID()].schedPolicy==CYCLIC_SCHED) {
+            sched->cKThread->ctrl.irqMask=HwIrqGetMask();
+        }
+        HwIrqSetMask(newK->ctrl.irqMask);
 #else
-		sched->cKThread->ctrl.irqMask=HwIrqGetMask();
-		HwIrqSetMask(newK->ctrl.irqMask);
+        sched->cKThread->ctrl.irqMask=HwIrqGetMask();
+        HwIrqSetMask(newK->ctrl.irqMask);
 #endif
 
-		CONTEXT_SWITCH(newK, &sched->cKThread);
+        CONTEXT_SWITCH(newK, &sched->cKThread);
 
 /*#ifdef CONFIG_FP_SCHED
         if (xmcTab.hpv.cpuTab[GET_CPU_ID()].schedPolicy==CYCLIC_SCHED){
-	   if (sched->cKThread->ctrl.g) {
-	       ResumeVClock(&sched->cKThread->ctrl.g->vClock, &sched->cKThread->ctrl.g->vTimer);
-           }
+        if (sched->cKThread->ctrl.g) {
+            ResumeVClock(&sched->cKThread->ctrl.g->vClock, &sched->cKThread->ctrl.g->vTimer);
+            }
         }
 #else*/
-		// now cKThread is our newK already
-		if (sched->cKThread->ctrl.g) {
-			ResumeVClock(&sched->cKThread->ctrl.g->vClock, &sched->cKThread->ctrl.g->vTimer);
-		}
+        // now cKThread is our newK already
+        if (sched->cKThread->ctrl.g) {
+            ResumeVClock(&sched->cKThread->ctrl.g->vClock, &sched->cKThread->ctrl.g->vTimer);
+        }
 //#endif
-		SwitchKThreadArchPost(sched->cKThread);
+        SwitchKThreadArchPost(sched->cKThread);
     }
     HwRestoreFlags(hwFlags);
 }
