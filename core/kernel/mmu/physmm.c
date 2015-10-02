@@ -219,7 +219,7 @@ void PmmResetPartition(partition_t *p) {
 
 void *VCacheMapPage(xmAddress_t pAddr, struct physPage *page) {
     // paddr means paged addr?
-	if (page->mapped)
+    if (page->mapped)
         return (void *)(page->vAddr+(pAddr&(PAGE_SIZE-1)));
 
     if (VmmGetNoFreeFrames()<=0) {

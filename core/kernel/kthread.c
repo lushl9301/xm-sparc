@@ -258,6 +258,7 @@ void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u3
     //TODO enable by pass mmu acctually did nothing
     vPtd=EnableByPassMmu(ptdL1,GetPartition(k),&page);
 
+    //setup page table;
     SetupPtdL1((xmWord_t *)vPtd, k);
 
     /// of course did nothing

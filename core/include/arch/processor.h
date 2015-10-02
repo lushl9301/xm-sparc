@@ -84,7 +84,7 @@ static inline void SetCacheState(xm_u32_t cache) {
 static inline void EnableMmu(void) {
     xmAddress_t mmuReg=LEON_MMU_CTRL_REG;
     xm_u32_t tmp=0;
-    
+
     __asm__ __volatile__ ("lda [%1] %2, %0\n\t" \
 			  :"=r" (tmp): "r" (mmuReg), "i" (LEON_MMU_ASI): "memory");
     tmp|=0x1;
@@ -135,16 +135,16 @@ static inline xm_u32_t GetPsr(void) {
 
 static inline void FlushTlbEntry(xmAddress_t addr) {
     xmAddress_t value=(addr&PAGE_MASK)|FLUSH_PAGE;
-    __asm__ __volatile__("sta %%g0, [%0] %1\n\t"::"r"(value), "i"(LEON_MMU_FLUSH):"memory");    
+    __asm__ __volatile__("sta %%g0, [%0] %1\n\t"::"r"(value), "i"(LEON_MMU_FLUSH):"memory");
 }
 
 static inline void FlushTlbCtxt(void) {
     xmAddress_t value=FLUSH_CONTEXT;
-    __asm__ __volatile__("sta %%g0, [%0] %1\n\t"::"r"(value), "i"(LEON_MMU_FLUSH):"memory");    
+    __asm__ __volatile__("sta %%g0, [%0] %1\n\t"::"r"(value), "i"(LEON_MMU_FLUSH):"memory");
 }
 
 
-#define FlushTlbGlobal() FlushTlb()
+#define FlushTlbGlobal() FlushTlb() //Just FlushTlb
 
 #else
 
@@ -181,7 +181,7 @@ static inline void FlushTlbCtxt(void) {
 #define PSR_VER_MASK 0x0f000000
 #define PSR_ICC_MASK 0x00f00000 // Interger cond codes
 #define PSR_EC_BIT 0x00002000 // Enable coprocessor
-#define PSR_EF_BIT 0x00001000 // Enable floating point 
+#define PSR_EF_BIT 0x00001000 // Enable floating point
 #define PSR_PIL_MASK 0x00000f00 // Proc interrupt level
 #define PSR_S_BIT 0x00000080 // Supervisor
 #define PSR_PS_BIT 0x00000040 // Previous supervisor
