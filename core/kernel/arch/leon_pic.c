@@ -178,6 +178,7 @@ void InitPic(void) {
 #ifdef CONFIG_SMP
 
 void WakeUpCpu(xm_s32_t cpu) {
+//GET_PIC_BASE(cpu)
     StoreIoReg(GET_PIC_BASE(cpu)+MPROC_STATUS_REG, 1<<cpu);
 }
 

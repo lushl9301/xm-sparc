@@ -18,10 +18,12 @@
 #include <spinlock.h>
 
 void __VBOOT SetupSmp(void) {
+//SET NUMBER OF CPU and wakeup other cpu
     extern xm_u8_t SparcGetNoCpus(void);
     xm_s32_t cpu;
-    
+
     SET_NRCPUS((SparcGetNoCpus()<xmcTab.hpv.noCpus)?SparcGetNoCpus():xmcTab.hpv.noCpus);
+    // now wake up other cpu
     for (cpu=GET_CPU_ID()+1; cpu<GET_NRCPUS(); cpu++)
         WakeUpCpu(cpu);
 }

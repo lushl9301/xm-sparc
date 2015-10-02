@@ -18,6 +18,7 @@
 #include <physmm.h>
 
 void __VBOOT SetupArchLocal(xm_s32_t cpuid) {
+//TODO empty
 }
 
 void __VBOOT EarlySetupArchCommon(void) {
@@ -26,7 +27,9 @@ void __VBOOT EarlySetupArchCommon(void) {
 #endif
     extern void EarlySetupCpu(void);
     /* There is at least one processor in the system */
+    //set 1 processor
     SET_NRCPUS(1);
+    //just update cpuKhz
     EarlySetupCpu();
 #ifdef CONFIG_AUDIT_EVENTS
     memset(auditAsmHCall, 0, NR_ASM_HYPERCALLS*sizeof(xm_u8_t));
@@ -34,4 +37,5 @@ void __VBOOT EarlySetupArchCommon(void) {
 }
 
 void __VBOOT SetupArchCommon(void) {
+//TODO empty
 }
