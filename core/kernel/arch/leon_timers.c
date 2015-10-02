@@ -76,6 +76,7 @@ static hwTimer_t pitTimer[CONFIG_NO_CPUS];
 static timerHandler_t pitHandler[CONFIG_NO_CPUS];
 
 static void TimerIrqHandler(cpuCtxt_t *ctxt, void *irqData) {
+//use pit timer
     if (pitHandler[GET_CPU_ID()])
         (*pitHandler[GET_CPU_ID()])();
     HwEnableIrq(TIMER_IRQ);
@@ -83,6 +84,7 @@ static void TimerIrqHandler(cpuCtxt_t *ctxt, void *irqData) {
 
 
 static xm_s32_t InitPitTimer(void) {
+//
     localCpu_t *cpu=GET_LOCAL_CPU();
 
     // Programming LEON's preescaler to LEON_PRESCALER_KHZ
@@ -93,6 +95,7 @@ static xm_s32_t InitPitTimer(void) {
 
     StoreIoReg(LEON_TIMER_BASE+TIMER_RLD_REG+GET_TIMER(), 0);
     StoreIoReg(LEON_TIMER_BASE+TIMER_CTRL_REG+GET_TIMER(), 0);
+    //enable after init
     HwEnableIrq(TIMER_IRQ);
     pitTimer[GET_CPU_ID()].flags|=HWTIMER_ENABLED|PER_CPU;
 
@@ -100,6 +103,7 @@ static xm_s32_t InitPitTimer(void) {
 }
 
 static void SetPitTimer(xmTime_t interval) {
+//
     StoreIoReg(LEON_TIMER_BASE+TIMER_RLD_REG+GET_TIMER(), interval&TIM_RLD_MASK);
     StoreIoReg(LEON_TIMER_BASE+TIMER_CTRL_REG+GET_TIMER(), LD_BIT|EN_BIT|IE_BIT);
 }
@@ -113,17 +117,20 @@ static xmTime_t GetMinIntervalPit(void) {
 }
 
 static timerHandler_t SetTimerHandlerPit(timerHandler_t TimerHandler) {
+//
     timerHandler_t OldPitUserHandler=pitHandler[GET_CPU_ID()];
-  
+
     pitHandler[GET_CPU_ID()]=TimerHandler;
     return OldPitUserHandler;
 }
 
 static void ShutdownPitTimer(void) {
+//shutdown by disable hwtimer
     pitTimer[GET_CPU_ID()].flags&=~HWTIMER_ENABLED;
 }
 
-static hwTimer_t pitTimer[]={[0 ... CONFIG_NO_CPUS-1]={
+static hwTimer_t pitTimer[]={
+    [0 ... CONFIG_NO_CPUS-1]={
         .name="LEON timer",
         .flags=0,
         .InitHwTimer=InitPitTimer,
@@ -150,6 +157,7 @@ static void ClockIrqHandler(cpuCtxt_t *ctxt, void *irqData) {
 }
 
 static xm_s32_t InitPitClock(void) {
+//init clock
     localCpu_t *cpu=GET_LOCAL_CPU();
     // Programming LEON's preescaler to LEON_PRESCALER_KHZ
     StoreIoReg(LEON_GPTIMER_CFG_BASE+SCAR_RLD_REG, ((cpuKhz/LEON_PRESCALER_KHZ)-1)&SCAC_RLD_VAL_MASK);
@@ -175,6 +183,7 @@ static xm_s32_t InitPitClock(void) {
 #include <spinlock.h>
 
 static hwTime_t ReadPitClock(void) {
+//GetTimeUsec()
 #ifdef CONFIG_DEBUG
 //    static spinLock_t clockLock=SPINLOCK_INIT;
     static hwTime_t lastVal[CONFIG_NO_CPUS];
@@ -212,6 +221,7 @@ static hwTime_t ReadPitClock(void) {
 
 
 static void ShutdownPitClock(void) {
+//disable CLOCK_IRQ
 #ifdef CONFIG_LEON3
     StoreIoReg(LEON_CLOCK_BASE+TIMCTR_REG, 0);
     HwDisableIrq(CLOCK_IRQ);
@@ -226,10 +236,9 @@ static hwClock_t pitClock={
     .ShutdownClock=ShutdownPitClock,
 };
 
+//hwclock is the pitclock
 hwClock_t *sysHwClock=&pitClock;
 
 hwTimer_t *GetSysHwTimer(void) {
     return &pitTimer[GET_CPU_ID()];
 }
-
-
