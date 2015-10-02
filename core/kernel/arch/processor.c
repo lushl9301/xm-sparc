@@ -31,9 +31,11 @@ RESERVE_IOPORTS(LEON_MEMORY_WPR_BASE, 2);
 #define SCAR_REG 0x4
 
 xm_u32_t GetCpuKhz(void) {
+//
 #ifdef CONFIG_LEON3
     xm_u32_t pFreq=(LoadIoReg(LEON_TIMER_CFG_BASE+SCAR_REG)+1)*1000;
 
+    //XM_CPUFREQ_AUTO == 0
     if (xmcTab.hpv.cpuTab[GET_CPU_ID()].freq==XM_CPUFREQ_AUTO)
         return pFreq;
 
@@ -44,6 +46,7 @@ xm_u32_t GetCpuKhz(void) {
 }
 
 xm_u32_t __GetCpuId(void) {
+//Processor configuration registe PCR ars17; 31~28 is PI (Processor ID)
 #ifdef CONFIG_SMP
     xm_u32_t cpuId;
     __asm__ __volatile__ ("rd %%asr17, %0\n\t" : "=r" (cpuId):);
@@ -54,6 +57,7 @@ xm_u32_t __GetCpuId(void) {
 }
 // same one?
 xm_u32_t __GetCpuHwId(void) {
+//same as __GetCpuId
 #ifdef CONFIG_SMP
     xm_u32_t cpuId;
     __asm__ __volatile__ ("rd %%asr17, %0\n\t" : "=r" (cpuId):);
@@ -70,6 +74,7 @@ void __SetCpuHwId(xm_u32_t hwId) {
 }
 
 void __VBOOT SetupCpu(void) {
+//set cache then hardware breakpoint
     xm_u32_t cache=0;
 #ifdef CONFIG_ENABLE_CACHE
     cache=DCACHE|ICACHE;
@@ -80,17 +85,18 @@ void __VBOOT SetupCpu(void) {
 #define WA_3G_AND 0xC0000000
 #define WA_3G_XOR 0x80000000
     if ((xmcTab.hpv.cpuTab[0].features&XM_CPU_FEATURE_WA1)) {
-	__asm__ __volatile__ ("set "TO_STR(WA_3G_AND)", %%g1\n\t" \
-			      "wr %%g1, %%asr25\n\t" \
-			      "set "TO_STR(WA_3G_XOR)", %%g1\n\t" \
-			      "wr %%g1, %%asr24\n\t" \
-			      "nop;nop;nop\n\t"::: "g1");
+        //asr25 is hardware breakpoint master register
+        //asr24 is hardware breakpoint register
+        __asm__ __volatile__ ("set "TO_STR(WA_3G_AND)", %%g1\n\t" \
+                              "wr %%g1, %%asr25\n\t" \
+                              "set "TO_STR(WA_3G_XOR)", %%g1\n\t" \
+                              "wr %%g1, %%asr24\n\t" \
+                              "nop;nop;nop\n\t"::: "g1");
     }
-    
+//TODO no #else here?
 #endif
 }
 
 void __VBOOT EarlySetupCpu(void) {
-	//TODO extern xm_u32_t cpuKhz;???
     cpuKhz=GetCpuKhz();
 }
