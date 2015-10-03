@@ -189,12 +189,12 @@ xm_s32_t VmMapUserPage(partition_t *k, xmWord_t *ptdL1, xmAddress_t pAddr, xmAdd
 }
 
 void VmMapPage(xmAddress_t pAddr, xmAddress_t vAddr, xmWord_t flags) {
-//////
+//un-cacheable in PTDL3
+//usually used in - for (p = 0; p < (noPages * PAGE_SIZE); p += PAGE_SIZE)
     ASSERT(!(pAddr&(PAGE_SIZE-1)));
     ASSERT(!(vAddr&(PAGE_SIZE-1)));
     ASSERT(vAddr>=CONFIG_XM_OFFSET);
-    // XXX: all pages are mapped as non-cacheable within XM
-    //TODO why non-cacheable
+    // XXX: all pages are mapped as non-cacheable within XM //TODO why non-cacheable
     _ptdL3[(vAddr-CONFIG_XM_OFFSET)>>PTDL3_SHIFT]=(pAddr>>4)|(VmAttr2ArchAttr(flags)&~_PG_ARCH_CACHE);
 
     FlushTlbEntry(vAddr);

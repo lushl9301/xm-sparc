@@ -235,6 +235,7 @@ void *VCacheMapPage(xmAddress_t pAddr, struct physPage *page) {
         page->vAddr=VmmAlloc(1);
 
     page->mapped=1;
+    //TODO the function mark flags as un-cacheable
     VmMapPage(pAddr&PAGE_MASK, page->vAddr, _PG_ATTR_PRESENT|_PG_ATTR_RW|_PG_ATTR_CACHED);
     return (void *)(page->vAddr+(pAddr&(PAGE_SIZE-1)));
 }
