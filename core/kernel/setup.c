@@ -302,7 +302,7 @@ void __VBOOT Setup(xm_s32_t cpuId, kThread_t *idle) {
     EarlySetupArchCommon();
     //
     SetupVirtMM();
-    //
+    //init cache, physPageTab;
     SetupPhysMM();
     //empty
     SetupArchCommon();

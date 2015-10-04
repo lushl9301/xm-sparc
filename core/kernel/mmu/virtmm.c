@@ -23,14 +23,14 @@
 #include <arch/paging.h>
 #include <arch/xm_def.h>
 
-static xmAddress_t vmmStartAddr; 
+static xmAddress_t vmmStartAddr;
 static xm_s32_t noFrames;
 
 #ifndef CONFIG_ARCH_MMU_BYPASS
 
 xmAddress_t VmmAlloc(xm_s32_t nPag) {
     xmAddress_t vAddr;
-    if ((noFrames-nPag)<0) 
+    if ((noFrames-nPag)<0)
         return 0;
     //vmmStartAddr looks like a stack pointer
     vAddr=vmmStartAddr;
@@ -45,11 +45,13 @@ xmAddress_t VmmAlloc(xm_s32_t nPag) {
 #endif
 
 xm_s32_t VmmGetNoFreeFrames(void) {
+//
     ASSERT(noFrames>=0);
     return noFrames;
 }
 
 void __VBOOT SetupVirtMM(void) {
+//
     xmAddress_t st, end;
     xm_u32_t flags;
 
@@ -59,7 +61,7 @@ void __VBOOT SetupVirtMM(void) {
     eprintf("XM map: [0x%"PRNT_ADDR_FMT"x - 0x%"PRNT_ADDR_FMT"x] flags: 0x%x\n", st, end, flags);
     ASSERT(st==CONFIG_XM_LOAD_ADDR);
 
-    // defined these 2 var above
+    //update to _ptdL3
     SetupVmMap(&vmmStartAddr, &noFrames);
     eprintf("[VMM] Free [0x%"PRNT_ADDR_FMT"x-0x%"PRNT_ADDR_FMT"x] %d frames\n", vmmStartAddr, XM_VMAPEND, noFrames);
 }

@@ -22,20 +22,23 @@
 #include <arch/paging.h>
 
 static inline xmAddress_t VAddr2PAddr(struct xmcMemoryArea *mAreas, xm_s32_t noAreas, xmAddress_t vAddr) {
+//
     xm_s32_t e;
     for (e=0; e<noAreas; e++)
+        //can be optimized here
         if ((mAreas[e].mappedAt<=vAddr)&&(((mAreas[e].mappedAt+mAreas[e].size)-1)>=vAddr))
             return vAddr-mAreas[e].mappedAt+mAreas[e].startAddr;
     return -1;
 }
 
 static xmAddress_t AllocMem(struct xmcPartition *cfg, xmSize_t size, xm_u32_t align, xmAddress_t *pool, xmSSize_t *maxSize) {
+//find avaible mem area
     xmAddress_t addr;
     xm_s32_t e;
-    
+
     // if not aligned
     if (*pool&(align-1)) {
-    	// the unaligned part will be recover in the reset *pool += size
+        // the unaligned part will be recover in the reset *pool += size
 
         *maxSize-=align-(*pool&(align-1));
         // pay attention to ~(align-1) means that get a aligned page for request
@@ -59,6 +62,7 @@ static xmAddress_t AllocMem(struct xmcPartition *cfg, xmSize_t size, xm_u32_t al
 }
 
 static inline int SetupLdr(partition_t *p, xmWord_t *pPtdL1, xmAddress_t at, xmAddress_t pgTb, xmSize_t size){
+//TODO
     extern xm_u8_t _sldr[], _eldr[];
     xmAddress_t addr,vAddr=0, a, b;
     struct physPage *page;
@@ -130,8 +134,10 @@ static inline int SetupLdr(partition_t *p, xmWord_t *pPtdL1, xmAddress_t at, xmA
 }
 
 
-//set pT to be the address for pageTable then check reset memory area
+
 xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
+//TODO don't understand
+    //set pT to be the address for pageTable.
     xmAddress_t addr, vAddr=0, a, b, pT;
     xmWord_t *pPtdL1, attr;
     struct physPage *pagePtdL1, *page;
@@ -152,6 +158,7 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
 
     // Incremented because it is load as the initial page table
     PPagIncCounter(pagePtdL1);
+    //get from cache
     pPtdL1=VCacheMapPage(pT, pagePtdL1);
     ASSERT(PTDL1SIZE<=PAGE_SIZE);
     for (e=0; e<PTDL1ENTRIES; e++)
@@ -166,10 +173,10 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
         vAddr=xmcPhysMemAreaTab[e+p->cfg->physicalMemoryAreasOffset].mappedAt;
         for (addr=a; (addr>=a)&&(addr<b); addr+=PAGE_SIZE, vAddr+=PAGE_SIZE) {
             attr=_PG_ATTR_PRESENT|_PG_ATTR_USER;
-            
+
             if (!(xmcPhysMemAreaTab[e+p->cfg->physicalMemoryAreasOffset].flags&XM_MEM_AREA_UNCACHEABLE))
                 attr|=_PG_ATTR_CACHED;
-            
+
             if (!(xmcPhysMemAreaTab[e+p->cfg->physicalMemoryAreasOffset].flags&XM_MEM_AREA_READONLY))
                 attr|=_PG_ATTR_RW;
 
@@ -178,7 +185,7 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
         }
     }
 
-
+    //
     attr=_PG_ATTR_PRESENT|_PG_ATTR_USER;
     ASSERT(p->pctArraySize);
     //XM_PCTRLTAB_ADDR (CONFIG_XM_OFFSET-256*1024)
@@ -223,4 +230,3 @@ xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) {
     VCacheUnlockPage(pagePtdL1);
     return pT;
 }
-
