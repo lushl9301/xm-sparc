@@ -93,15 +93,15 @@ struct xmHdr xmHdr __XMHDR = {.sSignature = XMEF_XM_MAGIC, .compilationXmAbiVers
 
 extern __NOINLINE void FreeBootMem(void);
 
-void IdleTask(void)
-{
+void IdleTask(void) {
+//enable irq and DoNop then disable irq
     while (1) {
         DoPreemption();
     }
 }
 
-void HaltSystem(void)
-{
+void HaltSystem(void) {
+//
     extern void __HaltSystem(void);
 // may not have bug here; but it's easy to have ones.
 #ifdef CONFIG_SMP
@@ -121,11 +121,12 @@ void HaltSystem(void)
     setManualStatePart(0xff);
     sendStateToAllNodes();
 #endif
+    //Not halt but Keep looping
     __HaltSystem();
 }
 
-void ResetSystem(xm_u32_t resetMode)
-{
+void ResetSystem(xm_u32_t resetMode) {
+//cold or warm reset
     extern xm_u32_t sysResetCounter[];
     extern void start(void);
     extern void _Reset( xmAddress_t);
@@ -147,8 +148,9 @@ void ResetSystem(xm_u32_t resetMode)
     SystemPanic(&ctxt, "Unreachable point\n");
 }
 
-static void __VBOOT CreateLocalInfo(void)
-{
+static void __VBOOT CreateLocalInfo(void) {
+//create cpu infor
+//TODO why local?
     xm_s32_t e;
     if (!GET_NRCPUS()) {
         cpuCtxt_t ctxt;
@@ -162,8 +164,8 @@ static void __VBOOT CreateLocalInfo(void)
         localCpuInfo[e].globalIrqMask = ~0;
 }
 
-static void __VBOOT LocalSetup(xm_s32_t cpuId, kThread_t *idle)
-{
+static void __VBOOT LocalSetup(xm_s32_t cpuId, kThread_t *idle) {
+//CPU and time; sched to idle
     ASSERT(!HwIsSti());
     ASSERT(xmcTab.hpv.noCpus>cpuId);
     SetupCpu();
@@ -178,8 +180,8 @@ static void __VBOOT LocalSetup(xm_s32_t cpuId, kThread_t *idle)
 
 }
 
-static void __VBOOT SetupPartitions(void)
-{
+static void __VBOOT SetupPartitions(void) {
+//
     xmAddress_t st, end, vSt, vEnd;
     partition_t *p;
     xm_s32_t e, a;
@@ -236,6 +238,7 @@ static void __VBOOT SetupPartitions(void)
             xm_u32_t gIrqMask=~0;
             xm_s32_t e;
             for (e=0; e<xmcTab.hpv.cpuTab[cpuId].noFpEntries; e++)
+                //clear hwIrqs
                 gIrqMask&=~(xmcPartitionTab[xmcFpSchedTab[e+xmcTab.hpv.cpuTab[cpuId].schedFpTabOffset].partitionId].hwIrqs);
 
             lCpu->globalIrqMask&=gIrqMask;
@@ -244,8 +247,8 @@ static void __VBOOT SetupPartitions(void)
 #endif
 }
 
-static void __VBOOT LoadCfgTab(void)
-{
+static void __VBOOT LoadCfgTab(void) {
+//Get infor from xmcTab
     // Check configuration file
     if (xmcTab.signature != XMC_SIGNATURE)
         HaltSystem();
@@ -280,8 +283,8 @@ static void __VBOOT LoadCfgTab(void)
 #endif
 }
 
-void __VBOOT Setup(xm_s32_t cpuId, kThread_t *idle)
-{
+void __VBOOT Setup(xm_s32_t cpuId, kThread_t *idle) {
+//
 #ifdef CONFIG_EARLY_OUTPUT
     extern void SetupEarlyOutput(void);
 #endif
@@ -291,21 +294,23 @@ void __VBOOT Setup(xm_s32_t cpuId, kThread_t *idle)
 #ifdef CONFIG_EARLY_OUTPUT
     SetupEarlyOutput();
 #endif
+    //get configuration loaded
     LoadCfgTab();
+    //clear mem
     InitRsvMem();
-    // mainly forcus on CPU setup
+    //mainly forcus on CPU setup
     EarlySetupArchCommon();
     //
     SetupVirtMM();
     //
     SetupPhysMM();
-    // empty
+    //empty
     SetupArchCommon();
-    // info for Cpu timer and sched
+    //info for Cpu timer and sched
     CreateLocalInfo();
-    // set up a serials of basic IRQ; like mmu trap handler
+    //set up a serials of basic IRQ; like mmu trap handler
     SetupIrqs();
-    // set up 7
+    //set up 7; called kDevSetup[e]();
     SetupKDev();
     // set up 9; the objs are already set to a map; use their own setup func
     SetupObjDir();
@@ -336,6 +341,7 @@ void __VBOOT Setup(xm_s32_t cpuId, kThread_t *idle)
 #ifdef CONFIG_SMP
 
 void __VBOOT InitSecondaryCpu(xm_s32_t cpuId, kThread_t *idle) {
+//call from assembly
     ASSERT(GET_CPU_ID()!=0);
 
     LocalSetup(cpuId, idle);

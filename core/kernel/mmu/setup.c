@@ -23,6 +23,7 @@
 #include <virtmm.h>
 
 __NOINLINE void FreeBootMem(void) {
+//enable Schedule; call Schedule;
     extern barrier_t smpStartBarrier;
     extern void IdleTask(void);
     ASSERT(!HwIsSti());
@@ -31,4 +32,3 @@ __NOINLINE void FreeBootMem(void) {
     Schedule();
     IdleTask();
 }
-

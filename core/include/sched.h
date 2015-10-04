@@ -90,9 +90,10 @@ static inline void SchedYield(localSched_t *sched, kThread_t *k) {
 }
 
 static inline void DoPreemption(void) {
+//only called as idletask
     localSched_t *sched=GET_LOCAL_SCHED();
     localCpu_t *cpu=GET_LOCAL_CPU();
-    
+
     HwIrqSetMask(cpu->globalIrqMask);
     HwSti();
 
@@ -116,7 +117,7 @@ static inline void PreemptionOn(void) {
 static inline void PreemptionOff(void) {
 #ifdef CONFIG_VOLUNTARY_PREEMPTION
     localSched_t *sched=GET_LOCAL_SCHED();
-    
+
     HwCli();
     HwIrqSetMask(sched->cKThread->ctrl.irqMask);
 #endif
@@ -129,7 +130,7 @@ static inline void SUSPEND_VCPU(xmId_t partId, xmId_t vCpuId) {
     xmWord_t arg=PART_VCPU_ID2KID(partId, vCpuId);
     RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_VCPU_SUSPEND, 1, &arg);
 #endif
-    SetKThreadFlags(partitionTab[partId].kThread[vCpuId], KTHREAD_SUSPENDED_F);    
+    SetKThreadFlags(partitionTab[partId].kThread[vCpuId], KTHREAD_SUSPENDED_F);
 }
 
 static inline void RESUME_VCPU(xmId_t partId, xmId_t vCpuId) {
@@ -137,7 +138,7 @@ static inline void RESUME_VCPU(xmId_t partId, xmId_t vCpuId) {
     xmWord_t arg=PART_VCPU_ID2KID(partId, vCpuId);
     RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_VCPU_RESUME, 1, &arg);
 #endif
-    ClearKThreadFlags(partitionTab[partId].kThread[vCpuId], KTHREAD_SUSPENDED_F);    
+    ClearKThreadFlags(partitionTab[partId].kThread[vCpuId], KTHREAD_SUSPENDED_F);
 }
 
 static inline void HALT_VCPU(xmId_t partId, xmId_t vCpuId) {
@@ -145,7 +146,7 @@ static inline void HALT_VCPU(xmId_t partId, xmId_t vCpuId) {
     xmWord_t arg=PART_VCPU_ID2KID(partId, vCpuId);
     RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_VCPU_HALT, 1, &arg);
 #endif
-    SetKThreadFlags(partitionTab[partId].kThread[vCpuId], KTHREAD_HALTED_F); 
+    SetKThreadFlags(partitionTab[partId].kThread[vCpuId], KTHREAD_HALTED_F);
     partitionTab[partId].kThread[vCpuId]->ctrl.g->opMode=XM_OPMODE_IDLE;
 #ifdef CONFIG_FP_SCHED
     xm_s32_t cpuId=xmcVCpuTab[(partitionTab[partId].cfg->id*xmcTab.hpv.noCpus)+vCpuId].cpu;
@@ -172,7 +173,7 @@ static inline void RESUME_PARTITION(xmId_t id) {
     xm_s32_t e;
 #ifdef CONFIG_AUDIT_EVENTS
     RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_PART_RESUME, 1, (xmWord_t *)&id);
-#endif    
+#endif
     for (e=0; e<partitionTab[id].cfg->noVCpus; e++)
         ClearKThreadFlags(partitionTab[id].kThread[e], KTHREAD_SUSPENDED_F);
 #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
@@ -183,7 +184,7 @@ static inline void RESUME_PARTITION(xmId_t id) {
 static inline void SHUTDOWN_PARTITION(xmId_t id) {
 #ifdef CONFIG_AUDIT_EVENTS
     RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_PART_SHUTDOWN, 1, (xmWord_t *)&id);
-#endif    
+#endif
     SetPartitionExtIrqPending(&partitionTab[id], XM_VT_EXT_SHUTDOWN);
 }
 /*
@@ -196,7 +197,7 @@ static inline void IDLE_PARTITION(xmId_t id) {
         ClearKThreadFlags(partitionTab[id].kThread[e], KTHREAD_READY_F);
 }
 */
-static inline void HALT_PARTITION(xmId_t id) { 
+static inline void HALT_PARTITION(xmId_t id) {
     xm_s32_t e;
 #ifdef CONFIG_AUDIT_EVENTS
     RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_PART_HALT, 1, (xmWord_t *)&id);
