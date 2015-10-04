@@ -33,6 +33,7 @@
     ((void)0); \
 } while(0)
 
+//unlock before SystemPanic
 #define ASSERT_LOCK(exp, lock) do { \
     if (!(exp)) { \
         cpuCtxt_t _ctxt; \
