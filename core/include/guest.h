@@ -154,7 +154,7 @@ static inline void xmClearBit(xmWord_t bm[], xm_u32_t bp, xm_s32_t maxBits) {
     xm_u32_t e=bp>>XM_LOG2_WORD_SZ, b=bp&((1<<XM_LOG2_WORD_SZ)-1);
     if (bp>=maxBits)
         return;
-        //TODO why not return earlier
+        //TODO why not check earlier
     bm[e]&=~(1<<b);
 }
 
