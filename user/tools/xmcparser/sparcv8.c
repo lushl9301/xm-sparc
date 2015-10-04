@@ -36,7 +36,7 @@ xm_u32_t ToRegionFlags(char *s) {
     } else if(!strcasecmp(s, "rom")) {
         flags=XM_MEM_AREA_UNMAPPED|XMC_REG_FLAG_ROM;
     } else {
-	EPrintF("Expected valid region type (%s)\n", s);
+        EPrintF("Expected valid region type (%s)\n", s);
     }
     return flags;
 }
@@ -115,7 +115,7 @@ void CheckIoPorts(void) {
     xmAddress_t a0, a1, b0, b1;
     int e, line0, line1, iP;
 
-    for (iP=0; iP<xmc.noIoPorts; iP++) {	
+    for (iP=0; iP<xmc.noIoPorts; iP++) {
 	if (xmcIoPortTab[iP].type==XM_IOPORT_RANGE) {
 	    b0=xmcIoPortTab[iP].range.base;
 	    b1=b0+xmcIoPortTab[iP].range.noPorts*sizeof(xm_u32_t);
@@ -125,7 +125,7 @@ void CheckIoPorts(void) {
 	    line0=xmcIoPortTabNoL[iP].restricted.address;
 	    b1=b0+sizeof(xm_u32_t);
 	}
-	
+
 	for (e=0; e<noRsvIoPorts; e++) {
 	    a0=rsvIoPorts[e].base;
 	    a1=a0+rsvIoPorts[e].offset*sizeof(xm_u32_t);
@@ -134,7 +134,7 @@ void CheckIoPorts(void) {
 			  rsvIoPorts[e].base, rsvIoPorts[e].offset);
 	    }
 	}
-    
+
 	for (e=iP+1; e<xmc.noIoPorts; e++) {
 	    if (xmcIoPortTab[e].type==XM_IOPORT_RANGE) {
 		a0=xmcIoPortTab[e].range.base;
@@ -192,19 +192,19 @@ void ArchMmuRsvMem(FILE *oFile) {
                 l3e=VA2PtdL3(addr);
                 if (!ptdL1[l1e]) {
                     l2c++;
-                    DO_MALLOC(ptdL2, PTDL2SIZE);                
+                    DO_MALLOC(ptdL2, PTDL2SIZE);
                     memset(ptdL2, 0, PTDL2SIZE);
                     ptdL1[l1e]=ptdL2;
                 } else
                     ptdL2=ptdL1[l1e];
-                
+
                 if (!ptdL2[l2e]) {
                     l3c++;
                     DO_MALLOC(ptdL3, PTDL3SIZE);
                     memset(ptdL3, 0, PTDL3SIZE);
-                    ptdL2[l2e]=ptdL3;           
+                    ptdL2[l2e]=ptdL3;
                 } else
-                    ptdL3=ptdL2[l2e];       
+                    ptdL3=ptdL2[l2e];
             }
         }
     }

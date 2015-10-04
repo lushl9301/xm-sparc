@@ -32,6 +32,7 @@ static struct dynList cacheLRU;
 static struct physPage **physPageTab;
 
 struct physPage *PmmFindAnonymousPage(xmAddress_t pAddr) {
+//
     xm_s32_t l, r, c;
     xmAddress_t a, b;
 
@@ -62,6 +63,7 @@ struct physPage *PmmFindAnonymousPage(xmAddress_t pAddr) {
 }
 
 struct physPage *PmmFindPage(xmAddress_t pAddr, partition_t *p, xm_u32_t *flags) {
+//
     struct xmcMemoryArea *memArea;
     struct xmcPartition *cfg;
     xm_s32_t l, r, c;
@@ -100,6 +102,7 @@ struct physPage *PmmFindPage(xmAddress_t pAddr, partition_t *p, xm_u32_t *flags)
 }
 
 xm_s32_t PmmFindAddr(xmAddress_t pAddr, partition_t *p, xm_u32_t *flags) {
+//
     struct xmcMemoryArea *memArea;
     struct xmcPartition *cfg;
     xm_s32_t l, r, c;
@@ -136,6 +139,7 @@ xm_s32_t PmmFindAddr(xmAddress_t pAddr, partition_t *p, xm_u32_t *flags) {
 }
 
 xm_s32_t PmmFindArea(xmAddress_t pAddr, xmSSize_t size, partition_t *p, xm_u32_t *flags) {
+//
     struct xmcMemoryArea *memArea;
     struct xmcPartition *cfg;
     xm_s32_t l, r, c;
@@ -218,6 +222,7 @@ void PmmResetPartition(partition_t *p) {
 //#endif
 
 void *VCacheMapPage(xmAddress_t pAddr, struct physPage *page) {
+//cache in;
     // paddr means paged addr?
     if (page->mapped)
         return (void *)(page->vAddr+(pAddr&(PAGE_SIZE-1)));
@@ -241,6 +246,7 @@ void *VCacheMapPage(xmAddress_t pAddr, struct physPage *page) {
 }
 
 void VCacheUnlockPage(struct physPage *page) {
+//unlock page
     ASSERT(page&&page->mapped);
     if (!page->unlocked) {
         page->unlocked=1;
@@ -261,12 +267,15 @@ void VCacheUnlockPage(struct physPage *page) {
 #endif
 
 void SetupPhysMM(void) {
+//init cache, physPageTab;
     xm_s32_t e, i;
 
+    //init cache
     DynListInit(&cacheLRU);
     GET_MEMZ(physPageTab, sizeof(struct physPage *)*xmcTab.noRegions);
     for (e=0; e<xmcTab.noRegions; e++) {
         ASSERT(!(xmcMemRegTab[e].size&(PAGE_SIZE-1))&&!(xmcMemRegTab[e].startAddr&(PAGE_SIZE-1)));
+        //region flag; pgtab vs rom?
         if (xmcMemRegTab[e].flags&XMC_REG_FLAG_PGTAB) {
             GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE));
             for (i=0; i<xmcMemRegTab[e].size/PAGE_SIZE; i++)
