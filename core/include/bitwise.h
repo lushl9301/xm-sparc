@@ -24,26 +24,26 @@ static __inline__ xm_s32_t _Ffs(xm_s32_t x) {
     xm_s32_t r=0;
 
     if (!x)
-	return -1;
+        return -1;
     if (!(x&0xffff)) {
-	x>>=16;
-	r+=16;
+        x>>=16;
+        r+=16;
     }
     if (!(x&0xff)) {
-	x>>=8;
-	r+=8;
+        x>>=8;
+        r+=8;
     }
     if (!(x&0xf)) {
-	x>>=4;
-	r+=4;
+        x>>=4;
+        r+=4;
     }
     if (!(x&3)) {
-	x>>=2;
-	r+=2;
+        x>>=2;
+        r+=2;
     }
     if (!(x&1)) {
-	x>>=1;
-	r+=1;
+        x>>=1;
+        r+=1;
     }
     return r;
 }
@@ -64,26 +64,26 @@ static __inline__ xm_s32_t _Fls(xm_s32_t x) {
     xm_s32_t r=31;
 
     if (!x)
-	return -1;
+        return -1;
     if (!(x&0xffff0000u)) {
-	x<<=16;
-	r-=16;
+        x<<=16;
+        r-=16;
     }
     if (!(x&0xff000000u)) {
-	x<<=8;
-	r-=8;
+        x<<=8;
+        r-=8;
     }
     if (!(x&0xf0000000u)) {
-	x<<=4;
-	r-=4;
+        x<<=4;
+        r-=4;
     }
     if (!(x&0xc0000000u)) {
-	x<<=2;
-	r-=2;
+        x<<=2;
+        r-=2;
     }
     if (!(x&0x80000000u)) {
-	x<<=1;
-	r-=1;
+        x<<=1;
+        r-=1;
     }
     return r;
 }
