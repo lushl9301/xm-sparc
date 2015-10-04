@@ -4,7 +4,7 @@
  * Assert definition
  *
  * $VERSION$
- * 
+ *
  * $AUTHOR$
  *
  * $LICENSE:

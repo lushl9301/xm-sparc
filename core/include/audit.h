@@ -4,7 +4,7 @@
  * Audit events definition
  *
  * $VERSION$
- * 
+ *
  * $AUTHOR$
  *
  * $LICENSE:
