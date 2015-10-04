@@ -4,7 +4,7 @@
  * Physical memory manager
  *
  * $VERSION$
- * 
+ *
  * $AUTHOR$
  *
  * $LICENSE:
@@ -42,8 +42,9 @@ struct physPage {
 #endif
 
 static inline void PPagIncCounter(struct physPage *page) {
+//lock and increase page counter
     xm_u32_t cnt;
-    //TODO No null-pointer error?
+    //TODO maybe need to check if not null;
     SpinLock(&page->lock);
     cnt=page->counter;
     page->counter++;
@@ -58,7 +59,7 @@ static inline void PPagIncCounter(struct physPage *page) {
 
 static inline void PPagDecCounter(struct physPage *page) {
     xm_u32_t cnt;
-        
+
     SpinLock(&page->lock);
     cnt=page->counter;
     page->counter--;

@@ -99,6 +99,7 @@ static inline xm_u8_t ReadByPassMmuByte(void *pAddr) {
 }
 
 static inline xm_u32_t ReadByPassMmuWord(void *pAddr) {
+//just directly read
     xm_u32_t retVal;
     __asm__ __volatile__("lda [%1] %2, %0\n\t": "=r"(retVal): "r"(pAddr), "i"(LEON_MMU_BYPASS));
     return retVal;
@@ -106,7 +107,7 @@ static inline xm_u32_t ReadByPassMmuWord(void *pAddr) {
 
 static inline void WriteByPassMmuWord(void *pAddr, xm_u32_t val) {
     __asm__ __volatile__("sta %0, [%1] %2\n\t"::"r"(val),
-			 "r"(pAddr), "i"(LEON_MMU_BYPASS):"memory");
+                         "r"(pAddr), "i"(LEON_MMU_BYPASS):"memory");
 }
 
 #else

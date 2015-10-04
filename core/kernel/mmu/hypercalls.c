@@ -28,7 +28,7 @@
 
 #ifdef CONFIG_VMM_UPDATE_HYPERCALLS
 static xm_s32_t UpdatePtd(struct physPage *pagePtd, xmAddress_t pAddr, xmAddress_t *val) {
-//
+//TODO don't understand
     xmWord_t *vPtd=VCacheMapPage(pAddr, pagePtd), oldVal;
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page;
@@ -70,6 +70,7 @@ static xm_s32_t UpdatePtd(struct physPage *pagePtd, xmAddress_t pAddr, xmAddress
 }
 
 static xm_s32_t UpdatePte(struct physPage *pagePte, xmAddress_t pAddr, xmAddress_t *val) {
+//inc new page; dec old page
     xmWord_t *vPte=VCacheMapPage(pAddr, pagePte), oldVal;
     localSched_t *sched=GET_LOCAL_SCHED();
     kThread_t *k=sched->cKThread;
@@ -102,6 +103,7 @@ static xm_s32_t UpdatePte(struct physPage *pagePte, xmAddress_t pAddr, xmAddress
         } else
             if (isPCtrlTab)
                 attr&=~_PG_ATTR_RW;
+        //TODO or opeartion does not really update anything
         *val=(*val& _PG_ARCH_ADDR)|VmAttr2ArchAttr(attr);
     }
 
@@ -122,6 +124,7 @@ static xm_s32_t UpdatePte(struct physPage *pagePte, xmAddress_t pAddr, xmAddress
 }
 
 static void UnsetPtd(xmAddress_t pAddr, struct physPage *pagePtd, xm_u32_t type) {
+//just dec page;
     xmWord_t *vPtd=VCacheMapPage(pAddr, pagePtd);
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page;
@@ -141,6 +144,7 @@ static void UnsetPtd(xmAddress_t pAddr, struct physPage *pagePtd, xm_u32_t type)
 }
 
 static void UnsetPte(xmAddress_t pAddr, struct physPage *pagePte, xm_u32_t type) {
+//
     xmWord_t *vPte=VCacheMapPage(pAddr, pagePte);
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page;
@@ -160,6 +164,7 @@ static void UnsetPte(xmAddress_t pAddr, struct physPage *pagePte, xm_u32_t type)
 }
 
 static void SetPtd(xmAddress_t pAddr, struct physPage *pagePtd, xm_u32_t type) {
+//
     xmWord_t *vPtd=VCacheMapPage(pAddr, pagePtd);
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page;
@@ -187,6 +192,7 @@ static void SetPtd(xmAddress_t pAddr, struct physPage *pagePtd, xm_u32_t type) {
 }
 
 static void SetPte(xmAddress_t pAddr, struct physPage *pagePte, xm_u32_t type) {
+//
     xmWord_t *vPte=VCacheMapPage(pAddr, pagePte);
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page;
@@ -280,6 +286,7 @@ static void (* const SetPPagTypeHndlTab[NR_PPAG])(xmAddress_t, struct physPage *
 };
 
 __hypercall xm_s32_t UpdatePage32Sys(xmAddress_t pAddr, xm_u32_t val) {
+//check and find value in cache and write to cache
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page;
     xm_u32_t addr;
@@ -304,6 +311,7 @@ __hypercall xm_s32_t UpdatePage32Sys(xmAddress_t pAddr, xm_u32_t val) {
 }
 
 __hypercall xm_s32_t SetPageTypeSys(xmAddress_t pAddr, xm_u32_t type) {
+//change/set page type;
     localSched_t *sched=GET_LOCAL_SCHED();
     struct physPage *page;
 
@@ -315,6 +323,7 @@ __hypercall xm_s32_t SetPageTypeSys(xmAddress_t pAddr, xm_u32_t type) {
         return XM_INVALID_PARAM;
 
     if (type!=page->type) {
+        //change type;
         if (page->counter) {
 #ifdef CONFIG_AUDIT_EVENTS
             xmWord_t auditArgs[2];
@@ -338,6 +347,7 @@ __hypercall xm_s32_t SetPageTypeSys(xmAddress_t pAddr, xm_u32_t type) {
 }
 
 __hypercall xm_s32_t InvldTlbSys(xmWord_t val) {
+//FlushTlb or FlushTlbEntry
     if (val==-1)
         FlushTlb();
     else
