@@ -142,7 +142,7 @@ xm_s32_t ArmKTimer(kTimer_t *kTimer, xmTime_t value, xmTime_t interval) {
 }
 
 xm_s32_t DisarmKTimer(kTimer_t *kTimer) {
-//
+//disarm by setting flag
     ASSERT(kTimer);
     if (!(kTimer->flags&KTIMER_ARMED))
         return -1;

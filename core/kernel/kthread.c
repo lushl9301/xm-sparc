@@ -86,6 +86,7 @@ void StartUpGuest(xmAddress_t entry) {
     KThreadArchInit(k);
     SetKThreadFlags(sched->cKThread, KTHREAD_DCACHE_ENABLED_F|KTHREAD_ICACHE_ENABLED_F);
     SetCacheState(DCACHE|ICACHE);
+    //start VClock
     ResumeVClock(&k->ctrl.g->vClock, &k->ctrl.g->vTimer);
     //used by context switch
     SwitchKThreadArchPost(k);

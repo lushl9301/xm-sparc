@@ -7,7 +7,7 @@
  *
  * $AUTHOR$
  *
- * $LICENSE:  
+ * $LICENSE:
  * COPYRIGHT (c) Fent Innovative Software Solutions S.L.
  *     Read LICENSE.txt file for the license terms.
  *
@@ -47,7 +47,7 @@ typedef struct hwTimer {
     xm_s8_t *name;
     xm_u32_t flags;
 #define HWTIMER_ENABLED (1<<0)
-    xm_u32_t freqKhz;    
+    xm_u32_t freqKhz;
     xm_s32_t irq;
     xm_s32_t (*InitHwTimer)(void);
     void (*SetHwTimer)(xmTime_t);
@@ -91,7 +91,7 @@ typedef struct {
 
 #define NEXT_ACT_IS_VALID 0x1
     xmTime_t nextAct;
-    struct dynList globalActiveKTimers;    
+    struct dynList globalActiveKTimers;
 } localTime_t;
 
 extern localTime_t localTimeInfo[];
@@ -114,8 +114,7 @@ static inline xmTime_t GetSysClockUsec(void) {
 static inline xmTime_t GetTimeUsecVClock(vClock_t *vClock) {
     xmTime_t t=vClock->acc;
     if (vClock->flags&VCLOCK_ENABLED)
-	t+=(GetSysClockUsec()-vClock->delta);
-	    
+        t+=(GetSysClockUsec()-vClock->delta);
     return t;
 }
 
@@ -136,28 +135,32 @@ static inline void InitVClock(vClock_t *vClock) {
 }
 
 static inline void StopVClock(vClock_t *vClock, vTimer_t *vTimer) {
+//disarm and disable
     if (vTimer->flags&VTIMER_ARMED)
-	DisarmKTimer(&vTimer->kTimer);
+        DisarmKTimer(&vTimer->kTimer);
 
     vClock->flags&=(~VCLOCK_ENABLED);
     vClock->acc+=GetSysClockUsec()-vClock->delta;
 }
 
 static inline void ResumeVClock(vClock_t *vClock, vTimer_t *vTimer) {
+//used in StartUpGuest and context switch
     vClock->delta=GetSysClockUsec();
     vClock->flags|=VCLOCK_ENABLED;
-    
+
     if (vTimer->flags&VTIMER_ARMED)
-	ArmKTimer(&vTimer->kTimer, vTimer->value-vClock->acc+vClock->delta, vTimer->interval);
+        ArmKTimer(&vTimer->kTimer, vTimer->value-vClock->acc+vClock->delta, vTimer->interval);
 }
 
 static inline xmTime_t HwTime2Duration(hwTime_t t, hwTime_t hz) {
+//
     hwTime_t s;
     s=t/hz;
     return (s*USECS_PER_SEC+((t-s*hz)*USECS_PER_SEC)/hz);
 }
 
 static inline hwTime_t Duration2HwTime(xmTime_t d, hwTime_t hz) {
+//
     hwTime_t s;
     s=d/USECS_PER_SEC;
     return s*hz+((d-s*USECS_PER_SEC)*hz)/USECS_PER_SEC;
