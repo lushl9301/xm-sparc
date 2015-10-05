@@ -50,10 +50,10 @@ static inline int BarrierCheckMask(barrierMask_t *m){
 }
 
 static inline void BarrierWaitMask(barrierMask_t *m){
-   while(BarrierCheckMask(m));
+//use blocking for barrier
+    while(BarrierCheckMask(m));
 }
 
-//TODO where is b->v?
 static inline void BarrierWait(barrier_t *b) {
     while(b->v);
 }
@@ -78,14 +78,14 @@ static inline xm_s32_t SpinIsLocked(spinLock_t *s) {
     return(xm_s32_t)__ArchSpinIsLocked(&s->archLock);
 }
 
-#define SpinLockIrqSave(s, flags) do {		\
-    HwSaveFlagsCli(flags);			\
-    SpinLock(s);				\
+#define SpinLockIrqSave(s, flags) do { \
+    HwSaveFlagsCli(flags); \
+    SpinLock(s); \
 } while(0)
 
-#define SpinUnlockIrqRestore(s, flags) do {	\
-    SpinUnlock(s);				\
-    HwRestoreFlags(flags);			\
+#define SpinUnlockIrqRestore(s, flags) do { \
+    SpinUnlock(s); \
+    HwRestoreFlags(flags); \
 } while(0)
 
 // TryLock is never used
