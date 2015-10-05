@@ -24,6 +24,7 @@ static int VAddr2PAddr(void *mAreas, xm_s32_t noAreas, xmAddress_t vAddr, xmAddr
 }
 
 xmAddress_t MainLdr(void) {
+//
     struct xefFile xefFile,xefCustomFile;
     struct xmImageHdr *partHdr;
     xm_s32_t ret,i;
@@ -31,10 +32,13 @@ xmAddress_t MainLdr(void) {
     xm_u8_t *img=(xm_u8_t *)partCtrlTabPtr->imgStart;
     if ((ret=ParseXefFile(img, &xefFile))!=XEF_OK)
         return 0;
+    //load xef file;
     partHdr=LoadXefFile(&xefFile, VAddr2PAddr, 0, 0);
 
+    //offset file;
     img=(xm_u8_t *)((partCtrlTabPtr->imgStart+xefFile.hdr->fileSize)&(~(PAGE_SIZE-1)))+PAGE_SIZE;
 
+    //load customfile;
     for (i=0; i<partHdr->noCustomFiles; i++){
             if ((ret=ParseXefFile((xm_u8_t *)img, &xefCustomFile))!=XEF_OK)
                return 0;
