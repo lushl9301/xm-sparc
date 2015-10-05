@@ -31,6 +31,7 @@ typedef struct {
 /* <track id="partition-status-remote"> */
 typedef struct {
    xm_u32_t state;
+//defined somewhere else
 //#define XM_STATUS_IDLE 0x0
 //#define XM_STATUS_READY 0x1
 //#define XM_STATUS_SUSPENDED 0x2
@@ -67,7 +68,7 @@ typedef struct {
     xm_s32_t current;
     xm_s32_t prev;
 } xmPlanStatus_t;
-//@ \void{</track id="plan-status">} 
+//@ \void{</track id="plan-status">}
 
 
 
@@ -81,7 +82,7 @@ typedef struct {
 #define XM_STATUS_HALTED 0x3
 
     /*By compatibility with ARINC*/
-    xm_u32_t opMode; 
+    xm_u32_t opMode;
 #define XM_OPMODE_IDLE 0x0
 #define XM_OPMODE_COLD_RESET 0x1
 #define XM_OPMODE_WARM_RESET 0x2
@@ -97,7 +98,7 @@ typedef struct {
     xm_u64_t noSamplingPortMsgsRead;    /* [[OPTIONAL]] */
     xm_u64_t noSamplingPortMsgsWritten; /* [[OPTIONAL]] */
     xm_u64_t noQueuingPortMsgsSent;     /* [[OPTIONAL]] */
-    xm_u64_t noQueuingPortMsgsReceived; /* [[OPTIONAL]] */   
+    xm_u64_t noQueuingPortMsgsReceived; /* [[OPTIONAL]] */
 } xmPartitionStatus_t;
 /* </track id="partition-status"> */
 
@@ -111,7 +112,7 @@ typedef struct {
 //#define XM_STATUS_HALTED 0x3
 
    /*Only for debug*/
-    xm_u32_t opMode;  
+    xm_u32_t opMode;
 //#define XM_OPMODE_IDLE 0x0
 //#define XM_OPMODE_COLD_RESET 0x1
 //#define XM_OPMODE_WARM_RESET 0x2
@@ -122,9 +123,7 @@ typedef struct {
 
 typedef struct {
     xmAddress_t pAddr;
-    xm_u32_t unused: 2, 
-        type:3, 
-        counter:27;
+    xm_u32_t unused:2, type:3, counter:27;
 } xmPhysPageStatus_t;
 
 #define XM_GET_SYSTEM_STATUS 0x0
@@ -139,8 +138,8 @@ typedef struct {
 
 union statusCmd {
     union {
-	xmSystemStatus_t system;
-	xmPartitionStatus_t partition;
+        xmSystemStatus_t system;
+        xmPartitionStatus_t partition;
         xmVirtualCpuStatus_t vcpu;
         xmPlanStatus_t plan;
         xmPhysPageStatus_t physPage;

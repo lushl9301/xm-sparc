@@ -65,6 +65,7 @@ typedef struct xmTraceEvent xmTraceEvent_t;
 
 /* <track id="xm-trace-status"> */
 typedef struct {
+//why not in status.h
     xm_s32_t noEvents;
     xm_s32_t maxEvents;
     xm_s32_t currentEvent;
