@@ -70,7 +70,7 @@
 // can write together with the reset
 
 static inline void StoreIoReg(xmAddress_t pAddr, xm_u32_t value) {
-// used a lot by hardware-denpendented code; simple line of asm
+//invoked by hardware-denpendented code a lot; simple line of asm
 #if defined(CONFIG_MMU)
     __asm__ __volatile__("sta %0, [%1] %2\n\t"::"r"(value),
                         "r"(pAddr), "i"(LEON_MMU_BYPASS):"memory");
