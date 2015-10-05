@@ -102,7 +102,7 @@ struct xmefContainerHdr {
     xmAddress_t strTabOffset;
     xm_s32_t strLen;
     xmAddress_t fileDataOffset;
-    xmSize_t fileDataLen;    
+    xmSize_t fileDataLen;
 } __PACKED;
 /*  </track id="xmefContainerHdr"> */
 
