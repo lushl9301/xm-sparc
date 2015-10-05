@@ -133,8 +133,8 @@ union queuingPortCmd {
 union channel {
     struct {
         char *buffer;
-	    xm_s32_t length;
-	    xmTime_t timestamp;
+        xm_s32_t length;
+        xmTime_t timestamp;
         partition_t **receiverTab;
         xm_s32_t *receiverPortTab;
         xm_s32_t noReceivers;
@@ -158,15 +158,15 @@ union channel {
     } t;
 #endif
     struct {
-    	struct msg {
-    	    struct dynListNode listNode;
-    	    char *buffer;
-    	    xm_s32_t length;
-    	    xmTime_t timestamp;
-    	} *msgPool;
-    	struct dynList freeMsgs, recvMsgs;
-    	xm_s32_t usedMsgs;
-    	partition_t *receiver;
+        struct msg {
+            struct dynListNode listNode;
+            char *buffer;
+            xm_s32_t length;
+            xmTime_t timestamp;
+        } *msgPool;
+        struct dynList freeMsgs, recvMsgs;
+        xm_s32_t usedMsgs;
+        partition_t *receiver;
         xm_s32_t receiverPort;
         partition_t *sender;
         xm_s32_t senderPort;
@@ -174,7 +174,7 @@ union channel {
     } q;
 };
 
-struct port {   
+struct port {
     xm_u32_t flags;
 #define COMM_PORT_OPENED 0x1
 #define COMM_PORT_EMPTY 0x0
