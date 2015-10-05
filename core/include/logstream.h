@@ -50,7 +50,7 @@ static inline void LogStreamCommit(struct logStream *lS) {
         KDevSeek(lS->kDev, OFFSETOF(struct logStreamHdr, ctrl[lS->info.cHdr]), DEV_SEEK_START);
         KDevWrite(lS->kDev, &lS->ctrl, sizeof(struct logStreamCtrl));
         KDevSeek(lS->kDev, OFFSETOF(struct logStreamHdr, info.cHdr), DEV_SEEK_START);
-        KDevWrite(lS->kDev, &lS->info.cHdr, sizeof(xm_s32_t));        
+        KDevWrite(lS->kDev, &lS->info.cHdr, sizeof(xm_s32_t));
         lS->info.cHdr=!(lS->info.cHdr)?1:0;
     }
     SpinUnlock(&lS->lock);
@@ -92,7 +92,7 @@ INIT_HDR:
 
 static inline xm_s32_t LogStreamInsert(struct logStream *lS, void *log) {
     xm_s32_t smashed=0;
- 
+
     ASSERT(lS->info.maxNoElem>=0);
     SpinLock(&lS->lock);
     if (lS->info.maxNoElem) {
@@ -147,16 +147,16 @@ static inline xm_s32_t LogStreamSeek(struct logStream *lS,  xm_s32_t offset,  xm
     SpinLock(&lS->lock);
     switch((whence)) {
     case XM_LOGSTREAM_START:
-	break;
+        break;
     case XM_LOGSTREAM_CURRENT:
-	off+=lS->ctrl.d;
-	break;
+        off+=lS->ctrl.d;
+        break;
     case XM_LOGSTREAM_END:
-	off+=lS->ctrl.elem;
-	break;
+        off+=lS->ctrl.elem;
+        break;
     default:
         SpinUnlock(&lS->lock);
-	return -1;
+        return -1;
     }
 
     if (off>lS->ctrl.elem) off=lS->ctrl.elem;
