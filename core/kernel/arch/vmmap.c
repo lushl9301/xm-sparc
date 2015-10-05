@@ -28,6 +28,12 @@
 #include <arch/paging.h>
 #include <arch/physmm.h>
 
+// in header file:
+// #ifdef CONFIG_MMU
+// extern void SetupVmMap(xmAddress_t *stFrameArea, xm_s32_t *noFrames);
+// #elif CONFIG_MPU
+// extern void SetupVmMap(void);
+// #endif
 void SetupVmMap(xmAddress_t *stFrameArea, xm_s32_t *noFrames) {
 //
     xmAddress_t st, end;

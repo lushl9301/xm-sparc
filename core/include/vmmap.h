@@ -28,8 +28,10 @@ extern void SetupVmMap(xmAddress_t *stFrameArea, xm_s32_t *noFrames);
 #elif CONFIG_MPU
 extern void SetupVmMap(void);
 #endif
+//set _ptdL3
 extern xmAddress_t SetupPageTable(partition_t *p, xmAddress_t pgTb, xmSize_t size) __WARN_UNUSED_RESULT;
 extern void VmMapPage(xmAddress_t pAddr, xmAddress_t vAddr, xmWord_t flags);
+//not implemented in xm-sparc; but in x86
 extern void VmUnmapPage(xmAddress_t vAddr);
 extern void CloneXMPtdL1(xmWord_t *ptdL1);
 extern void SetupPtdL1(xmWord_t *ptdL1, kThread_t *k);
@@ -39,7 +41,6 @@ extern xm_u32_t VmAttr2ArchAttr(xm_u32_t entry);
 
 #define ROUNDUP(addr, _pS) ((((~(addr))+1)&((_pS)-1))+(addr))
 #define ROUNDDOWN(addr, _pS) ((addr)&~((_pS)-1))
-#define SIZE2PAGES(size) \
-    (((((~(size))+1)&(PAGE_SIZE-1))+(size))>>PAGE_SHIFT)
+#define SIZE2PAGES(size) (((((~(size))+1)&(PAGE_SIZE-1))+(size))>>PAGE_SHIFT)
 
 #endif
