@@ -26,13 +26,13 @@ typedef struct {
 
 struct xmcHmSlot {
     xm_u32_t action:31, log:1;
-  
+
 // Logging
 #define XM_HM_LOG_DISABLED 0
 #define XM_HM_LOG_ENABLED 1
 
 // Actions
-//@% <track id="hm-action-list"> 
+//@% <track id="hm-action-list">
 #define XM_HM_AC_IGNORE 0
 #define XM_HM_AC_SHUTDOWN 1
 #define XM_HM_AC_PARTITION_COLD_RESET 2
@@ -92,7 +92,7 @@ struct xmcCommPort {
 };
 
 #ifdef CONFIG_CYCLIC_SCHED
-//@% <track id="sched-cyclic-slot"> 
+//@% <track id="sched-cyclic-slot">
 struct xmcSchedCyclicSlot {
     xmId_t id;
     xmId_t partitionId;
@@ -100,7 +100,7 @@ struct xmcSchedCyclicSlot {
     xm_u32_t sExec; // offset (usec)
     xm_u32_t eExec; // offset+duration (usec)
 };
-//@% </track id="sched-cyclic-slot"> 
+//@% </track id="sched-cyclic-slot">
 
 struct xmcSchedCyclicPlan {
     xm_u32_t nameOffset;
@@ -157,7 +157,7 @@ struct xmcPartition {
     xm_u32_t hwIrqs;
     xm_s32_t noPhysicalMemoryAreas;
     xm_u32_t physicalMemoryAreasOffset;
-    xmDev_t consoleDev;    
+    xmDev_t consoleDev;
     struct xmcPartitionArch arch;
     xm_u32_t commPortsOffset;
     xm_s32_t noPorts;
@@ -179,24 +179,24 @@ struct xmcCommChannel {
 #define XM_TTNOC_CHANNEL 2
 #endif
     xm_s32_t type;
-  
+
     union {
-	struct {
-	    xm_s32_t maxLength;
-	    xm_s32_t maxNoMsgs;
-	} q;
-	struct {
-	    xm_s32_t maxLength;
-	    xm_u32_t validPeriod;
+        struct {
+            xm_s32_t maxLength;
+            xm_s32_t maxNoMsgs;
+        } q;
+        struct {
+            xm_s32_t maxLength;
+            xm_u32_t validPeriod;
             xm_s32_t noReceivers;
-	} s;
+        } s;
 #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
-	struct {
-	    xm_s32_t maxLength;
-	    xm_u32_t validPeriod;
+        struct {
+            xm_s32_t maxLength;
+            xm_u32_t validPeriod;
             xm_s32_t noReceivers;
             xmId_t nodeId;
-	} t;
+        } t;
 #endif
     };
 };
@@ -220,11 +220,11 @@ struct xmcHpv {
     xm_u32_t physicalMemoryAreasOffset;
     xm_s32_t noCpus;
     struct _cpu {
-	xmId_t id;
-	xm_u32_t features; // Enable/disable features
-	xm_u32_t freq; // KHz
+        xmId_t id;
+        xm_u32_t features; // Enable/disable features
+        xm_u32_t freq; // KHz
 #define XM_CPUFREQ_AUTO 0
-        
+
 #define CYCLIC_SCHED 0
 #define FP_SCHED 1
         xm_u32_t schedPolicy;
@@ -242,7 +242,7 @@ struct xmcHpv {
     xmDev_t hmDev;
     xmDev_t consoleDev;
     xmId_t nodeId;
-    struct xmcHwIrq hwIrqTab[CONFIG_NO_HWIRQS];  
+    struct xmcHwIrq hwIrqTab[CONFIG_NO_HWIRQS];
     struct xmcTrace trace;
 };
 
@@ -272,12 +272,12 @@ struct xmcDevice {
 #endif
 #if defined(CONFIG_DEV_UART)||defined(CONFIG_DEV_UART_MODULE)
     struct xmcUartCfg {
-	xm_u32_t baudRate;
+        xm_u32_t baudRate;
     } uart[CONFIG_DEV_NO_UARTS];
 #endif
 #ifdef CONFIG_DEV_VGA
     struct xmcVgaCfg {
-	
+        //why empty; intendedly?
     } vga;
 #endif
 };
@@ -320,6 +320,7 @@ struct xmcVCpu{
 #define XMC_SUBVERSION 0
 #define XMC_REVISION 0
 
+//xm config; core stucture; but split at setting up stage
 struct xmc {
 #define XMC_SIGNATURE 0x24584d43 // $XMC
     xm_u32_t signature;
@@ -337,7 +338,7 @@ struct xmc {
     xmAddress_t nameOffset;
     struct xmcHpv hpv;
     struct xmcRsw rsw;
-    xmAddress_t partitionTabOffset;    
+    xmAddress_t partitionTabOffset;
     xm_s32_t noPartitions;
     xmAddress_t bootPartitionTabOffset;
     xmAddress_t rswInfoOffset;
