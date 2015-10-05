@@ -84,13 +84,14 @@ extern xm_s32_t SwitchSchedPlan(xm_s32_t newPlanId, xm_s32_t *oldPlanId);
 
 static inline void SchedYield(localSched_t *sched, kThread_t *k) {
 #ifdef CONFIG_CYCLIC_SCHED
+    //yield to new thread
     sched->data->cyclic.kThread=k;
 #endif
     Schedule();
 }
 
 static inline void DoPreemption(void) {
-//only called as idletask
+//only called by idletask
     localSched_t *sched=GET_LOCAL_SCHED();
     localCpu_t *cpu=GET_LOCAL_CPU();
 
@@ -104,17 +105,19 @@ static inline void DoPreemption(void) {
 }
 
 static inline void PreemptionOn(void) {
+//
 #ifdef CONFIG_VOLUNTARY_PREEMPTION
     localSched_t *sched=GET_LOCAL_SCHED();
-
+    //combine with PreemptionOff;stall in ctrl.irqMask, then set as globalIrqMask;
+    //later reset to ctrl.irqMask by HwIrqSetMask
     sched->cKThread->ctrl.irqMask=HwIrqGetMask();
-    //TODO bug here? should be GET_LOCAL_CPU()->globalIrqMask
     HwIrqSetMask(globalIrqMask);
-    HwSti();
+    HwSti();//enable
 #endif
 }
 
 static inline void PreemptionOff(void) {
+//
 #ifdef CONFIG_VOLUNTARY_PREEMPTION
     localSched_t *sched=GET_LOCAL_SCHED();
 
@@ -150,10 +153,10 @@ static inline void HALT_VCPU(xmId_t partId, xmId_t vCpuId) {
     partitionTab[partId].kThread[vCpuId]->ctrl.g->opMode=XM_OPMODE_IDLE;
 #ifdef CONFIG_FP_SCHED
     xm_s32_t cpuId=xmcVCpuTab[(partitionTab[partId].cfg->id*xmcTab.hpv.noCpus)+vCpuId].cpu;
-	if(xmcTab.hpv.cpuTab[cpuId].schedPolicy==FP_SCHED){
-	    DisarmKTimer(&partitionTab[partId].kThread[vCpuId]->ctrl.g->kTimer);
-	    DisarmKTimer(&partitionTab[partId].kThread[vCpuId]->ctrl.g->watchdogTimer);
-	}
+    if(xmcTab.hpv.cpuTab[cpuId].schedPolicy==FP_SCHED){
+        DisarmKTimer(&partitionTab[partId].kThread[vCpuId]->ctrl.g->kTimer);
+        DisarmKTimer(&partitionTab[partId].kThread[vCpuId]->ctrl.g->watchdogTimer);
+    }
 #endif
 }
 
@@ -198,6 +201,8 @@ static inline void IDLE_PARTITION(xmId_t id) {
 }
 */
 static inline void HALT_PARTITION(xmId_t id) {
+//The same as HALT_VCPU; with a for loop
+//TODO code reuse
     xm_s32_t e;
 #ifdef CONFIG_AUDIT_EVENTS
     RaiseAuditEvent(TRACE_SCHED_MODULE, AUDIT_SCHED_PART_HALT, 1, (xmWord_t *)&id);
