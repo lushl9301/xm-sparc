@@ -42,7 +42,7 @@ static inline void DynListInit(struct dynList *l) {
 
 static inline xm_s32_t DynListInsertHead(struct dynList *l, struct dynListNode *e) {
     if (e->list) {
-	    ASSERT(e->list==l);
+        ASSERT(e->list==l);
         /// This is buggy
         return 0;
     }
@@ -50,13 +50,13 @@ static inline xm_s32_t DynListInsertHead(struct dynList *l, struct dynListNode *
     SpinLock(&l->lock);
     if (l->head) {
         ASSERT_LOCK(l->noElem>0, &l->lock);
-	    e->next=l->head;
-	    e->prev=l->head->prev;
-	    l->head->prev->next=e;
-	    l->head->prev=e;	
-    } else {	
-	    ASSERT_LOCK(!l->noElem, &l->lock);
-	    e->prev=e->next=e;
+        e->next=l->head;
+        e->prev=l->head->prev;
+        l->head->prev->next=e;
+        l->head->prev=e;
+    } else {
+        ASSERT_LOCK(!l->noElem, &l->lock);
+        e->prev=e->next=e;
     }
     l->head=e;
     l->noElem++;
@@ -68,19 +68,19 @@ static inline xm_s32_t DynListInsertHead(struct dynList *l, struct dynListNode *
 
 static inline xm_s32_t DynListInsertTail(struct dynList *l, struct dynListNode *e) {
     if (e->list) {
-	ASSERT(e->list==l);
-	return 0;
+        ASSERT(e->list==l);
+        return 0;
     }
     ASSERT(!e->next&&!e->prev);
     SpinLock(&l->lock);
     if (l->head) {
-	e->next=l->head;
-	e->prev=l->head->prev;
-	l->head->prev->next=e;
-	l->head->prev=e;	
+        e->next=l->head;
+        e->prev=l->head->prev;
+        l->head->prev->next=e;
+        l->head->prev=e;
     } else {
-	e->prev=e->next=e;
-	l->head=e;
+        e->prev=e->next=e;
+        l->head=e;
     }
     l->noElem++;
     e->list=l;
@@ -94,15 +94,15 @@ static inline void *DynListRemoveHead(struct dynList *l) {
     struct dynListNode *e=0;
     SpinLock(&l->lock);
     if (l->head) {
-	e=l->head;
-	l->head=e->next;
-	e->prev->next=e->next;
-	e->next->prev=e->prev;
-	e->prev=e->next=0;
-	e->list=0;
-	l->noElem--;
-	if (!l->noElem)
-	    l->head=0;
+        e=l->head;
+        l->head=e->next;
+        e->prev->next=e->next;
+        e->next->prev=e->prev;
+        e->prev=e->next=0;
+        e->list=0;
+        l->noElem--;
+        if (!l->noElem)
+            l->head=0;
     }
     SpinUnlock(&l->lock);
     ASSERT(l->noElem>=0);
@@ -114,14 +114,14 @@ static inline void *DynListRemoveTail(struct dynList *l) {
     struct dynListNode *e=0;
     SpinLock(&l->lock);
     if (l->head) {
-	e=l->head->prev;
-	e->prev->next=e->next;
-	e->next->prev=e->prev;
-	e->prev=e->next=0;
-	e->list=0;
-	l->noElem--;
-	if (!l->noElem)
-	    l->head=0;
+        e=l->head->prev;
+        e->prev->next=e->next;
+        e->next->prev=e->prev;
+        e->prev=e->next=0;
+        e->list=0;
+        l->noElem--;
+        if (!l->noElem)
+            l->head=0;
     }
     SpinUnlock(&l->lock);
     ASSERT(l->noElem>=0);
@@ -136,12 +136,12 @@ static inline xm_s32_t DynListRemoveElement(struct dynList *l, struct dynListNod
     e->prev->next=e->next;
     e->next->prev=e->prev;
     if (l->head==e)
-	l->head=e->next;
+        l->head=e->next;
     e->prev=e->next=0;
     e->list=0;
     l->noElem--;
     if (!l->noElem)
-	l->head=0;
+        l->head=0;
     SpinUnlock(&l->lock);
     ASSERT(l->noElem>=0);
 

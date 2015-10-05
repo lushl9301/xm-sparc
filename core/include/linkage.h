@@ -28,6 +28,7 @@
 #endif
 
 #define SYMBOL_NAME(X) X
+//concatenate x with ":"
 #define SYMBOL_NAME_LABEL(X) X##:
 
 #define ENTRY(name) \
@@ -35,6 +36,7 @@
     ASM_ALIGN; \
     SYMBOL_NAME_LABEL(name)
 
+//change to string
 #define __STR(x) #x
 #define TO_STR(x) __STR(x)
 
