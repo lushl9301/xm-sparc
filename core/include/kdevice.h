@@ -40,25 +40,25 @@ typedef struct kDev {
 
 static inline xm_s32_t KDevReset(const kDevice_t *kDev) {
     if(kDev&&(kDev->Reset))
-	return kDev->Reset(kDev);
+        return kDev->Reset(kDev);
     return -KDEV_OP_NOT_ALLOWED;
 }
 
 static inline xm_s32_t KDevWrite(const kDevice_t *kDev, void *buffer, xm_s32_t len) {
     if(kDev&&(kDev->Write))
-	return kDev->Write(kDev, buffer, len);
+        return kDev->Write(kDev, buffer, len);
     return -KDEV_OP_NOT_ALLOWED;
 }
 
 static inline xm_s32_t KDevRead(const kDevice_t *kDev, void *buffer, xm_s32_t len) {
     if(kDev&&(kDev->Read))
-	return kDev->Read(kDev, buffer, len);
+        return kDev->Read(kDev, buffer, len);
     return -KDEV_OP_NOT_ALLOWED;
 }
 
 static inline xm_s32_t KDevSeek(const kDevice_t *kDev, xm_u32_t offset, xm_u32_t whence) {
     if(kDev&&(kDev->Seek))
-	return kDev->Seek(kDev, offset, whence);
+        return kDev->Seek(kDev, offset, whence);
     return -KDEV_OP_NOT_ALLOWED;
 }
 
@@ -75,21 +75,21 @@ extern const kDevice_t *LookUpKDev(const xmDev_t *dev);
 #define RESERVE_HWIRQ(_irq) \
     __asm__ (".section .rsv_hwirqs, \"a\"\n\t" \
              ".align 4\n\t" \
-             ".long "TO_STR(_irq)"\n\t"	\
+             ".long "TO_STR(_irq)"\n\t"        \
              ".previous\n\t")
 
 #define RESERVE_IOPORTS(_base, _offset) \
     __asm__ (".section .rsv_ioports, \"a\"\n\t" \
              ".align 4\n\t" \
              ".long "TO_STR(_base)"\n\t"  \
-	     ".long "TO_STR(_offset)"\n\t" \
+             ".long "TO_STR(_offset)"\n\t" \
              ".previous\n\t")
 
 #define RESERVE_PHYSPAGES(_addr, _nPag) \
     __asm__ (".section .rsv_physpages, \"a\"\n\t" \
              ".align 4\n\t" \
              ".long "TO_STR(_addr)"\n\t"  \
-	     ".long "TO_STR(_nPag)"\n\t" \
+             ".long "TO_STR(_nPag)"\n\t" \
              ".previous\n\t")
 
 
