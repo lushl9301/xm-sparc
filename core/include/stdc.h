@@ -56,13 +56,11 @@ static inline xm_s32_t isspace(xm_s32_t ch) {
 
 // Hex decimal
 static inline xm_s32_t isxdigit(xm_s32_t ch) {
-    return (xm_u32_t)(ch - '0') < 10u  ||
-	(xm_u32_t)((ch | 0x20) - 'a') <  6u;
+    return (xm_u32_t)(ch - '0') < 10u || (xm_u32_t)((ch | 0x20) - 'a') <  6u;
 }
 
 static inline xm_s32_t isalnum (xm_s32_t ch) {
-    return (xm_u32_t)((ch | 0x20) - 'a') < 26u  ||
-	(xm_u32_t)(ch - '0') < 10u;
+    return (xm_u32_t)((ch | 0x20) - 'a') < 26u || (xm_u32_t)(ch - '0') < 10u;
 }
 
 typedef __builtin_va_list va_list;
@@ -114,10 +112,11 @@ typedef void (*WrMem_t)(xm_u32_t *, xm_u32_t);
 typedef xm_u32_t (*RdMem_t)(xm_u32_t *);
 
 static inline void UnalignMemCpy(xm_u8_t *dst, xm_u8_t *src, xmSSize_t size, RdMem_t SrcR, RdMem_t DstR, WrMem_t DstW) {
+//
     xm_u32_t srcW, dstW;
-    xm_s32_t c1, c2, e;    
+    xm_s32_t c1, c2, e;
 
-    for (e=0, c1=(xm_u32_t)src&0x3, c2=(xm_u32_t)dst&0x3; e<size; 
+    for (e=0, c1=(xm_u32_t)src&0x3, c2=(xm_u32_t)dst&0x3; e<size;
          src++, dst++, c1=(c1+1)&0x3, c2=(c2+1)&0x3, e++) {
         srcW=SrcR((xm_u32_t *)((xm_u32_t)src&~0x3));
 #ifdef CONFIG_TARGET_LITTLE_ENDIAN
