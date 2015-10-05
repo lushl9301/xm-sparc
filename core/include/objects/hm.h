@@ -57,7 +57,7 @@ struct xmHmLog {
         struct hmCpuCtxt cpuCtxt;
         xmWord_t payload[XM_HMLOG_PAYLOAD_LENGTH];
     };
-}  __PACKED; 
+}  __PACKED;
 
 typedef struct xmHmLog xmHmLog_t;
 /* </track id="xm-hm-log-msg"> */

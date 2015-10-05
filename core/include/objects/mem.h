@@ -17,7 +17,7 @@
 
 union memCmd {
     struct cpyArea {
-        xmId_t dstId; 
+        xmId_t dstId;
         xmAddress_t dstAddr;
         xmId_t srcId;
         xmAddress_t srcAddr;
@@ -29,8 +29,8 @@ union memCmd {
 
 union memCmd {
     struct getPhysMemMap {
-	struct xmcMemoryArea *areas;
-	xm_s32_t noAreas;
+        struct xmcMemoryArea *areas;
+        xm_s32_t noAreas;
     } physMemMap;
 };
 */
