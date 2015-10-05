@@ -39,7 +39,7 @@ static inline void QueueInit(struct queue *q, xm_s32_t maxNoElem, xmSize_t elemS
 }
 
 static inline xm_s32_t QueueInsertElement(struct queue *q, void *element) {
-    if (q->elem>=q->maxNoElem) 
+    if (q->elem>=q->maxNoElem)
         return -1;
     memcpy((void *)((xmAddress_t)q->buffer+(q->tail*q->elemSize)), element, q->elemSize);
     q->tail=((q->tail+1)<q->maxNoElem)?q->tail+1:0;

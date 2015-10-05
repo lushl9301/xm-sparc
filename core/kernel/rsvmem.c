@@ -24,7 +24,7 @@ void InitRsvMem(void) {
 }
 
 void *AllocRsvMem(xm_u32_t size, xm_u32_t align) {
-//
+//only used by GET_MEM*
     xm_s32_t e;
     //TODO only use size to justify?
     for (e=0; xmcRsvMemTab[e].obj; e++) {

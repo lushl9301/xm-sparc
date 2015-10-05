@@ -58,6 +58,7 @@ static inline void PPagIncCounter(struct physPage *page) {
 }
 
 static inline void PPagDecCounter(struct physPage *page) {
+//
     xm_u32_t cnt;
 
     SpinLock(&page->lock);

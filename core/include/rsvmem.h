@@ -29,6 +29,7 @@ extern void ReleaseRsvMemByOwner(xm_s32_t owner);
 extern void RsvMemDebug(void);
 #endif
 
+//Allocate reserved mem; if size == s
 #define GET_MEMA(c, s, a) do { \
     if (s) { \
         if (!(c=AllocRsvMem(s, a))) { \
