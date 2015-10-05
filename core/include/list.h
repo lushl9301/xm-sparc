@@ -33,6 +33,7 @@ struct dynList {
 };
 
 static inline void DynListInit(struct dynList *l) {
+//
     l->lock=SPINLOCK_INIT;
     SpinLock(&l->lock);
     l->noElem=0;
@@ -41,6 +42,7 @@ static inline void DynListInit(struct dynList *l) {
 }
 
 static inline xm_s32_t DynListInsertHead(struct dynList *l, struct dynListNode *e) {
+//cyclic LinkedList
     if (e->list) {
         ASSERT(e->list==l);
         /// This is buggy
@@ -56,10 +58,12 @@ static inline xm_s32_t DynListInsertHead(struct dynList *l, struct dynListNode *
         l->head->prev=e;
     } else {
         ASSERT_LOCK(!l->noElem, &l->lock);
+        //empty; pointer to itself
         e->prev=e->next=e;
     }
     l->head=e;
     l->noElem++;
+    //point to main list
     e->list=l;
     SpinUnlock(&l->lock);
     ASSERT(l->noElem>=0);
@@ -67,12 +71,15 @@ static inline xm_s32_t DynListInsertHead(struct dynList *l, struct dynListNode *
 }
 
 static inline xm_s32_t DynListInsertTail(struct dynList *l, struct dynListNode *e) {
+//brilliant;
+//TODO reduce code
     if (e->list) {
         ASSERT(e->list==l);
         return 0;
     }
     ASSERT(!e->next&&!e->prev);
     SpinLock(&l->lock);
+    //same insertion
     if (l->head) {
         e->next=l->head;
         e->prev=l->head->prev;
@@ -130,6 +137,8 @@ static inline void *DynListRemoveTail(struct dynList *l) {
 }
 
 static inline xm_s32_t DynListRemoveElement(struct dynList *l, struct dynListNode *e) {
+//
+    //TODO use assert to check...
     ASSERT(e->list==l);
     ASSERT(e->prev&&e->next);
     SpinLock(&l->lock);
@@ -148,6 +157,7 @@ static inline xm_s32_t DynListRemoveElement(struct dynList *l, struct dynListNod
     return 0;
 }
 
+//it is locked during iteration
 #define DYNLIST_FOR_EACH_ELEMENT_BEGIN(_l, _element, _cond) do { \
     xm_s32_t __e; \
     struct dynListNode *__n; \
