@@ -43,4 +43,3 @@ xmAddress_t MainLdr(void) {
 
     return xefFile.hdr->entryPoint;
 }
-

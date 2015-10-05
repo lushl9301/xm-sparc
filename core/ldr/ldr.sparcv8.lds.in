@@ -27,17 +27,17 @@ SECTIONS
     _sldr = .;
     . = (XM_PCTRLTAB_ADDR)-256*1024-(4096*18);
     .bss ALIGN(8) : {
-	_sbss = .;
-	*(COMMON)
-        *(.bss)
-	_ebss = .;
-    }  
+    _sbss = .;
+    *(COMMON)
+    *(.bss)
+    _ebss = .;
+    }
 
     . = (XM_PCTRLTAB_ADDR)-256*1024;
 
     .text ALIGN(8): {
         *(.text)
-    }    
+    }
     .data ALIGN(8) : {
         *(.data)
     }
