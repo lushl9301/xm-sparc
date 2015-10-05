@@ -92,5 +92,4 @@ extern const kDevice_t *LookUpKDev(const xmDev_t *dev);
              ".long "TO_STR(_nPag)"\n\t" \
              ".previous\n\t")
 
-
 #endif

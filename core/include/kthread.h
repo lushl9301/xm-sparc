@@ -101,6 +101,7 @@ typedef union kThread {
 } kThread_t;
 
 static inline void SetKThreadFlags(kThread_t *k, xm_u32_t f) {
+//lock and write
     SpinLock(&k->ctrl.lock);
     k->ctrl.flags |= f;
     if (k->ctrl.g && k->ctrl.g->partCtrlTab)
@@ -109,6 +110,7 @@ static inline void SetKThreadFlags(kThread_t *k, xm_u32_t f) {
 }
 
 static inline void ClearKThreadFlags(kThread_t *k, xm_u32_t f) {
+//
     SpinLock(&k->ctrl.lock);
     k->ctrl.flags &= ~f;
     if (k->ctrl.g && k->ctrl.g->partCtrlTab)
@@ -117,6 +119,7 @@ static inline void ClearKThreadFlags(kThread_t *k, xm_u32_t f) {
 }
 
 static inline xm_u32_t AreKThreadFlagsSet(kThread_t *k, xm_u32_t f) {
+//TODO why need lock here
     xm_u32_t __r;
     // why need lock here
     SpinLock(&k->ctrl.lock);
@@ -159,15 +162,18 @@ extern void SwitchKThreadArchPre(kThread_t *new, kThread_t *current);
 extern void SwitchKThreadArchPost(kThread_t *current);
 
 static inline void SetHwIrqPending(kThread_t *k, xm_s32_t irq) {
+//
     ASSERT(k->ctrl.g);
     ASSERT((irq>=XM_VT_HW_FIRST)&&(irq<=XM_VT_HW_LAST));
     if (AreKThreadFlagsSet(k, KTHREAD_HALTED_F))
         return;
+    //TODO why don't need lock here
     k->ctrl.g->partCtrlTab->hwIrqsPend |= (1 << irq);
     SetKThreadFlags(k, KTHREAD_READY_F);
 }
 
 static inline void SetPartitionHwIrqPending(partition_t *p, xm_s32_t irq) {
+//
     kThread_t *k;
     xm_s32_t e;
 
@@ -203,12 +209,14 @@ static inline void SetExtIrqPending(kThread_t *k, xm_s32_t irq) {
 }
 
 static inline int ArePartitionExtIrqPendingSet(partition_t *p, xm_s32_t irq) {
+//check partition's all threads
     kThread_t *k;
     xm_s32_t e;
 
     ASSERT((irq>=XM_VT_EXT_FIRST)&&(irq<=XM_VT_EXT_LAST));
     irq -= XM_VT_EXT_FIRST;
 
+    //check partition's threads
     for (e = 0; e < p->cfg->noVCpus; e++) {
         k = p->kThread[e];
         SpinLock(&k->ctrl.lock);
@@ -223,7 +231,7 @@ static inline int ArePartitionExtIrqPendingSet(partition_t *p, xm_s32_t irq) {
 }
 
 static inline int AreExtIrqPendingSet(kThread_t *k, xm_s32_t irq) {
-
+//
     ASSERT((irq>=XM_VT_EXT_FIRST)&&(irq<=XM_VT_EXT_LAST));
     irq -= XM_VT_EXT_FIRST;
 
@@ -237,12 +245,14 @@ static inline int AreExtIrqPendingSet(kThread_t *k, xm_s32_t irq) {
 }
 
 static inline void SetPartitionExtIrqPending(partition_t *p, xm_s32_t irq) {
+//
     kThread_t *k;
     xm_s32_t e;
 
     ASSERT((irq>=XM_VT_EXT_FIRST)&&(irq<=XM_VT_EXT_LAST));
     irq -= XM_VT_EXT_FIRST;
 
+    //set each thread in partition
     for (e = 0; e < p->cfg->noVCpus; e++) {
         k = p->kThread[e];
 
