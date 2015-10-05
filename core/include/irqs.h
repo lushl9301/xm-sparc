@@ -77,12 +77,13 @@ static inline void HwEnableIrq(xm_s32_t irq) {
 }
 
 static inline void HwAckIrq(xm_s32_t irq) {
-//ACK is disable in the implementation
+//ACK is implemented the same as disable in leon_pic.c
     if ((irq<CONFIG_NO_HWIRQS)&&hwIrqCtrl[irq].Ack)
         hwIrqCtrl[irq].Ack(irq);
 }
 
 static inline void HwEndIrq(xm_s32_t irq) {
+//End is implemented the same as Enable; Once finished, enable
     if ((irq<CONFIG_NO_HWIRQS)&&hwIrqCtrl[irq].End)
         hwIrqCtrl[irq].End(irq);
 }
