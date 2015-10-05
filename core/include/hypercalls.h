@@ -24,7 +24,7 @@
 #define XM_API_SUBVERSION 1
 #define XM_API_REVISION 2
 /* </track id="abi-api-versions"> */
-// Generic hypercalls 
+// Generic hypercalls
 
 #define HYPERCALL_NOT_IMPLEMENTED (~0)
 #define multicall_nr __MULTICALL_NR
@@ -123,21 +123,21 @@
 
 #define HYPERCALLR_TAB(_hc, _args) \
     __asm__ (".section .hypercallstab, \"a\"\n\t" \
-	     ".align 4\n\t" \
-	     ".long "#_hc"\n\t" \
-	     ".previous\n\t" \
+             ".align 4\n\t" \
+             ".long "#_hc"\n\t" \
+             ".previous\n\t" \
              ".section .hypercallflagstab, \"a\"\n\t" \
-	     ".long (0x80000000|"#_args")\n\t" \
-	     ".previous\n\t")
+             ".long (0x80000000|"#_args")\n\t" \
+             ".previous\n\t")
 
 #define HYPERCALL_TAB(_hc, _args) \
     __asm__ (".section .hypercallstab, \"a\"\n\t" \
-	     ".align 4\n\t" \
-	     ".long "#_hc"\n\t" \
-	     ".previous\n\t" \
+             ".align 4\n\t" \
+             ".long "#_hc"\n\t" \
+             ".previous\n\t" \
              ".section .hypercallflagstab, \"a\"\n\t" \
-	     ".long ("#_args")\n\t" \
-	     ".previous\n\t")
+             ".long ("#_args")\n\t" \
+             ".previous\n\t")
 
 #endif
 
