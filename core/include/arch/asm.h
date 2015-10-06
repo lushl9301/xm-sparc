@@ -33,6 +33,7 @@
 #define EXPTABLE(_a) \
     __asm__ (ASM_EXPTABLE(_a))
 
+//_s for size; SB, SH, STUB, UH, etc....
 #define ASM_RW(_s, _tmp) \
    __asm__ __volatile__ ("orn %0, %%g0, %0\n\t" : "=r" (ret)); \
    __asm__ __volatile__ ("1:ld"_s" [%2], %1\n\t" \
@@ -84,11 +85,12 @@ static inline xm_s32_t AsmRWCheck(xmAddress_t param, xmSize_t size, xm_u32_t ali
             break;
         }
         if (ret)
-            return -1;           
+            return -1;
     }
     return 0;
-} 
+}
 
+//read without write back
 #define ASM_RD(_s, _tmp) \
     __asm__ __volatile__ ("orn %0, %%g0, %0\n\t" : "=r" (ret)); \
     __asm__ __volatile__ ("1:ld"_s" [%2], %1\n\t" \
@@ -167,7 +169,7 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
     "std %%l4, ["#_sp"+48]\n\t" \
     "std %%l2, ["#_sp"+40]\n\t" \
     "std %%l0, ["#_sp"+32]\n\t"
-    
+
 #define RESTORE_REGWIN(_sp) \
     "ldd ["#_sp"+24], %%i6\n\t" \
     "ldd ["#_sp"+16], %%i4\n\t" \
