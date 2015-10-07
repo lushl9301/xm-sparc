@@ -15,7 +15,7 @@
 #ifndef _XM_ARCH_ATOMIC_H_
 #define _XM_ARCH_ATOMIC_H_
 
-typedef struct { 
+typedef struct {
     volatile xm_u32_t val;
     //TODO = = you must be kidding me.
 } xmAtomic_t;
@@ -27,6 +27,7 @@ typedef struct {
 #define XMAtomicSetMask(mask, v) ((v)->val|=(mask))
 
 static inline void XMAtomicInc(xmAtomic_t *v) {
+//TODO Atomic for monocore; not for multicore
     v->val++;
 }
 
