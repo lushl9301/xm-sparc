@@ -147,7 +147,7 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
     "st %%g5, ["#_sp"+0]\n\t"
 
 #define RESTORE_GLOBAL_REG(_sp) \
-    "ld ["#_sp"+0], %%g5\n\t"	\
+    "ld ["#_sp"+0], %%g5\n\t"        \
     "wr %%g5, %%y\n\t" \
     "ldd ["#_sp"+24], %%g6\n\t" \
     "ldd ["#_sp"+16], %%g4\n\t" \
@@ -178,7 +178,7 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
     "ldd ["#_sp"+56], %%l6\n\t" \
     "ldd ["#_sp"+48], %%l4\n\t" \
     "ldd ["#_sp"+40], %%l2\n\t" \
-    "ldd ["#_sp"+32], %%l0\n\t"	\
+    "ldd ["#_sp"+32], %%l0\n\t"        \
     "add "#_sp", 64, "#_sp"\n\t"
 
 #define WR_DELAY \
@@ -275,11 +275,11 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
     "be 5f\n\t " \
     "nop\n\t" \
     "rd %%asr24, "#_r"\n\t" \
-    "or "#_r", 0x1, "#_r"\n\t"	\
-    "wr "#_r", %%asr24\n\t"	\
-    "rd %%asr25, "#_r"\n\t"	   \
-    "or "#_r", 0x3, "#_r"\n\t"	   \
-    "wr "#_r", %%asr25\n\t"	   \
+    "or "#_r", 0x1, "#_r"\n\t"        \
+    "wr "#_r", %%asr24\n\t"        \
+    "rd %%asr25, "#_r"\n\t"           \
+    "or "#_r", 0x3, "#_r"\n\t"           \
+    "wr "#_r", %%asr25\n\t"           \
     WR_DELAY \
     "5:\n\t"
 #else
@@ -292,37 +292,37 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
 #define JMP_PARTITION(entry, k) do { \
     __asm__ __volatile__ ("mov %0, %%g2\n\t" \
                           "set "TO_STR(XM_PCTRLTAB_ADDR)", %%g1\n\t" \
-			  "rd %%psr, %%g4\n\t" \
-			  "set "TO_STR((PSR_EF_BIT|PSR_ET_BIT|PSR_PS_BIT|PSR_PIL_MASK|PSR_CWP_MASK))", %%g3\n\t" \
-			  "andn %%g4, %%g3, %%g4\n\t" \
-			  "wr %%g4, "TO_STR((CONFIG_REGISTER_WINDOWS-1))", %%psr\n\t" \
-			  "wr %%g0, 0x2, %%wim\n\t" \
-			  "nop; nop; nop\n\t" \
-			  "jmp %%g2\n\t" \
+                          "rd %%psr, %%g4\n\t" \
+                          "set "TO_STR((PSR_EF_BIT|PSR_ET_BIT|PSR_PS_BIT|PSR_PIL_MASK|PSR_CWP_MASK))", %%g3\n\t" \
+                          "andn %%g4, %%g3, %%g4\n\t" \
+                          "wr %%g4, "TO_STR((CONFIG_REGISTER_WINDOWS-1))", %%psr\n\t" \
+                          "wr %%g0, 0x2, %%wim\n\t" \
+                          "nop; nop; nop\n\t" \
+                          "jmp %%g2\n\t" \
                           "rett %%g2+4\n\t" : : "r" (entry): "g2"); \
 } while(0)
 #else // MPU
 #define JMP_PARTITION(entry, k) \
    __asm__ __volatile__ ("mov %1, %%g1\n\t" \
                          "mov %0, %%g2\n\t" \
-			 "rd %%psr, %%g4\n\t" \
-			 "set "TO_STR((PSR_EF_BIT|PSR_ET_BIT|PSR_PS_BIT|PSR_PIL_MASK|PSR_CWP_MASK))", %%g3\n\t" \
-			 "andn %%g4, %%g3, %%g4\n\t" \
-			 "wr %%g4, "TO_STR((CONFIG_REGISTER_WINDOWS-1))", %%psr\n\t" \
-			 "wr %%g0, 0x2, %%wim\n\t" \
-			 "nop; nop; nop\n\t" \
-			 "set "TO_STR((LEON_MEMORY_CFG_BASE))", %%l5\n\t" \
-			 "set (1<<19), %%l7\n\t" \
-			 "ld [%%l5], %%l6\n\t" \
-			 "andn %%l6, %%l7, %%l6\n\t" \
-			 "st %%l6, [%%l5]\n\t" \
-			 "set "TO_STR((LEON_MEMORY_WPR_BASE+0))", %%l5\n\t" \
-			 "set (1<<31), %%l7\n\t" \
-			 "ld [%%l5], %%l6\n\t" \
-			 "or %%l6, %%l7, %%l6\n\t" \
-			 "st %%l6, [%%l5]\n\t" \
+                         "rd %%psr, %%g4\n\t" \
+                         "set "TO_STR((PSR_EF_BIT|PSR_ET_BIT|PSR_PS_BIT|PSR_PIL_MASK|PSR_CWP_MASK))", %%g3\n\t" \
+                         "andn %%g4, %%g3, %%g4\n\t" \
+                         "wr %%g4, "TO_STR((CONFIG_REGISTER_WINDOWS-1))", %%psr\n\t" \
+                         "wr %%g0, 0x2, %%wim\n\t" \
+                         "nop; nop; nop\n\t" \
+                         "set "TO_STR((LEON_MEMORY_CFG_BASE))", %%l5\n\t" \
+                         "set (1<<19), %%l7\n\t" \
+                         "ld [%%l5], %%l6\n\t" \
+                         "andn %%l6, %%l7, %%l6\n\t" \
+                         "st %%l6, [%%l5]\n\t" \
+                         "set "TO_STR((LEON_MEMORY_WPR_BASE+0))", %%l5\n\t" \
+                         "set (1<<31), %%l7\n\t" \
+                         "ld [%%l5], %%l6\n\t" \
+                         "or %%l6, %%l7, %%l6\n\t" \
+                         "st %%l6, [%%l5]\n\t" \
                          SET_WA_WATCHPOINT(%%l5) \
-			 "jmp %%g2\n\t" \
+                         "jmp %%g2\n\t" \
                          "rett %%g2+4\n\t" : : "r" (entry), "r"((k)->ctrl.g->partCtrlTab): "g1", "g2")
 #endif
 /* </track id="test-Jumping-To-Partition">  */
