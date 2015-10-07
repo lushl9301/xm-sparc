@@ -15,7 +15,7 @@
 #ifndef _XM_ARCH_PHYSMM_H_
 #define _XM_ARCH_PHYSMM_H_
 
-// region type 
+// region type
 #define PMM_STRAM_TYPE XM_MEM_REG_STRAM
 #define PMM_SDRAM_TYPE XM_MEM_REG_SDRAM
 

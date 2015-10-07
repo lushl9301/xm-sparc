@@ -34,6 +34,7 @@
 #define HwSaveFp(fp) \
     __asm__ __volatile__ ("mov %%fp, %0\n\t" : "=r" (fp))
 
+//create temp and use AND to clear bit
 #define HwDisableFpu() do { \
     xm_u32_t __tmp1, __tmp2; \
     __asm__ __volatile__ ("rd %%psr, %0\n\t" \
@@ -86,10 +87,10 @@ static inline void EnableMmu(void) {
     xm_u32_t tmp=0;
 
     __asm__ __volatile__ ("lda [%1] %2, %0\n\t" \
-			  :"=r" (tmp): "r" (mmuReg), "i" (LEON_MMU_ASI): "memory");
+                          :"=r" (tmp): "r" (mmuReg), "i" (LEON_MMU_ASI): "memory");
     tmp|=0x1;
     __asm__ __volatile__ ("sta %2, [%0] %1\n\t" \
-			  :: "r" (mmuReg), "i" (LEON_MMU_ASI), "r" (tmp) : "memory");
+                          :: "r" (mmuReg), "i" (LEON_MMU_ASI), "r" (tmp) : "memory");
 }
 
 static inline void SetMmuCtxt(xm_u8_t ctxt) {
@@ -123,6 +124,7 @@ static inline xm_u32_t GetMmuFaultAddressReg(void) {
 }
 
 static inline void FlushTlb(void) {
+//flush cache then flush tlb
     FlushCache();
     __asm__ __volatile__("sta %%g0, [%0] %1\n\t"::"r"(FLUSH_ENTIRE), "i"(LEON_MMU_FLUSH):"memory");
 }
@@ -133,6 +135,7 @@ static inline xm_u32_t GetPsr(void) {
     return psr;
 }
 
+//mask and flush page
 static inline void FlushTlbEntry(xmAddress_t addr) {
     xmAddress_t value=(addr&PAGE_MASK)|FLUSH_PAGE;
     __asm__ __volatile__("sta %%g0, [%0] %1\n\t"::"r"(value), "i"(LEON_MMU_FLUSH):"memory");
@@ -146,7 +149,7 @@ static inline void FlushTlbCtxt(void) {
 
 #define FlushTlbGlobal() FlushTlb() //Just FlushTlb
 
-#else
+#else // #ifndef __ASSEMBLY__
 
 // same as above
 #define FLUSH_ICACHE(_r0, _r1) \
@@ -167,7 +170,7 @@ static inline void FlushTlbCtxt(void) {
     FLUSH_ICACHE(_r0, _r1); \
     FLUSH_DCACHE(_r0, _r1);
 
-#endif
+#endif // #ifndef __ASSEMBLY__
 #endif
 
 #define CCR_DS_BIT (1<<23)
