@@ -28,6 +28,7 @@
 #define CTXTTABSIZE 1024
 #define PTDL1SIZE 1024
 #define PTDL2SIZE 256
+//same size
 #define PTDL3SIZE 256
 
 #define PTDL1ENTRIES (PTDL1SIZE>>2)
