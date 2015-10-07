@@ -298,10 +298,12 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
                           "wr %%g4, "TO_STR((CONFIG_REGISTER_WINDOWS-1))", %%psr\n\t" \
                           "wr %%g0, 0x2, %%wim\n\t" \
                           "nop; nop; nop\n\t" \
+                          /*why not use WR_DELAY here*/ \
                           "jmp %%g2\n\t" \
                           "rett %%g2+4\n\t" : : "r" (entry): "g2"); \
 } while(0)
 #else // MPU
+//No do {} while(0)
 #define JMP_PARTITION(entry, k) \
    __asm__ __volatile__ ("mov %1, %%g1\n\t" \
                          "mov %0, %%g2\n\t" \
@@ -311,6 +313,7 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
                          "wr %%g4, "TO_STR((CONFIG_REGISTER_WINDOWS-1))", %%psr\n\t" \
                          "wr %%g0, 0x2, %%wim\n\t" \
                          "nop; nop; nop\n\t" \
+                         /* why not WR_DELAY here*/ \
                          "set "TO_STR((LEON_MEMORY_CFG_BASE))", %%l5\n\t" \
                          "set (1<<19), %%l7\n\t" \
                          "ld [%%l5], %%l6\n\t" \
