@@ -26,6 +26,7 @@
 #define _CHECK_BOUNDS(a, b, c, d) (((a)<=(c))&&((b)>=(d)))
 
 #define __archGParam
+//EMPTY
 /*
 #define __ArchCheckGPhysAddr(__cfg, __addr, __size) ({ \
     xm_s32_t __e, __r=0; \
@@ -69,7 +70,7 @@ static inline xm_s32_t __MMUCheckMem(xmAddress_t param, xmSize_t size) {
                               "2:stub %0, [%1]\n\t" \
                               ASM_EXPTABLE(1b) \
                               ASM_EXPTABLE(2b) \
-                              : "=r" (tmp) : "r" (addr));    
+                              : "=r" (tmp) : "r" (addr));
     return 0;
 }
 
