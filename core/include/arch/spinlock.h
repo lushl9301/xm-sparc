@@ -64,8 +64,8 @@ static inline void __ArchSpinLock(archSpinLock_t *lock) {
 #ifdef CONFIG_SMP
     __asm__ __volatile__("\n1:\n\t" \
                          "ldstuba [%0] 1, %%g2\n\t" /* ASI_LEON23_DCACHE_MISS */ \
-                         "orcc	%%g2, 0x0, %%g0\n\t" \
-                         "bne,a	2f\n\t" \
+                         "orcc        %%g2, 0x0, %%g0\n\t" \
+                         "bne,a        2f\n\t" \
                          "ldub [%0], %%g2\n\t" \
                          ".subsection 2\n" \
                          "2:\n\t" \
@@ -113,34 +113,34 @@ static inline xm_u32_t GetIpl(void) {
 
 static inline void HwCli(void) {
     xm_u32_t tmp1, tmp2;
-  
+
     __asm__ __volatile__("rd %%psr, %0\n\t" \
-			 "or %0, %2, %1\n\t" \
-			 "wr %1, 0, %%psr\n\t" \
-			 "nop; nop; nop\n" : "=&r" (tmp1), "=r" (tmp2) \
-			 : "i" (PSR_PIL_MASK) : "memory");
+                         "or %0, %2, %1\n\t" \
+                         "wr %1, 0, %%psr\n\t" \
+                         "nop; nop; nop\n" : "=&r" (tmp1), "=r" (tmp2) \
+                         : "i" (PSR_PIL_MASK) : "memory");
 
 }
 
 static inline void HwSti(void) {
     xm_u32_t tmp;
-  
+
     __asm__ __volatile__("rd %%psr, %0\n\t"    \
-			 "andn %0, %1, %0\n\t" \
-			 "wr %0, 0, %%psr\n\t" \
-			 "nop; nop; nop\n" : "=&r" (tmp) : "i" (PSR_PIL_MASK)	\
-			 : "memory");
+                         "andn %0, %1, %0\n\t" \
+                         "wr %0, 0, %%psr\n\t" \
+                         "nop; nop; nop\n" : "=&r" (tmp) : "i" (PSR_PIL_MASK)        \
+                         : "memory");
 }
 
 static inline xm_u32_t __SaveFlagsCli(void) {
     xm_u32_t retval;
     xm_u32_t tmp;
-  
+
     __asm__ __volatile__("rd %%psr, %0\n\t" \
-			 "or %0, %2, %1\n\t" \
-			 "wr %1, 0, %%psr\n\t" \
-			 "nop; nop; nop\n" : "=&r" (retval), "=r" (tmp) \
-			 : "i" (PSR_PIL_MASK) : "memory");
+                         "or %0, %2, %1\n\t" \
+                         "wr %1, 0, %%psr\n\t" \
+                         "nop; nop; nop\n" : "=&r" (retval), "=r" (tmp) \
+                         : "i" (PSR_PIL_MASK) : "memory");
 
     return retval;
 }
@@ -149,14 +149,14 @@ static inline xm_u32_t __SaveFlagsCli(void) {
 
 static inline void HwRestoreFlags(xm_u32_t flags) {
     xm_u32_t tmp;
-  
+
     __asm__ __volatile__("rd %%psr, %0\n\t" \
-			 "and %2, %1, %2\n\t" \
-			 "andn %0, %1, %0\n\t" \
-			 "wr %0, %2, %%psr\n\t" \
-			 "nop; nop; nop\n" : "=&r" (tmp) \
-			 : "i" (PSR_PIL_MASK), "r" (flags) \
-			 : "memory");
+                         "and %2, %1, %2\n\t" \
+                         "andn %0, %1, %0\n\t" \
+                         "wr %0, %2, %%psr\n\t" \
+                         "nop; nop; nop\n" : "=&r" (tmp) \
+                         : "i" (PSR_PIL_MASK), "r" (flags) \
+                         : "memory");
 }
 
 #define HwSaveFlags(flags) ((flags)=GetIpl())
