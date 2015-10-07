@@ -47,7 +47,7 @@ typedef struct _cpuCtxt {
 } cpuCtxt_t;
 
 
-// health monitor?
+// health monitor log ctxt
 #define CpuCtxt2HmCpuCtxt(cpuCtxt, hmCpuCtxt) do { \
     (hmCpuCtxt)->nPc=(cpuCtxt)->nPc; \
     (hmCpuCtxt)->psr=(cpuCtxt)->psr; \
@@ -116,6 +116,9 @@ static inline xm_s32_t ArchEmulExtIrq(cpuCtxt_t *ctxt, partitionControlTable_t *
 /* stack offsets */
 #define REG_WND_FRAME 0x40
 
+
+//TODO seems a bit different about register index
+//%l0 ... %l7 Same as %r16 ... %r23 (Locals)
 #define L0_OFFS 0x0
 #define L1_OFFS 0x4
 #define L2_OFFS 0x8
@@ -125,6 +128,7 @@ static inline xm_s32_t ArchEmulExtIrq(cpuCtxt_t *ctxt, partitionControlTable_t *
 #define L6_OFFS 0x18
 #define L7_OFFS 0x1c
 
+//%i0 ... %i7 Same as %r24 ... %r31
 #define I0_OFFS 0x20
 #define I1_OFFS 0x24
 #define I2_OFFS 0x28
