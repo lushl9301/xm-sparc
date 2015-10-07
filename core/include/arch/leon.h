@@ -79,7 +79,7 @@ static inline void StoreIoReg(xmAddress_t pAddr, xm_u32_t value) {
 #endif
 }
 
-
+//why not implement as below
 static inline xm_u32_t LoadIoReg(xmAddress_t pAddr) {
 //
     xm_u32_t retVal;
@@ -92,6 +92,7 @@ static inline xm_u32_t LoadIoReg(xmAddress_t pAddr) {
 }
 
 #ifdef CONFIG_MMU
+//LEON_MMU_BYPASS is ASI
 static inline xm_u8_t ReadByPassMmuByte(void *pAddr) {
     xm_u8_t retVal;
     __asm__ __volatile__("lduba [%1] %2, %0\n\t": "=r"(retVal): "r"(pAddr), "i"(LEON_MMU_BYPASS));
