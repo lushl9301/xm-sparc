@@ -90,9 +90,9 @@
 
 #define ASM_HYPERCALL_TAB(_ahc) \
     __asm__ (".section .ahypercallstab, \"a\"\n\t" \
-	     ".align 4\n\t" \
-	     ".long "#_ahc"\n\t" \
-	     ".previous\n\t")
+             ".align 4\n\t" \
+             ".long "#_ahc"\n\t" \
+             ".previous\n\t")
 
 #endif
 
