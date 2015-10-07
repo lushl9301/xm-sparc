@@ -30,20 +30,26 @@
 #include <logstream.h>
 #include <physmm.h>
 
+// #define DEFINE(sym, val, marker) \
+//     asm volatile("\n-> " #sym " %0 " #val " " #marker : : "i" (val))
+
+//Offest is obtained by compiler
+
+//This is used by asm-offset.sh to generate offset for easy access
 static inline void GenerateOffsets(void) {
     // localSched_t
     DEFINE(cKThread, offsetof(localSched_t, cKThread),);
     DEFINE(fpuOwner, offsetof(localSched_t, fpuOwner),);
-    
+
     // kthread_t
     DEFINE(ctrl, offsetof(kThread_t, ctrl),);
-    
+
     // struct __kthread
     DEFINE(flags, offsetof(struct __kThread, flags),);
     DEFINE(g, offsetof(struct __kThread, g),);
     DEFINE(kStack, offsetof(struct __kThread, kStack),);
     DEFINE(irqCpuCtxt, offsetof(struct __kThread, irqCpuCtxt),);
-    
+
     // struct guest
     DEFINE(partCtrlTab, offsetof(struct guest, partCtrlTab),);
     DEFINE(kArch, offsetof(struct guest, kArch),);
@@ -52,18 +58,18 @@ static inline void GenerateOffsets(void) {
     // gctrl_t
     DEFINE(iFlags, offsetof(partitionControlTable_t, iFlags),);
     DEFINE(idPart, offsetof(partitionControlTable_t, id),);
-    
+
     // xm_atomic_t
-    DEFINE(val, offsetof(xmAtomic_t, val),);  
-    
+    DEFINE(val, offsetof(xmAtomic_t, val),);
+
     // struct kthread_arch
     DEFINE(tbr, offsetof(struct kThreadArch, tbr),);
     DEFINE(fpuRegs, offsetof(struct kThreadArch, fpuRegs),);
-    
+
     // struct  irqTabEntry
     DEFINE(handler, offsetof(struct irqTabEntry, handler), );
     DEFINE(data, offsetof(struct irqTabEntry, data), );
-    
+
     // struct xmc hpv
     DEFINE(hpv, offsetof(struct xmc, hpv), );
 
@@ -86,14 +92,14 @@ static inline void GenerateOffsets(void) {
     DEFINE(g5, offsetof(struct _cpuCtxt, g5), );
     DEFINE(g6, offsetof(struct _cpuCtxt, g6), );
     DEFINE(g7, offsetof(struct _cpuCtxt, g7), );
-    
+
     // sizeof
     DEFINE2(kthread_t,  sizeof(kThread_t), );
     DEFINE2(kthreadptr_t,  sizeof(kThread_t *), );
     DEFINE2(partition_t, sizeof(partition_t), );
     DEFINE2(struct_guest,  sizeof(struct guest), );
     DEFINE2(kdevice_t, sizeof(kDevice_t), );
-    DEFINE2(struct_memblockdata, sizeof(struct memBlockData), );    
+    DEFINE2(struct_memblockdata, sizeof(struct memBlockData), );
     DEFINE2(struct_console, sizeof(struct console), );
     DEFINE2(xmPartitionStatus_t, sizeof(xmPartitionStatus_t), );
     DEFINE2(struct_logstream, sizeof(struct logStream), );
