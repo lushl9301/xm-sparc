@@ -157,8 +157,8 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
 
 
 //TODO REGWIN?
-//TODO Window Invalid Mask? WIM =. =
-
+//Window invalid mask
+//i is General-purpose in registers; l is General-purpose local registers
 #define SAVE_REGWIN(_sp) \
     "sub "#_sp", 64, "#_sp"\n\t" \
     "std %%i6, ["#_sp"+24]\n\t" \
@@ -187,6 +187,7 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
     "nop\n\t"
 
 /* <track id="test-context-switch"> */
+//TODO ...CONTEXT_SWITCH
 #define CONTEXT_SWITCH(newThread, currentThread) \
     __asm__ __volatile__ (".global .Tbegin_cs, .Tend_cs\n\t" \
           ".Tbegin_cs:\n\t"                  \
@@ -233,6 +234,7 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
           "add %%g7, "TO_STR(_KSTACK_OFFSET)", %%g7\n\t" \
           "st %%g3, [%%g7]\n\t" \
           "st %0, [%1]\n\t" \
+          /* move newthread to oldthread address*/ \
           "ld [%0+"TO_STR(_KSTACK_OFFSET)"], %%g3\n\t" \
           /* restore the new kThread's data */ \
           "ldd [%%g3], %%g6\n\t" \
