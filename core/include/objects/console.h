@@ -19,6 +19,7 @@
 extern void ConsoleInit(const kDevice_t *kDev);
 extern void ConsolePutChar(xm_u8_t c);
 
+//console is just a dev
 struct console {
     const kDevice_t *dev;
 };
