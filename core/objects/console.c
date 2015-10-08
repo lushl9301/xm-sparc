@@ -28,10 +28,10 @@ static spinLock_t consoleLock=SPINLOCK_INIT;
 
 void ConsolePutChar(xm_u8_t c) {
     if (xmCon.dev) {
-	if (KDevWrite(xmCon.dev, &c, 1)!=1) {
-	    KDevSeek(xmCon.dev, 0, DEV_SEEK_START);
-	    KDevWrite(xmCon.dev, &c, 1);
-	}
+        if (KDevWrite(xmCon.dev, &c, 1)!=1) {
+            KDevSeek(xmCon.dev, 0, DEV_SEEK_START);
+            KDevWrite(xmCon.dev, &c, 1);
+        }
     }
 }
 
@@ -45,13 +45,14 @@ static inline xm_s32_t WriteMod(struct console *con, xm_u8_t *b) {
 }
 
 static xm_s32_t WriteConsoleObj(xmObjDesc_t desc, xm_u8_t *__gParam buffer, xmSize_t length) {
+//TODO obj Desc really useful?
     localSched_t *sched=GET_LOCAL_SCHED();
     xmId_t partId=OBJDESC_GET_PARTITIONID(desc);
     struct console *con;
     xm_s32_t e;
 
     if (partId!=KID2PARTID(sched->cKThread->ctrl.g->id))
-	return XM_PERM_ERROR;
+        return XM_PERM_ERROR;
 
     if (CheckGParam(buffer, length, 1, PFLAG_NOT_NULL)<0)
         return XM_INVALID_PARAM;
@@ -62,6 +63,7 @@ static xm_s32_t WriteConsoleObj(xmObjDesc_t desc, xm_u8_t *__gParam buffer, xmSi
 
     con=(partId==XM_HYPERVISOR_ID)?&xmCon:&partitionConTab[partId];
 
+    //SMP Problem?
     SpinLock(&consoleLock);
     for (e=0; e<length; e++) {
         PreemptionOn();
@@ -72,7 +74,7 @@ static xm_s32_t WriteConsoleObj(xmObjDesc_t desc, xm_u8_t *__gParam buffer, xmSi
         }
     }
     SpinUnlock(&consoleLock);
-    return length;    
+    return length;
 }
 
 static const struct object consoleObj={
@@ -86,7 +88,7 @@ xm_s32_t __VBOOT SetupConsole(void) {
     xmCon.dev=LookUpKDev(&xmcTab.hpv.consoleDev);
     objectTab[OBJ_CLASS_CONSOLE]=&consoleObj;
     for (e=0; e<xmcTab.noPartitions; e++) {
-	partitionConTab[e].dev=LookUpKDev(&xmcPartitionTab[e].consoleDev);
+        partitionConTab[e].dev=LookUpKDev(&xmcPartitionTab[e].consoleDev);
     }
     return 0;
 }
