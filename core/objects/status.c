@@ -46,9 +46,9 @@ static xm_s32_t CtrlStatus(xmObjDesc_t desc, xm_u32_t cmd, union statusCmd *__gP
 #endif
        if (partId!=GetPartition(sched->cKThread)->cfg->id){
           if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	     return XM_PERM_ERROR;
+             return XM_PERM_ERROR;
        }
-       
+
     switch(cmd) {
     case XM_SET_PARTITION_OPMODE:
         if (partId==XM_HYPERVISOR_ID)
@@ -60,15 +60,15 @@ static xm_s32_t CtrlStatus(xmObjDesc_t desc, xm_u32_t cmd, union statusCmd *__gP
         partitionTab[partId].opMode=args->opMode;
         return XM_OK;
     case XM_GET_SYSTEM_STATUS:
-	if (partId==XM_HYPERVISOR_ID) {
-	    systemStatus.resetCounter=sysResetCounter[0];
-	    memcpy(&args->status.system, &systemStatus, sizeof(xmSystemStatus_t));
-	} else {
+        if (partId==XM_HYPERVISOR_ID) {
+            systemStatus.resetCounter=sysResetCounter[0];
+            memcpy(&args->status.system, &systemStatus, sizeof(xmSystemStatus_t));
+        } else {
             xm_s32_t noVCpus;
             xm_s32_t e;
             xm_s32_t halt=0,ready=0,suspend=0;
             if ((partId<0)||(partId>=xmcTab.noPartitions))
-		return XM_INVALID_PARAM;
+                return XM_INVALID_PARAM;
             noVCpus=partitionTab[partId].cfg->noVCpus;
             for (e=0; e<noVCpus; e++) {
                 if (AreKThreadFlagsSet(partitionTab[partId].kThread[e], KTHREAD_HALTED_F))
@@ -78,7 +78,7 @@ static xm_s32_t CtrlStatus(xmObjDesc_t desc, xm_u32_t cmd, union statusCmd *__gP
                 else if (AreKThreadFlagsSet(partitionTab[partId].kThread[e], KTHREAD_READY_F))
                     ready++;
            }
-            
+
             if (ready) {
                 partitionStatus[partId].state=XM_STATUS_READY;
             } else if (suspend) {
@@ -87,19 +87,19 @@ static xm_s32_t CtrlStatus(xmObjDesc_t desc, xm_u32_t cmd, union statusCmd *__gP
                 partitionStatus[partId].state=XM_STATUS_HALTED;
             } else {
                 partitionStatus[partId].state=XM_STATUS_IDLE;
-            }        
-            
-	    partitionStatus[partId].resetCounter=partitionTab[partId].kThread[0]->ctrl.g->partCtrlTab->resetCounter;
-	    partitionStatus[partId].resetStatus=partitionTab[partId].kThread[0]->ctrl.g->partCtrlTab->resetStatus;
+            }
+
+            partitionStatus[partId].resetCounter=partitionTab[partId].kThread[0]->ctrl.g->partCtrlTab->resetCounter;
+            partitionStatus[partId].resetStatus=partitionTab[partId].kThread[0]->ctrl.g->partCtrlTab->resetStatus;
             partitionStatus[partId].opMode=partitionTab[partId].opMode;
-	    //partitionStatus[partId].execClock=GetTimeUsecVClock(&partitionTab[partId]->ctrl.g->vClock);
-            
-	    memcpy(&args->status.partition, &partitionStatus[partId].state, sizeof(xmPartitionStatus_t));
-	}	
-	return XM_OK;
+            //partitionStatus[partId].execClock=GetTimeUsecVClock(&partitionTab[partId]->ctrl.g->vClock);
+
+            memcpy(&args->status.partition, &partitionStatus[partId].state, sizeof(xmPartitionStatus_t));
+        }
+        return XM_OK;
     case XM_GET_VCPU_STATUS:
         if ((partId<0)||(partId>=xmcTab.noPartitions))
-		return XM_INVALID_PARAM;
+                return XM_INVALID_PARAM;
         vCpuId=OBJDESC_GET_VCPUID(desc);
         if (vCpuId>partitionTab[partId].cfg->noVCpus)
            return XM_INVALID_PARAM;
@@ -126,7 +126,7 @@ static xm_s32_t CtrlStatus(xmObjDesc_t desc, xm_u32_t cmd, union statusCmd *__gP
         if (sched->data->cyclic.plan.prev)
             args->status.plan.prev=sched->data->cyclic.plan.prev->id;
         else
-            args->status.plan.prev=-1;        
+            args->status.plan.prev=-1;
         return XM_OK;
 #endif
     }
@@ -144,17 +144,17 @@ static xm_s32_t CtrlStatus(xmObjDesc_t desc, xm_u32_t cmd, union statusCmd *__gP
 #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
     case XM_GET_NODE_STATUS:
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	     return XM_PERM_ERROR;
+             return XM_PERM_ERROR;
         nodeId=OBJDESC_GET_NODEID(desc);
         partId=OBJDESC_GET_PARTITIONID(desc);
         if ((ttnocNodes[nodeId].nodeId==-1)||(ttnocNodes[nodeId].rxSlot==NULL))
            return XM_INVALID_PARAM;
         if (KDevRead(ttnocNodes[nodeId].rxSlot, NULL,0)<0)
            return XM_OP_NOT_ALLOWED;
-// 	xmSystemStatusRemote_t * nodeStatus;
-// 	nodeStatus=args->status.nodeStatus;
-	
-	    args->status.nodeStatus.nodeId=xmMessageTTNoCRemoteRx[nodeId].infoNode.nodeId;
+//         xmSystemStatusRemote_t * nodeStatus;
+//         nodeStatus=args->status.nodeStatus;
+
+            args->status.nodeStatus.nodeId=xmMessageTTNoCRemoteRx[nodeId].infoNode.nodeId;
         args->status.nodeStatus.state=xmMessageTTNoCRemoteRx[nodeId].stateHyp.stateHyp;
         args->status.nodeStatus.noPartitions=xmMessageTTNoCRemoteRx[nodeId].infoNode.noParts;
         args->status.nodeStatus.noSchedPlans=xmMessageTTNoCRemoteRx[nodeId].infoNode.noSchedPlans;
@@ -162,7 +162,7 @@ static xm_s32_t CtrlStatus(xmObjDesc_t desc, xm_u32_t cmd, union statusCmd *__gP
         return XM_OK;
     case XM_GET_NODE_PARTITION:
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	     return XM_PERM_ERROR;
+             return XM_PERM_ERROR;
         nodeId=OBJDESC_GET_NODEID(desc);
         if ((ttnocNodes[nodeId].nodeId==-1)||(ttnocNodes[nodeId].rxSlot==NULL))
            return XM_INVALID_PARAM;
@@ -170,9 +170,9 @@ static xm_s32_t CtrlStatus(xmObjDesc_t desc, xm_u32_t cmd, union statusCmd *__gP
            return XM_OP_NOT_ALLOWED;
         if (partId>xmMessageTTNoCRemoteRx[nodeId].infoNode.noParts)
            return XM_INVALID_PARAM;
-// 	xmPartitionStatusRemote_t *nodePartition;
+//         xmPartitionStatusRemote_t *nodePartition;
 //         nodePartition=args->status.nodePartition;
-	args->status.nodePartition.state=((xmMessageTTNoCRemoteRx[nodeId].statePart.partState)&(0x3<<partId))>>partId;
+        args->status.nodePartition.state=((xmMessageTTNoCRemoteRx[nodeId].statePart.partState)&(0x3<<partId))>>partId;
         return XM_OK;
 #endif
     default:
@@ -193,5 +193,3 @@ xm_s32_t __VBOOT SetupStatus(void) {
 }
 
 REGISTER_OBJ(SetupStatus);
-
-
