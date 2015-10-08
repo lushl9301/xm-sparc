@@ -34,6 +34,7 @@ typedef struct {
 #define __ARCH_BARRIER_MASK_INIT {0}
 
 static inline void __ArchBarrierWriteMask(archBarrierMask_t * bm, xm_u8_t bitMask){
+//use a loop to block
 #ifdef CONFIG_SMP
    __asm__ __volatile__ (\
                          "\n1:\n\t"\
@@ -61,6 +62,7 @@ static inline int __ArchBarrierCheckMask(archBarrierMask_t * bm, xm_u8_t mask){
 }
 
 static inline void __ArchSpinLock(archSpinLock_t *lock) {
+//orcc is or with cc; change icc;
 #ifdef CONFIG_SMP
     __asm__ __volatile__("\n1:\n\t" \
                          "ldstuba [%0] 1, %%g2\n\t" /* ASI_LEON23_DCACHE_MISS */ \
@@ -100,8 +102,9 @@ static inline xm_s32_t __ArchSpinTryLock(archSpinLock_t *lock) {
 
 #define __ArchSpinIsLocked(x) (*(volatile xm_s8_t *)(&(x)->lock)<=0)
 
-// %%psr is flag?
 static inline xm_u32_t GetIpl(void) {
+//need to use PSR_PIL_MASK for extract
+//TODO what is Ipl
     xm_u32_t retVal;
     __asm__ __volatile__("rd %%psr, %0" : "=r" (retVal));
     return retVal;
@@ -133,6 +136,7 @@ static inline void HwSti(void) {
 }
 
 static inline xm_u32_t __SaveFlagsCli(void) {
+//wr reg_rs1,reg_or_imm,reg_rd
     xm_u32_t retval;
     xm_u32_t tmp;
 
@@ -148,6 +152,7 @@ static inline xm_u32_t __SaveFlagsCli(void) {
 #define HwSaveFlagsCli(flags) ((flags)=__SaveFlagsCli())
 
 static inline void HwRestoreFlags(xm_u32_t flags) {
+//
     xm_u32_t tmp;
 
     __asm__ __volatile__("rd %%psr, %0\n\t" \
