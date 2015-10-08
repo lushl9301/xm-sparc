@@ -36,13 +36,13 @@ static inline xm_s32_t CreateTTnocPort(xmObjDesc_t desc, xm_s8_t *__gParam portN
     struct xmcPartition *partition;
     xm_u32_t flags;
     xm_s32_t port;
-        
+
     partition=GetPartition(sched->cKThread)->cfg;
 
-    if (OBJDESC_GET_PARTITIONID(desc)!=partition->id) 
-	return XM_PERM_ERROR;
+    if (OBJDESC_GET_PARTITIONID(desc)!=partition->id)
+        return XM_PERM_ERROR;
 
-    if (CheckGParam(portName, CONFIG_ID_STRING_LENGTH, 1, PFLAG_NOT_NULL)<0) 
+    if (CheckGParam(portName, CONFIG_ID_STRING_LENGTH, 1, PFLAG_NOT_NULL)<0)
         return XM_INVALID_PARAM;
 
     if ((direction!=XM_SOURCE_PORT)&&(direction!=XM_DESTINATION_PORT))
@@ -50,16 +50,16 @@ static inline xm_s32_t CreateTTnocPort(xmObjDesc_t desc, xm_s8_t *__gParam portN
 
     // Look for the channel
     for (port=partition->commPortsOffset; port<(partition->noPorts+partition->commPortsOffset); port++)
-	if (!strncmp(portName, &xmcStringTab[xmcCommPorts[port].nameOffset], CONFIG_ID_STRING_LENGTH)) break;
+        if (!strncmp(portName, &xmcStringTab[xmcCommPorts[port].nameOffset], CONFIG_ID_STRING_LENGTH)) break;
 
     if (port>=xmcTab.noCommPorts)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
-    if (xmcCommPorts[port].type!=XM_TTNOC_PORT) 
-	return XM_INVALID_CONFIG;
+    if (xmcCommPorts[port].type!=XM_TTNOC_PORT)
+        return XM_INVALID_CONFIG;
 
     if (direction!=xmcCommPorts[port].direction)
-	return XM_INVALID_CONFIG;
+        return XM_INVALID_CONFIG;
 
     SpinLock(&portTab[port].lock);
     flags=portTab[port].flags;
@@ -69,13 +69,13 @@ static inline xm_s32_t CreateTTnocPort(xmObjDesc_t desc, xm_s8_t *__gParam portN
         return XM_NO_ACTION;
 
     if (xmcCommPorts[port].channelId!=XM_NULL_CHANNEL) {
-	ASSERT((xmcCommPorts[port].channelId>=0)&&(xmcCommPorts[port].channelId<xmcTab.noCommChannels));
-	if (xmcCommChannelTab[xmcCommPorts[port].channelId].t.maxLength!=maxMsgSize)
-	    return XM_INVALID_CONFIG;
+        ASSERT((xmcCommPorts[port].channelId>=0)&&(xmcCommPorts[port].channelId<xmcTab.noCommChannels));
+        if (xmcCommChannelTab[xmcCommPorts[port].channelId].t.maxLength!=maxMsgSize)
+            return XM_INVALID_CONFIG;
 
 //         if (xmcCommChannelTab[xmcCommPorts[port].channelId].t.validPeriod!=validPeriod)
 //             return XM_INVALID_CONFIG;
-        
+
         SpinLock(&channelTab[xmcCommPorts[port].channelId].t.lock);
         if (direction==XM_DESTINATION_PORT) {
             ASSERT_LOCK(channelTab[xmcCommPorts[port].channelId].t.noReceivers<xmcCommChannelTab[xmcCommPorts[port].channelId].t.noReceivers, &channelTab[xmcCommPorts[port].channelId].t.lock);
@@ -114,7 +114,7 @@ static xm_s32_t ReadTTnocPort(xmObjDesc_t desc,  void *__gParam msgPtr, xmSize_t
     xm_u32_t pTFlags;
 
     if (OBJDESC_GET_PARTITIONID(desc)!=KID2PARTID(sched->cKThread->ctrl.g->id))
-	return XM_PERM_ERROR;
+        return XM_PERM_ERROR;
 
     if (CheckGParam(flags, sizeof(xm_u32_t), 4, PFLAG_RW)<0)
         return XM_INVALID_PARAM;
@@ -125,34 +125,34 @@ static xm_s32_t ReadTTnocPort(xmObjDesc_t desc,  void *__gParam msgPtr, xmSize_t
     SpinUnlock(&portTab[port].lock);
     // Reading a port which does not belong to this partition
     if (partitionId!=KID2PARTID(sched->cKThread->ctrl.g->id))
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (!(pTFlags&COMM_PORT_OPENED))
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
-    if (xmcCommPorts[port].type!=XM_TTNOC_CHANNEL) 
-	return XM_INVALID_PARAM;
+    if (xmcCommPorts[port].type!=XM_TTNOC_CHANNEL)
+        return XM_INVALID_PARAM;
 
     if (xmcCommPorts[port].direction!=XM_DESTINATION_PORT)
-	return XM_INVALID_PARAM;
-    
+        return XM_INVALID_PARAM;
+
     if (!msgSize)
-	return XM_INVALID_CONFIG;
+        return XM_INVALID_CONFIG;
 
     if (xmcCommPorts[port].channelId!=XM_NULL_CHANNEL) {
-	xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
-	if (msgSize>xmcChannel->t.maxLength)
-	    return XM_INVALID_CONFIG;
+        xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
+        if (msgSize>xmcChannel->t.maxLength)
+            return XM_INVALID_CONFIG;
 
         if (CheckGParam(msgPtr, msgSize, 1, PFLAG_NOT_NULL|PFLAG_RW)<0)
             return XM_INVALID_PARAM;
 
-	channel=&channelTab[xmcCommPorts[port].channelId];
+        channel=&channelTab[xmcCommPorts[port].channelId];
         SpinLock(&channel->t.lock);
-	retSize=(msgSize<channel->t.length)?msgSize:channel->t.length;
+        retSize=(msgSize<channel->t.length)?msgSize:channel->t.length;
 
-	KDevRead(portTab[port].ttnocDev,msgPtr,retSize);
-	//	memcpy(msgPtr, channel->t.buffer, retSize);
+        KDevRead(portTab[port].ttnocDev,msgPtr,retSize);
+        //        memcpy(msgPtr, channel->t.buffer, retSize);
         SpinLock(&portTab[port].lock);
         portTab[port].flags&=~COMM_PORT_MSG_MASK;
         portTab[port].flags|=COMM_PORT_CONSUMED_MSG;
@@ -177,12 +177,12 @@ static xm_s32_t ReadTTnocPort(xmObjDesc_t desc,  void *__gParam msgPtr, xmSize_t
 //             }
 //             SetPartitionExtIrqPending(channel->s.sender, XM_VT_EXT_SAMPLING_PORT);
 //         }
-// 
- 	if (flags) {
- 	    *flags=0;
+//
+         if (flags) {
+             *flags=0;
 //             if (retSize&&(xmcChannel->t.validPeriod!=XM_INFINITE_TIME)&&(channel->t.timestamp+xmcChannel->t.validPeriod)>GetSysClockUsec())
             *flags=XM_COMM_MSG_VALID;
- 	}
+         }
         SpinUnlock(&channel->t.lock);
     }
 
@@ -199,37 +199,37 @@ static xm_s32_t WriteTTnocPort(xmObjDesc_t desc, void *__gParam msgPtr, xmSize_t
     xmWord_t *commPortBitmap;
 
     if (OBJDESC_GET_PARTITIONID(desc)!=KID2PARTID(sched->cKThread->ctrl.g->id))
-	return XM_PERM_ERROR;
+        return XM_PERM_ERROR;
 
-    
-    // Reading a port which does not belong to this partition    
+
+    // Reading a port which does not belong to this partition
     if (portTab[port].partitionId!=KID2PARTID(sched->cKThread->ctrl.g->id))
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (!(portTab[port].flags&COMM_PORT_OPENED))
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
-    if (xmcCommPorts[port].type!=XM_SAMPLING_PORT) 
-	return XM_INVALID_PARAM;
+    if (xmcCommPorts[port].type!=XM_SAMPLING_PORT)
+        return XM_INVALID_PARAM;
 
     if (xmcCommPorts[port].direction!=XM_SOURCE_PORT)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (!msgSize)
-	return XM_INVALID_CONFIG;
+        return XM_INVALID_CONFIG;
 
     if (xmcCommPorts[port].channelId!=XM_NULL_CHANNEL) {
-	xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
-	if (msgSize>xmcChannel->t.maxLength)
-	    return XM_INVALID_CONFIG;
+        xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
+        if (msgSize>xmcChannel->t.maxLength)
+            return XM_INVALID_CONFIG;
 
-        if (CheckGParam(msgPtr, msgSize, 1, PFLAG_NOT_NULL)<0) 
+        if (CheckGParam(msgPtr, msgSize, 1, PFLAG_NOT_NULL)<0)
             return XM_INVALID_PARAM;
 
-	channel=&channelTab[xmcCommPorts[port].channelId];
+        channel=&channelTab[xmcCommPorts[port].channelId];
         SpinLock(&channel->t.lock);
         KDevWrite(portTab[port].ttnocDev,msgPtr,msgSize);
-// 	memcpy(channel->s.buffer, msgPtr, msgSize);
+//         memcpy(channel->s.buffer, msgPtr, msgSize);
 #ifdef CONFIG_OBJ_STATUS_ACC
         systemStatus.noTTnocPortMsgsWritten++;
         if (sched->cKThread->ctrl.g)
@@ -255,8 +255,8 @@ static xm_s32_t WriteTTnocPort(xmObjDesc_t desc, void *__gParam msgPtr, xmSize_t
 //                 SetPartitionExtIrqPending(channel->s.receiverTab[e], XM_VT_EXT_SAMPLING_PORT);
 //             }
 //         }
-	channel->t.length=msgSize;
-        channel->t.timestamp=GetSysClockUsec();	
+        channel->t.length=msgSize;
+        channel->t.timestamp=GetSysClockUsec();
         SpinUnlock(&channel->t.lock);
     }
 
@@ -268,34 +268,34 @@ static inline xm_s32_t GetTTnocPortInfo(xmObjDesc_t desc, xmTTnocPortInfo_t *inf
 //     struct xmcPartition *partition;
 //     struct xmcCommChannel *xmcChannel;
 //     xm_s32_t port;
-//     
+//
 //     partition=GetPartition(sched->cKThread)->cfg;
-//     
-//     if (OBJDESC_GET_PARTITIONID(desc)!=partition->id) 
-// 	return XM_PERM_ERROR;
-// 
-//     if (CheckGParam(info->portName, CONFIG_ID_STRING_LENGTH, 1, PFLAG_NOT_NULL)<0) 
+//
+//     if (OBJDESC_GET_PARTITIONID(desc)!=partition->id)
+//         return XM_PERM_ERROR;
+//
+//     if (CheckGParam(info->portName, CONFIG_ID_STRING_LENGTH, 1, PFLAG_NOT_NULL)<0)
 //         return XM_INVALID_PARAM;
-// 
+//
 //     // Look for the channel
 //     for (port=partition->commPortsOffset; port<(partition->noPorts+partition->commPortsOffset); port++)
-// 	if (!strcmp(info->portName, &xmcStringTab[xmcCommPorts[port].nameOffset])) break;
-// 
+//         if (!strcmp(info->portName, &xmcStringTab[xmcCommPorts[port].nameOffset])) break;
+//
 //     if (port>=xmcTab.noCommPorts)
-// 	return XM_INVALID_PARAM;
-// 
-//     if (xmcCommPorts[port].type!=XM_SAMPLING_PORT) 
-// 	return XM_INVALID_PARAM;
-//     
+//         return XM_INVALID_PARAM;
+//
+//     if (xmcCommPorts[port].type!=XM_SAMPLING_PORT)
+//         return XM_INVALID_PARAM;
+//
 //     if (xmcCommPorts[port].channelId!=XM_NULL_CHANNEL) {
-// 	xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
+//         xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
 //         info->validPeriod=xmcChannel->s.validPeriod;
-// 	info->maxMsgSize=xmcChannel->s.maxLength;
-// 	info->direction=xmcCommPorts[port].direction;
+//         info->maxMsgSize=xmcChannel->s.maxLength;
+//         info->direction=xmcCommPorts[port].direction;
 //     } else {
-// 	info->validPeriod=XM_INFINITE_TIME;
-// 	info->maxMsgSize=0;
-// 	info->direction=0;
+//         info->validPeriod=XM_INFINITE_TIME;
+//         info->maxMsgSize=0;
+//         info->direction=0;
 //     }
 
     return XM_OK;
@@ -308,29 +308,29 @@ static inline xm_s32_t GetTTnocPortStatus(xmObjDesc_t desc, xmTTnocPortStatus_t 
 //     union channel *channel;
 //     xm_u32_t flags;
 //     xmId_t partitionId;
-// 
+//
 //     if (OBJDESC_GET_PARTITIONID(desc)!=KID2PARTID(sched->cKThread->ctrl.g->id))
-// 	return XM_PERM_ERROR;
-// 
+//         return XM_PERM_ERROR;
+//
 //     SpinLock(&portTab[port].lock);
 //     partitionId=portTab[port].partitionId;
 //     flags=portTab[port].flags;
 //     SpinUnlock(&portTab[port].lock);
-// 
+//
 //     // Reading a port which does not belong to this partition
 //     if (partitionId!=KID2PARTID(sched->cKThread->ctrl.g->id))
-// 	return XM_INVALID_PARAM;
-//     
+//         return XM_INVALID_PARAM;
+//
 //     if (!(flags&COMM_PORT_OPENED))
-// 	return XM_INVALID_PARAM;
-//     
-//     if (xmcCommPorts[port].type!=XM_SAMPLING_PORT) 
-// 	return XM_INVALID_PARAM;
-// 
+//         return XM_INVALID_PARAM;
+//
+//     if (xmcCommPorts[port].type!=XM_SAMPLING_PORT)
+//         return XM_INVALID_PARAM;
+//
 //     if (xmcCommPorts[port].channelId!=XM_NULL_CHANNEL) {
-// 	xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
-// 	status->flags=0;
-// 	channel=&channelTab[xmcCommPorts[port].channelId];
+//         xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
+//         status->flags=0;
+//         channel=&channelTab[xmcCommPorts[port].channelId];
 //         SpinLock(&channel->s.lock);
 //         status->lastMsgSize=channel->s.length;
 //         status->timestamp=channel->s.timestamp;
@@ -341,12 +341,12 @@ static inline xm_s32_t GetTTnocPortStatus(xmObjDesc_t desc, xmTTnocPortStatus_t 
 //         } else {
 //             status->flags|=XM_COMM_EMPTY_PORT;
 //         }
-// 
+//
 //         if (channel->s.timestamp&&(xmcChannel->s.validPeriod!=XM_INFINITE_TIME)&&((channel->s.timestamp+xmcChannel->s.validPeriod)>GetSysClockUsec()))
-// 	    status->flags|=XM_COMM_MSG_VALID;
+//             status->flags|=XM_COMM_MSG_VALID;
 //         SpinUnlock(&channel->s.lock);
 //     } else
-// 	memset(status, 0, sizeof(xmSamplingPortStatus_t));
+//         memset(status, 0, sizeof(xmSamplingPortStatus_t));
     return XM_OK;
 }
 
@@ -356,13 +356,13 @@ static xm_s32_t CtrlTTnocPort(xmObjDesc_t desc, xm_u32_t cmd, union samplingPort
 
     switch(cmd) {
     case XM_COMM_CREATE_PORT:
-	if (!args->create.portName||(CheckGParam(args->create.portName, CONFIG_ID_STRING_LENGTH,1, PFLAG_NOT_NULL)<0)) return XM_INVALID_PARAM;
-
+        if (!args->create.portName||(CheckGParam(args->create.portName, CONFIG_ID_STRING_LENGTH,1, PFLAG_NOT_NULL)<0))
+            return XM_INVALID_PARAM;
         return CreateTTnocPort(desc, args->create.portName, args->create.maxMsgSize, args->create.direction, args->create.validPeriod);
     case XM_COMM_GET_PORT_STATUS:
-	return GetTTnocPortStatus(desc, &args->status);
+        return GetTTnocPortStatus(desc, &args->status);
     case XM_COMM_GET_PORT_INFO:
-	return GetTTnocPortInfo(desc, &args->info);
+        return GetTTnocPortInfo(desc, &args->info);
     }
     return XM_INVALID_PARAM;
 }
@@ -387,45 +387,44 @@ xm_s32_t __VBOOT SetupComm(void) {
 
     /* create the channels */
     for (e=0; e<xmcTab.noCommChannels; e++) {
-    	switch(xmcCommChannelTab[e].type) {
-    	case XM_SAMPLING_CHANNEL:
-    	    GET_MEMZ(channelTab[e].s.buffer, xmcCommChannelTab[e].s.maxLength);
+        switch(xmcCommChannelTab[e].type) {
+        case XM_SAMPLING_CHANNEL:
+            GET_MEMZ(channelTab[e].s.buffer, xmcCommChannelTab[e].s.maxLength);
             GET_MEMZ(channelTab[e].s.receiverTab, xmcCommChannelTab[e].s.noReceivers*sizeof(partition_t *));
             GET_MEMZ(channelTab[e].s.receiverPortTab, xmcCommChannelTab[e].s.noReceivers*sizeof(xm_s32_t));
             channelTab[e].s.lock=SPINLOCK_INIT;
-    	    break;
-    	case XM_TTNOC_CHANNEL:
-    // 	    GET_MEMZ(channelTab[e].t.buffer, xmcCommChannelTab[e].t.maxLength);
+            break;
+        case XM_TTNOC_CHANNEL:
+//             GET_MEMZ(channelTab[e].t.buffer, xmcCommChannelTab[e].t.maxLength);
             GET_MEMZ(channelTab[e].t.receiverTab, xmcCommChannelTab[e].t.noReceivers*sizeof(partition_t *));
             GET_MEMZ(channelTab[e].t.receiverPortTab, xmcCommChannelTab[e].t.noReceivers*sizeof(xm_s32_t));
             channelTab[e].t.lock=SPINLOCK_INIT;
-    	    break;
-    	case XM_QUEUING_CHANNEL:
+            break;
+        case XM_QUEUING_CHANNEL:
             // the msgPool is a list of msg. so just created NoMsgs of msg
-    	    GET_MEMZ(channelTab[e].q.msgPool, sizeof(struct msg)*xmcCommChannelTab[e].q.maxNoMsgs);
-    	    DynListInit(&channelTab[e].q.freeMsgs);
-    	    DynListInit(&channelTab[e].q.recvMsgs);
-    	    for (i=0; i<xmcCommChannelTab[e].q.maxNoMsgs; i++) {
-                // Hence this part make sense
-        		GET_MEMZ(channelTab[e].q.msgPool[i].buffer, xmcCommChannelTab[e].q.maxLength);
+            GET_MEMZ(channelTab[e].q.msgPool, sizeof(struct msg)*xmcCommChannelTab[e].q.maxNoMsgs);
+            DynListInit(&channelTab[e].q.freeMsgs);
+            DynListInit(&channelTab[e].q.recvMsgs);
+            for (i=0; i<xmcCommChannelTab[e].q.maxNoMsgs; i++) {
+            // Hence this part make sense
+                GET_MEMZ(channelTab[e].q.msgPool[i].buffer, xmcCommChannelTab[e].q.maxLength);
                 //TODO it will assert or return 0; never return TRUE
-    	        if(DynListInsertHead(&channelTab[e].q.freeMsgs, &channelTab[e].q.msgPool[i].listNode)) {
+                if(DynListInsertHead(&channelTab[e].q.freeMsgs, &channelTab[e].q.msgPool[i].listNode)) {
                     cpuCtxt_t ctxt;
                     GetCpuCtxt(&ctxt);
                     SystemPanic(&ctxt, "[SetupComm] Queuing channels initialisation error");
                 }
-    	    }
+            }
             channelTab[e].q.lock=SPINLOCK_INIT;
-    	    break;
-    	}
+            break;
+        }
     }
 
     objectTab[OBJ_CLASS_SAMPLING_PORT]=&samplingPortObj;
     objectTab[OBJ_CLASS_QUEUING_PORT]=&queuingPortObj;
     objectTab[OBJ_CLASS_TTNOC_PORT]=&ttnocPortObj;
-    
+
     return 0;
 }
 
 REGISTER_OBJ(SetupComm);
-
