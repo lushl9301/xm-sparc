@@ -15,6 +15,8 @@
 
 #define XM_OBJ_MEM_CPY_AREA 0x1
 
+//for simple usage
+//but why union?
 union memCmd {
     struct cpyArea {
         xmId_t dstId;
