@@ -117,6 +117,9 @@ ASMLINK void XM_##_hc(_t0 _a0, _t1 _a1) { \
     _XM_HCALL2(_a0, _a1, _hc##_nr, _r);	\
 }
 
+//_hc is function name; _t0 is type for _a0;  same a later ones
+//create a function with leading "XM_xxxx" and tailing "xxx_hc"
+//passed as arguments list + function name, _hcxxx_nr -> corresponding hypercall section + return value _r
 #define xm_hcall2r(_hc, _t0, _a0, _t1, _a1) \
 ASMLINK xm_s32_t XM_##_hc(_t0 _a0, _t1 _a1)  { \
     xm_s32_t _r ; \
