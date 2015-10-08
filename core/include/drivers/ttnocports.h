@@ -63,8 +63,8 @@ typedef struct {
 } xmTTNoCCmdSeqs_t;
 
 
-#define MAX_SIZE_TTNOC_MSG		64
-#define MAX_SIZE_XM_TTNOC_CHANNEL 	57
+#define MAX_SIZE_TTNOC_MSG                64
+#define MAX_SIZE_XM_TTNOC_CHANNEL         57
 
 
 /*Structure to 1 channel by node and 64Bytes availables - See below the restrictions for this implementation*/
@@ -73,10 +73,10 @@ struct messageTTNoC{
    xmTTNoCCmdSeqs_t seqs;           // [57]
    xmTTNoCCmdPart_t cmdPart;        // [58]
    xmTTNoCCmdHyp_t cmdHyp;          // [59]
-   xmTTNoCStatePart_t statePart;	// [60]  Update   
-   xmTTNoCStateHyp_t stateHyp;		// [61]  Update
-   xmTTNoCInfoNode_t infoNode;		// [62]  Update 1 vez  
-   xm_u32_t nothing;			// [63]
+   xmTTNoCStatePart_t statePart;    // [60]  Update
+   xmTTNoCStateHyp_t stateHyp;      // [61]  Update
+   xmTTNoCInfoNode_t infoNode;      // [62]  Update 1 vez
+   xm_u32_t nothing;                // [63]
 };
 
 struct nodeInfoSys{
@@ -122,29 +122,29 @@ Constrains:
 - When size TTNoC is 64Bytes:[0-63] --> 256 words but only is valid the first byte, therofore, only actual data to be sent: 256/4=64B  -> Byte [63] podría no ser tomado en cuenta
     * Info node:
       Byte [62]:
-	Low->	2 bits: NodeId -> 0, 1, 2
-		3 bits: Number of partitions -> 0-4
-		3 bits: Number of scheduling plans -> 0-4
+        Low->   2 bits: NodeId -> 0, 1, 2
+                3 bits: Number of partitions -> 0-4
+                3 bits: Number of scheduling plans -> 0-4
     * State Hypervisor/Partition:
       Byte [61]:
-	Low->	4 bits: Sequence
-		2 bits: State Hypervisor-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
-	High->	2 bits: Current Scheduling plan-> 0-3
+        Low->   4 bits: Sequence
+                2 bits: State Hypervisor-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
+        High->  2 bits: Current Scheduling plan-> 0-3
       Byte [60]:
-	Low->  2 bits: State P0-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
-		2 bits: State P0-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
-		2 bits: State P0-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
-	High->	2 bits: State P0-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
+        Low->  2 bits: State P0-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
+                2 bits: State P0-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
+                2 bits: State P0-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
+        High->  2 bits: State P0-> 0: Idle | 1: Ready | 2: Suspend | 3: Halted
     * Command to modify Hypervisor/partitions:
       Byte [59]:
-	Low->	3 bits: Sequence
-	        3 bits: Number scheduling plan
-	High->	2 bits: Command Hypervisor-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
+        Low->   3 bits: Sequence
+                3 bits: Number scheduling plan
+        High->  2 bits: Command Hypervisor-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
       Byte [58]:
-	Low->  2 bits: Command P0-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
-		2 bits: Command P1-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
-		2 bits: Command P2-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
-	High->	2 bits: Command P3-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
+        Low->  2 bits: Command P0-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
+                2 bits: Command P1-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
+                2 bits: Command P2-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
+        High->  2 bits: Command P3-> 0:Nothing | 1: COLD_RESET | 2: WARM_RESET | 3: HALT_RESET
 */
 
 #endif
