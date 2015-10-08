@@ -34,28 +34,28 @@ static xm_s32_t ReadTrace(xmObjDesc_t desc, xmTraceEvent_t *__gParam event, xm_u
     localSched_t *sched=GET_LOCAL_SCHED();
     struct logStream *log;
     xmId_t partId;
-    
+
     partId=OBJDESC_GET_PARTITIONID(desc);
     if (partId!=KID2PARTID(sched->cKThread->ctrl.g->id))
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	    return XM_PERM_ERROR;
+            return XM_PERM_ERROR;
 
     if (!noTraces)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (CheckGParam(event, size, 4, PFLAG_NOT_NULL|PFLAG_RW)<0) return XM_INVALID_PARAM;
 
     if (partId==XM_HYPERVISOR_ID)
-	log=&xmTraceLogStream;
+        log=&xmTraceLogStream;
     else {
-	if ((partId<0)||(partId>=xmcTab.noPartitions))
-	    return XM_INVALID_PARAM;
-	log=&traceLogStream[partId];
+        if ((partId<0)||(partId>=xmcTab.noPartitions))
+            return XM_INVALID_PARAM;
+        log=&traceLogStream[partId];
     }
 
     for (e=0; e<noTraces; e++)
-	if (LogStreamGet(log, &event[e])<0)
-	    return e*sizeof(xmTraceEvent_t);
+        if (LogStreamGet(log, &event[e])<0)
+            return e*sizeof(xmTraceEvent_t);
 
     return noTraces*sizeof(xmTraceEvent_t);
 }
@@ -67,10 +67,10 @@ static xm_s32_t WriteTrace(xmObjDesc_t desc, xmTraceEvent_t *__gParam event, xm_
     xmId_t partId;
     partId=OBJDESC_GET_PARTITIONID(desc);
     if (partId!=KID2PARTID(sched->cKThread->ctrl.g->id))
-	return XM_PERM_ERROR;
-    
+        return XM_PERM_ERROR;
+
     if (!noTraces)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
     if (CheckGParam(event, size, 4, PFLAG_NOT_NULL)<0) return XM_INVALID_PARAM;
     if (CheckGParam(bitmap, sizeof(xm_u32_t), 4, PFLAG_NOT_NULL)<0) return XM_INVALID_PARAM;
@@ -82,7 +82,7 @@ static xm_s32_t WriteTrace(xmObjDesc_t desc, xmTraceEvent_t *__gParam event, xm_
             event[e].opCodeL&=~TRACE_OPCODE_PARTID_MASK;
             event[e].opCodeL|=(KID2PARTID(sched->cKThread->ctrl.g->id)<<TRACE_OPCODE_PARTID_BIT)&TRACE_OPCODE_PARTID_MASK;
             event[e].opCodeL&=~TRACE_OPCODE_VCPUID_MASK;
-            event[e].opCodeL|=(KID2VCPUID(sched->cKThread->ctrl.g->id)<<TRACE_OPCODE_VCPUID_BIT)&TRACE_OPCODE_VCPUID_MASK;                        
+            event[e].opCodeL|=(KID2VCPUID(sched->cKThread->ctrl.g->id)<<TRACE_OPCODE_VCPUID_BIT)&TRACE_OPCODE_VCPUID_MASK;
             event[e].timestamp=GetSysClockUsec();
             tmpSeq=seq++;
             event[e].opCodeH&=~TRACE_OPCODE_SEQ_MASK;
@@ -95,7 +95,7 @@ static xm_s32_t WriteTrace(xmObjDesc_t desc, xmTraceEvent_t *__gParam event, xm_
         if (((event->opCodeH&TRACE_OPCODE_CRIT_MASK)>>TRACE_OPCODE_CRIT_BIT)==XM_TRACE_UNRECOVERABLE) {
             xmHmLog_t log;
             log.opCodeL=
-                (KID2PARTID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_PARTID_BIT)|(KID2VCPUID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_VCPUID_BIT)|(XM_HM_EV_PARTITION_ERROR<<HMLOG_OPCODE_EVENT_BIT);	    
+                (KID2PARTID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_PARTID_BIT)|(KID2VCPUID(sched->cKThread->ctrl.g->id)<<HMLOG_OPCODE_VCPUID_BIT)|(XM_HM_EV_PARTITION_ERROR<<HMLOG_OPCODE_EVENT_BIT);
             memcpy(log.payload, event->payload, sizeof(xmWord_t)*XM_HMLOG_PAYLOAD_LENGTH-1);
             HmRaiseEvent(&log);
         }
@@ -108,18 +108,18 @@ static xm_s32_t SeekTrace(xmObjDesc_t desc, xm_u32_t offset, xm_u32_t whence) {
     localSched_t *sched=GET_LOCAL_SCHED();
     struct logStream *log;
     xmId_t partId;
-    
+
     partId=OBJDESC_GET_PARTITIONID(desc);
     if (partId!=KID2PARTID(sched->cKThread->ctrl.g->id))
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	    return XM_PERM_ERROR;
+            return XM_PERM_ERROR;
 
     if (partId==XM_HYPERVISOR_ID)
-	log=&xmTraceLogStream;
+        log=&xmTraceLogStream;
     else {
-	if ((partId<0)||(partId>=xmcTab.noPartitions))
-	    return XM_INVALID_PARAM;
-	log=&traceLogStream[partId];
+        if ((partId<0)||(partId>=xmcTab.noPartitions))
+            return XM_INVALID_PARAM;
+        log=&traceLogStream[partId];
     }
 
     return LogStreamSeek(log, offset, whence);
@@ -129,27 +129,27 @@ static xm_s32_t CtrlTrace(xmObjDesc_t desc, xm_u32_t cmd, union traceCmd *__gPar
     localSched_t *sched=GET_LOCAL_SCHED();
     struct logStream *log;
     xmId_t partId;
-    
+
     partId=OBJDESC_GET_PARTITIONID(desc);
     if (partId!=KID2PARTID(sched->cKThread->ctrl.g->id))
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
-	    return XM_PERM_ERROR;
-    if (CheckGParam(args, sizeof(union traceCmd), 4, PFLAG_NOT_NULL|PFLAG_RW)<0) 
-	return XM_INVALID_PARAM;
+            return XM_PERM_ERROR;
+    if (CheckGParam(args, sizeof(union traceCmd), 4, PFLAG_NOT_NULL|PFLAG_RW)<0)
+        return XM_INVALID_PARAM;
     if (partId==XM_HYPERVISOR_ID)
-	log=&xmTraceLogStream;
+        log=&xmTraceLogStream;
     else {
-	if ((partId<0)||(partId>=xmcTab.noPartitions))
-	    return XM_INVALID_PARAM;
-	log=&traceLogStream[partId];
+        if ((partId<0)||(partId>=xmcTab.noPartitions))
+            return XM_INVALID_PARAM;
+        log=&traceLogStream[partId];
     }
 
     switch(cmd) {
     case XM_TRACE_GET_STATUS:
-	args->status.noEvents=log->ctrl.elem;
-	args->status.maxEvents=log->info.maxNoElem;
-	args->status.currentEvent=log->ctrl.d;
-	return XM_OK;
+        args->status.noEvents=log->ctrl.elem;
+        args->status.maxEvents=log->info.maxNoElem;
+        args->status.currentEvent=log->ctrl.d;
+        return XM_OK;
     case XM_TRACE_LOCK:
         LogStreamLock(log);
         return XM_OK;
@@ -177,31 +177,31 @@ xm_s32_t __VBOOT SetupTrace(void) {
     xm_s32_t e;
     GET_MEMZ(traceLogStream, sizeof(struct logStream)*xmcTab.noPartitions);
     LogStreamInit(&xmTraceLogStream, LookUpKDev(&xmcTab.hpv.trace.dev), sizeof(xmTraceEvent_t));
-    
+
     for (e=0; e<xmcTab.noPartitions; e++)
-	LogStreamInit(&traceLogStream[e], LookUpKDev(&xmcPartitionTab[e].trace.dev), sizeof(xmTraceEvent_t));
-    
+        LogStreamInit(&traceLogStream[e], LookUpKDev(&xmcPartitionTab[e].trace.dev), sizeof(xmTraceEvent_t));
+
     objectTab[OBJ_CLASS_TRACE]=&traceObj;
-    
+
     //TraceHypEvent(TRACE_EV_HYP_AUDIT_INIT);
-    
+
     return 0;
 }
 
 xm_s32_t TraceWriteSysEvent(xm_u32_t bitmap, xmTraceEvent_t *event) {
     ASSERT(event);
-    
+
     if (xmcTab.hpv.trace.bitmap&bitmap) {
         xm_u32_t tmpSeq;
         event->signature=XMTRACE_SIGNATURE;
-	event->timestamp=GetSysClockUsec();
+        event->timestamp=GetSysClockUsec();
 
         tmpSeq=seq++;
         event->opCodeH&=~TRACE_OPCODE_SEQ_MASK;
         event->opCodeH|=tmpSeq<<TRACE_OPCODE_SEQ_BIT;
 
         event->checksum=0;
-        event->checksum=CalcCheckSum((xm_u16_t *)event, sizeof(struct xmTraceEvent)); 
+        event->checksum=CalcCheckSum((xm_u16_t *)event, sizeof(struct xmTraceEvent));
         return LogStreamInsert(&xmTraceLogStream, event);
     }
 
@@ -231,7 +231,7 @@ void RaiseAuditEvent(xm_u32_t module, xm_u32_t event, xm_s32_t payloadLen, xmWor
             partId=-1;
             vCpuId=-1;
         }
-        
+
         trace.opCodeL=((((module<<8)|event)<<TRACE_OPCODE_CODE_BIT)&TRACE_OPCODE_CODE_MASK)|((partId<<TRACE_OPCODE_PARTID_BIT)&TRACE_OPCODE_PARTID_MASK)|
             ((vCpuId<<TRACE_OPCODE_VCPUID_BIT)&TRACE_OPCODE_VCPUID_MASK);
 
