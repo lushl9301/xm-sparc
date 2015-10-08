@@ -26,7 +26,9 @@ static inline xm_s32_t CopyArea(xmAddress_t dstAddr, xmId_t dstId, xmAddress_t s
     localSched_t *sched=GET_LOCAL_SCHED();
     xm_u32_t flags;
 
+//check
     if (size<=0) return 0;
+    //only internal cpy
     if (dstId!=KID2PARTID(sched->cKThread->ctrl.g->id))
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
             return XM_PERM_ERROR;
@@ -34,7 +36,7 @@ static inline xm_s32_t CopyArea(xmAddress_t dstAddr, xmId_t dstId, xmAddress_t s
     if (srcId!=KID2PARTID(sched->cKThread->ctrl.g->id))
         if (!(GetPartition(sched->cKThread)->cfg->flags&XM_PART_SYSTEM))
             return XM_PERM_ERROR;
-    
+
     if (dstId!=UNCHECKED_ID) {
         if ((dstId<0)||(dstId>=xmcTab.noPartitions))
             return XM_INVALID_PARAM;
@@ -45,7 +47,7 @@ static inline xm_s32_t CopyArea(xmAddress_t dstAddr, xmId_t dstId, xmAddress_t s
         if (flags&XM_MEM_AREA_READONLY)
             return XM_INVALID_PARAM;
     }
-    
+
     if (srcId!=UNCHECKED_ID) {
         if ((srcId<0)||(srcId>=xmcTab.noPartitions))
             return XM_INVALID_PARAM;
@@ -54,22 +56,23 @@ static inline xm_s32_t CopyArea(xmAddress_t dstAddr, xmId_t dstId, xmAddress_t s
             return XM_INVALID_PARAM;
 
     }
-    
+
     if (size<=0) return 0;
 
     UnalignMemCpy((void *)dstAddr, (void*)srcAddr, size, (RdMem_t)ReadByPassMmuWord, (RdMem_t)ReadByPassMmuWord, (WrMem_t)WriteByPassMmuWord);
-    
+
     return size;
 }
 
 static xm_s32_t CtrlMem(xmObjDesc_t desc, xm_u32_t cmd, union memCmd *__gParam args) {
     if (!args)
-	return XM_INVALID_PARAM;
+        return XM_INVALID_PARAM;
 
-    if (CheckGParam(args, sizeof(union memCmd), 4, PFLAG_NOT_NULL)<0) 
+    if (CheckGParam(args, sizeof(union memCmd), 4, PFLAG_NOT_NULL)<0)
         return XM_INVALID_PARAM;
 
     switch(cmd) {
+    //just cpy operation
     case XM_OBJ_MEM_CPY_AREA:
         return CopyArea(args->cpyArea.dstAddr, args->cpyArea.dstId, args->cpyArea.srcAddr, args->cpyArea.srcId, args->cpyArea.size);
     }
@@ -81,10 +84,9 @@ static const struct object memObj={
     .Ctrl=(ctrlObjOp_t)CtrlMem,
 };
 
-xm_s32_t __VBOOT SetupMem(void) {    
+xm_s32_t __VBOOT SetupMem(void) {
     objectTab[OBJ_CLASS_MEM]=&memObj;
     return 0;
 }
 
 REGISTER_OBJ(SetupMem);
-
