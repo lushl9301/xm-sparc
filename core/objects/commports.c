@@ -45,12 +45,13 @@ static inline xm_s32_t CreateSamplingPort(xmObjDesc_t desc, xm_s8_t *__gParam po
     if (CheckGParam(portName, CONFIG_ID_STRING_LENGTH, 1, PFLAG_NOT_NULL)<0)
         return XM_INVALID_PARAM;
 
+    // if not source & not destination; error
     if ((direction!=XM_SOURCE_PORT)&&(direction!=XM_DESTINATION_PORT))
         return XM_INVALID_PARAM;
 
     // Look for the channel
     for (port=partition->commPortsOffset; port<(partition->noPorts+partition->commPortsOffset); port++)
-            //find the port by compare name
+        //find the port by compare name
         if (!strncmp(portName, &xmcStringTab[xmcCommPorts[port].nameOffset], CONFIG_ID_STRING_LENGTH))
             break;
 
@@ -60,6 +61,7 @@ static inline xm_s32_t CreateSamplingPort(xmObjDesc_t desc, xm_s8_t *__gParam po
     if (xmcCommPorts[port].type!=XM_SAMPLING_PORT)
         return XM_INVALID_CONFIG;
 
+    //double check
     if (direction!=xmcCommPorts[port].direction)
         return XM_INVALID_CONFIG;
 
@@ -85,6 +87,7 @@ static inline xm_s32_t CreateSamplingPort(xmObjDesc_t desc, xm_s8_t *__gParam po
             ASSERT_LOCK(channelTab[xmcCommPorts[port].channelId].s.noReceivers<xmcCommChannelTab[xmcCommPorts[port].channelId].s.noReceivers, &channelTab[xmcCommPorts[port].channelId].s.lock);
             channelTab[xmcCommPorts[port].channelId].s.receiverTab[channelTab[xmcCommPorts[port].channelId].s.noReceivers]=GetPartition(sched->cKThread);
             channelTab[xmcCommPorts[port].channelId].s.receiverPortTab[channelTab[xmcCommPorts[port].channelId].s.noReceivers]=port-partition->commPortsOffset;
+            //inc everytime
             channelTab[xmcCommPorts[port].channelId].s.noReceivers++;
         } else { // XM_SOURCE_PORT
             channelTab[xmcCommPorts[port].channelId].s.sender=GetPartition(sched->cKThread);
