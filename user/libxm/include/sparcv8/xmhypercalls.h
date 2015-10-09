@@ -30,60 +30,62 @@
 
 #define __DO_XMAHC "ta "TO_STR(XM_ASMHYPERCALL_TRAP)"\n\t"
 
+//One of a procedure’s out registers (%o6) is used as its stack pointer
+//=r is output; r is input; "=" to specify the output operand in write-only mode. 
 #define _XM_HCALL0(_hc_nr, _r) \
     __asm__ __volatile__ ("mov %0, %%o0\n\t" \
-			  __DO_XMHC \
-			  "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr) : \
-			  "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
+                          __DO_XMHC \
+                          "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr) : \
+                          "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
 
 #define _XM_HCALL1(a0, _hc_nr, _r) \
     __asm__ __volatile__ ("mov %0, %%o0\n\t" \
-			  "mov %2, %%o1\n\t" \
-			  __DO_XMHC \
-			  "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0) : \
-			  "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
+                          "mov %2, %%o1\n\t" \
+                          __DO_XMHC \
+                          "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0) : \
+                          "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
 
 
 #define _XM_HCALL2(a0, a1, _hc_nr, _r) \
     __asm__ __volatile__ ("mov %0, %%o0\n\t" \
-			  "mov %2, %%o1\n\t" \
-			  "mov %3, %%o2\n\t" \
-			  __DO_XMHC \
-			  "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0), "r" (a1) : \
-			  "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
+                          "mov %2, %%o1\n\t" \
+                          "mov %3, %%o2\n\t" \
+                          __DO_XMHC \
+                          "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0), "r" (a1) : \
+                          "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
 
 
 
 
 #define _XM_HCALL3(a0, a1, a2, _hc_nr, _r) \
-    __asm__ __volatile__ ("mov %0, %%o0\n\t"	\
-			  "mov %2, %%o1\n\t"	\
-			  "mov %3, %%o2\n\t" \
-			  "mov %4, %%o3\n\t" \
-			  __DO_XMHC \
-			  "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0), "r" (a1), "r" (a2) : \
-			  "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
+    __asm__ __volatile__ ("mov %0, %%o0\n\t" \
+                          "mov %2, %%o1\n\t" \
+                          "mov %3, %%o2\n\t" \
+                          "mov %4, %%o3\n\t" \
+                          __DO_XMHC \
+                          "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0), "r" (a1), "r" (a2) : \
+                          "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
 
-#define _XM_HCALL4(a0, a1, a2, a3, _hc_nr, _r)	\
-    __asm__ __volatile__ ("mov %0, %%o0\n\t"	\
-			  "mov %2, %%o1\n\t"	\
-			  "mov %3, %%o2\n\t" \
-			  "mov %4, %%o3\n\t" \
+#define _XM_HCALL4(a0, a1, a2, a3, _hc_nr, _r) \
+    __asm__ __volatile__ ("mov %0, %%o0\n\t" \
+                          "mov %2, %%o1\n\t" \
+                          "mov %3, %%o2\n\t" \
+                          "mov %4, %%o3\n\t" \
                           "mov %5, %%o4\n\t" \
-			  __DO_XMHC \
-			  "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0), "r" (a1), "r" (a2), "r" (a3) : \
-			  "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
+                          __DO_XMHC \
+                          "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0), "r" (a1), "r" (a2), "r" (a3) : \
+                          "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
 
-#define _XM_HCALL5(a0, a1, a2, a3, a4, _hc_nr, _r)	\
-    __asm__ __volatile__ ("mov %0, %%o0\n\t"	\
-			  "mov %2, %%o1\n\t"	\
-			  "mov %3, %%o2\n\t" \
-			  "mov %4, %%o3\n\t" \
+#define _XM_HCALL5(a0, a1, a2, a3, a4, _hc_nr, _r) \
+    __asm__ __volatile__ ("mov %0, %%o0\n\t" \
+                          "mov %2, %%o1\n\t" \
+                          "mov %3, %%o2\n\t" \
+                          "mov %4, %%o3\n\t" \
                           "mov %5, %%o4\n\t" \
                           "mov %6, %%o5\n\t" \
-			  __DO_XMHC \
-			  "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0), "r" (a1), "r" (a2), "r" (a3), "r" (a4) : \
-			  "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
+                          __DO_XMHC \
+                          "mov %%o0, %0\n\t" : "=r" (_r) : "0" (_hc_nr), "r" (a0), "r" (a1), "r" (a2), "r" (a3), "r" (a4) : \
+                          "o0", "o1", "o2", "o3", "o4", "o5",       "o7")
 
 #define xm_hcall0(_hc) \
 ASMLINK void XM_##_hc(void) { \
@@ -114,11 +116,11 @@ ASMLINK xm_s32_t XM_##_hc(_t0 _a0) { \
 #define xm_hcall2(_hc, _t0, _a0, _t1, _a1) \
 ASMLINK void XM_##_hc(_t0 _a0, _t1 _a1) { \
     xm_s32_t _r ; \
-    _XM_HCALL2(_a0, _a1, _hc##_nr, _r);	\
+    _XM_HCALL2(_a0, _a1, _hc##_nr, _r); \
 }
 
 //_hc is function name; _t0 is type for _a0;  same a later ones
-//create a function with leading "XM_xxxx" and tailing "xxx_hc"
+//create a function with leading "XM_xxxx" and xxxx is the hypercall name passed in.
 //passed as arguments list + function name, _hcxxx_nr -> corresponding hypercall section + return value _r
 #define xm_hcall2r(_hc, _t0, _a0, _t1, _a1) \
 ASMLINK xm_s32_t XM_##_hc(_t0 _a0, _t1 _a1)  { \
@@ -156,38 +158,38 @@ ASMLINK xm_s32_t XM_##_hc(_t0 _a0, _t1 _a1, _t2 _a2, _t3 _a3) { \
 #define xm_hcall5(_hc, _t0, _a0, _t1, _a1, _t2, _a2, _t3, _a3, _t4, _a4) \
 ASMLINK void XM_##_hc(_t0 _a0, _t1 _a1, _t2 _a2, _t3 _a3, _t4 _a4) { \
     xm_s32_t _r ; \
-    _XM_HCALL5(_a0, _a1, _a2, _a3, _a4, _hc##_nr, _r);	\
+    _XM_HCALL5(_a0, _a1, _a2, _a3, _a4, _hc##_nr, _r); \
 }
 
 #define xm_hcall5r(_hc, _t0, _a0, _t1, _a1, _t2, _a2, _t3, _a3, _t4, _a4) \
 ASMLINK xm_s32_t XM_##_hc(_t0 _a0, _t1 _a1, _t2 _a2, _t3 _a3, _t4 _a4) { \
     xm_s32_t _r ; \
-    _XM_HCALL5(_a0, _a1, _a2, _a3, _a4, _hc##_nr, _r);	\
+    _XM_HCALL5(_a0, _a1, _a2, _a3, _a4, _hc##_nr, _r); \
     return _r; \
 }
 
 static inline void XM_sparc_flush_regwin(void) {
     __asm__ __volatile__("mov "TO_STR(sparc_flush_regwin_nr)", %%o0\n\t" \
-			 __DO_XMAHC:::"o0");
+                         __DO_XMAHC:::"o0");
 }
 
 static inline xm_u32_t XM_sparc_get_psr(void) {
     xm_u32_t ret;
     __asm__ __volatile__("mov "TO_STR(sparc_get_psr_nr)", %%o0\n\t" \
-			 __DO_XMAHC \
-			 "mov %%o0, %0\n\t" : "=r" (ret): : "o0");
+                         __DO_XMAHC \
+                         "mov %%o0, %0\n\t" : "=r" (ret): : "o0");
     return ret;
 }
 
 static inline void XM_sparc_set_psr(xm_u32_t flags) {
     __asm__ __volatile__("mov "TO_STR(sparc_set_psr_nr)", %%o0\n\t" \
-			 "mov %0, %%o1\n\t" \
-			 __DO_XMAHC :: "r"(flags) : "o0", "o1");
+                         "mov %0, %%o1\n\t" \
+                         __DO_XMAHC :: "r"(flags) : "o0", "o1");
 }
 
 static inline void XM_sparc_set_pil(void) {
     __asm__ __volatile__("mov "TO_STR(sparc_set_pil_nr)", %%o0\n\t" \
-			 __DO_XMAHC::: "o0");  \
+                         __DO_XMAHC::: "o0");  \
 }
 
 static inline void XM_sparc_clear_pil(void) {

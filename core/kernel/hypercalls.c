@@ -594,7 +594,7 @@ __hypercall xm_s32_t SetTimerSys(xm_u32_t clockId, xmTime_t abstime, xmTime_t in
 }
 
 __hypercall xm_s32_t GetTimeSys(xm_u32_t clockId, xmTime_t *__gParam time) {
-//TODOeveryone can get hw clock
+//everyone can get hw clock
     localSched_t *sched=GET_LOCAL_SCHED();
 
     if (CheckGParam(time, sizeof(xm_s64_t), 8, PFLAG_RW|PFLAG_NOT_NULL)<0)
