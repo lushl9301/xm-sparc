@@ -144,14 +144,14 @@ static xm_s32_t ReadSamplingPort(xmObjDesc_t desc,  void *__gParam msgPtr, xmSiz
         if (CheckGParam(msgPtr, msgSize, 1, PFLAG_NOT_NULL|PFLAG_RW)<0)
             return XM_INVALID_PARAM;
 
-                channel=&channelTab[xmcCommPorts[port].channelId];
-                SpinLock(&channel->s.lock);
-                retSize=(msgSize<channel->s.length)?msgSize:channel->s.length;
-                memcpy(msgPtr, channel->s.buffer, retSize);
-                SpinLock(&portTab[port].lock);
-                portTab[port].flags&=~COMM_PORT_MSG_MASK;
-                portTab[port].flags|=COMM_PORT_CONSUMED_MSG;
-                SpinUnlock(&portTab[port].lock);
+        channel=&channelTab[xmcCommPorts[port].channelId];
+        SpinLock(&channel->s.lock);
+        retSize=(msgSize<channel->s.length)?msgSize:channel->s.length;
+        memcpy(msgPtr, channel->s.buffer, retSize);
+        SpinLock(&portTab[port].lock);
+        portTab[port].flags&=~COMM_PORT_MSG_MASK;
+        portTab[port].flags|=COMM_PORT_CONSUMED_MSG;
+        SpinUnlock(&portTab[port].lock);
 #ifdef CONFIG_OBJ_STATUS_ACC
         systemStatus.noSamplingPortMsgsRead++;
         if (sched->cKThread->ctrl.g)
@@ -483,21 +483,21 @@ static xm_s32_t SendQueuingPort(xmObjDesc_t desc, void *__gParam msgPtr, xm_u32_
         channel=&channelTab[xmcCommPorts[port].channelId];
         SpinLock(&channel->q.lock);
         if (channel->q.usedMsgs<xmcChannel->q.maxNoMsgs) {
-                if (!(msg=(struct msg *)DynListRemoveTail(&channel->q.freeMsgs))) {
+            if (!(msg=(struct msg *)DynListRemoveTail(&channel->q.freeMsgs))) {
                 cpuCtxt_t ctxt;
                 SpinUnlock(&channel->q.lock);
                 GetCpuCtxt(&ctxt);
-                    SystemPanic(&ctxt, "[SendQueuingPort] Queuing channels internal error");
+                SystemPanic(&ctxt, "[SendQueuingPort] Queuing channels internal error");
             }
-                memcpy(msg->buffer, msgPtr, msgSize);
+            memcpy(msg->buffer, msgPtr, msgSize);
 #ifdef CONFIG_OBJ_STATUS_ACC
             systemStatus.noQueuingPortMsgsSent++;
             if (sched->cKThread->ctrl.g)
                 partitionStatus[KID2PARTID(sched->cKThread->ctrl.g->id)].noQueuingPortMsgsSent++;
 #endif
             msg->length=msgSize;
-                DynListInsertHead(&channel->q.recvMsgs, &msg->listNode);
-                channel->q.usedMsgs++;
+            DynListInsertHead(&channel->q.recvMsgs, &msg->listNode);
+            channel->q.usedMsgs++;
 
             if (channel->q.receiver) {
                 for (e=0; e<channel->q.receiver->cfg->noVCpus; e++) {
@@ -585,7 +585,7 @@ static xm_s32_t ReceiveQueuingPort(xmObjDesc_t desc, void *__gParam msgPtr, xm_u
                 partitionStatus[KID2PARTID(sched->cKThread->ctrl.g->id)].noQueuingPortMsgsReceived++;
 #endif
             DynListInsertHead(&channel->q.freeMsgs, &msg->listNode);
-                channel->q.usedMsgs--;
+            channel->q.usedMsgs--;
 
             if (channel->q.sender)
                 SetPartitionExtIrqPending(channel->q.sender, XM_VT_EXT_QUEUING_PORT);
@@ -1109,12 +1109,12 @@ xm_s32_t __VBOOT SetupComm(void) {
             DynListInit(&channelTab[e].q.freeMsgs);
             DynListInit(&channelTab[e].q.recvMsgs);
             for (i=0; i<xmcCommChannelTab[e].q.maxNoMsgs; i++) {
-            GET_MEMZ(channelTab[e].q.msgPool[i].buffer, xmcCommChannelTab[e].q.maxLength);
-            if(DynListInsertHead(&channelTab[e].q.freeMsgs, &channelTab[e].q.msgPool[i].listNode)) {
+                GET_MEMZ(channelTab[e].q.msgPool[i].buffer, xmcCommChannelTab[e].q.maxLength);
+                if(DynListInsertHead(&channelTab[e].q.freeMsgs, &channelTab[e].q.msgPool[i].listNode)) {
                     cpuCtxt_t ctxt;
                     GetCpuCtxt(&ctxt);
                     SystemPanic(&ctxt, "[SetupComm] Queuing channels initialisation error");
-            }
+                }
             }
             channelTab[e].q.lock=SPINLOCK_INIT;
             break;
