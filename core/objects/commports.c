@@ -273,6 +273,7 @@ static inline xm_s32_t GetSPortInfo(xmObjDesc_t desc, xmSamplingPortInfo_t *info
 
     partition=GetPartition(sched->cKThread)->cfg;
 
+    //can only read your own port
     if (OBJDESC_GET_PARTITIONID(desc)!=partition->id)
         return XM_PERM_ERROR;
 
@@ -281,7 +282,8 @@ static inline xm_s32_t GetSPortInfo(xmObjDesc_t desc, xmSamplingPortInfo_t *info
 
     // Look for the channel
     for (port=partition->commPortsOffset; port<(partition->noPorts+partition->commPortsOffset); port++)
-        if (!strcmp(info->portName, &xmcStringTab[xmcCommPorts[port].nameOffset])) break;
+        if (!strcmp(info->portName, &xmcStringTab[xmcCommPorts[port].nameOffset]))
+            break;
 
     if (port>=xmcTab.noCommPorts)
         return XM_INVALID_PARAM;
@@ -333,6 +335,7 @@ static inline xm_s32_t GetSPortStatus(xmObjDesc_t desc, xmSamplingPortStatus_t *
         xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
         status->flags=0;
         channel=&channelTab[xmcCommPorts[port].channelId];
+        //TODO why lock here!!! SMP?
         SpinLock(&channel->s.lock);
         status->lastMsgSize=channel->s.length;
         status->timestamp=channel->s.timestamp;
@@ -358,7 +361,8 @@ static xm_s32_t CtrlSamplingPort(xmObjDesc_t desc, xm_u32_t cmd, union samplingP
 
     switch(cmd) {
     case XM_COMM_CREATE_PORT:
-        if (!args->create.portName||(CheckGParam(args->create.portName, CONFIG_ID_STRING_LENGTH,1, PFLAG_NOT_NULL)<0)) return XM_INVALID_PARAM;
+        if (!args->create.portName||(CheckGParam(args->create.portName, CONFIG_ID_STRING_LENGTH,1, PFLAG_NOT_NULL)<0))
+            return XM_INVALID_PARAM;
         return CreateSamplingPort(desc, args->create.portName, args->create.maxMsgSize, args->create.direction, args->create.validPeriod);
     case XM_COMM_GET_PORT_STATUS:
         return GetSPortStatus(desc, &args->status);
