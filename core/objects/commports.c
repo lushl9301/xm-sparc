@@ -97,6 +97,7 @@ static inline xm_s32_t CreateSamplingPort(xmObjDesc_t desc, xm_s8_t *__gParam po
     }
 
     SpinLock(&portTab[port].lock);
+    //opened, when created;
     portTab[port].flags|=COMM_PORT_OPENED|COMM_PORT_EMPTY;
     portTab[port].partitionId=KID2PARTID(sched->cKThread->ctrl.g->id);
     SpinUnlock(&portTab[port].lock);
@@ -114,12 +115,14 @@ static xm_s32_t ReadSamplingPort(xmObjDesc_t desc,  void *__gParam msgPtr, xmSiz
     xmId_t partitionId;
     xm_u32_t pTFlags;
 
+    //if it is not your port, return error
     if (OBJDESC_GET_PARTITIONID(desc)!=KID2PARTID(sched->cKThread->ctrl.g->id))
         return XM_PERM_ERROR;
 
     if (CheckGParam(flags, sizeof(xm_u32_t), 4, PFLAG_RW)<0)
         return XM_INVALID_PARAM;
 
+    //TODO reading with lock
     SpinLock(&portTab[port].lock);
     partitionId=portTab[port].partitionId;
     pTFlags=portTab[port].flags;
@@ -143,9 +146,7 @@ static xm_s32_t ReadSamplingPort(xmObjDesc_t desc,  void *__gParam msgPtr, xmSiz
     if (xmcCommPorts[port].channelId!=XM_NULL_CHANNEL) {
         xmcChannel=&xmcCommChannelTab[xmcCommPorts[port].channelId];
         if (msgSize>xmcChannel->s.maxLength)
-            return XM_INVALID_CONFIG;
-        if (CheckGParam(msgPtr, msgSize, 1, PFLAG_NOT_NULL|PFLAG_RW)<0)
-            return XM_INVALID_PARAM;
+            return XM_INVALID_CONFIG;XM_SOURCE_PORT
 
         channel=&channelTab[xmcCommPorts[port].channelId];
         SpinLock(&channel->s.lock);
@@ -175,10 +176,13 @@ static xm_s32_t ReadSamplingPort(xmObjDesc_t desc,  void *__gParam msgPtr, xmSiz
             }
             SetPartitionExtIrqPending(channel->s.sender, XM_VT_EXT_SAMPLING_PORT);
         }
+
+        //flags is the argument; as return info
         if (flags) {
             *flags=0;
+            //this if statement's last component is interesting
             if (retSize&&(xmcChannel->s.validPeriod!=XM_INFINITE_TIME)&&(channel->s.timestamp+xmcChannel->s.validPeriod)>GetSysClockUsec())
-                    *flags=XM_COMM_MSG_VALID;
+                *flags=XM_COMM_MSG_VALID;
         }
         SpinUnlock(&channel->s.lock);
     }
@@ -232,6 +236,7 @@ static xm_s32_t WriteSamplingPort(xmObjDesc_t desc, void *__gParam msgPtr, xmSiz
         if (sched->cKThread->ctrl.g)
             partitionStatus[KID2PARTID(sched->cKThread->ctrl.g->id)].noSamplingPortMsgsWritten++;
 #endif
+        //set bit to inform message passing
         ASSERT_LOCK(channel->s.sender==GetPartition(sched->cKThread), &channel->s.lock);
         for (e=0; e<GetPartition(sched->cKThread)->cfg->noVCpus; e++) {
             g=GetPartition(sched->cKThread)->kThread[e]->ctrl.g;
