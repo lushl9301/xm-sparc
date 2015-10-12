@@ -385,7 +385,7 @@ void ResetPartPorts(partition_t *p) {
     xm_s32_t port;
 
     partition=p->cfg;
-
+    //partition's ports be setted to opened
     for (port=partition->commPortsOffset; port<(partition->noPorts+partition->commPortsOffset); port++) {
         portTab[port].flags&=~COMM_PORT_OPENED;
     }
@@ -411,7 +411,8 @@ static inline xm_s32_t CreateQueuingPort(xmObjDesc_t desc, xm_s8_t *__gParam por
 
     // Look for the channel
     for (port=partition->commPortsOffset; port<(partition->noPorts+partition->commPortsOffset); port++)
-        if (!strncmp(portName, &xmcStringTab[xmcCommPorts[port].nameOffset], CONFIG_ID_STRING_LENGTH)) break;
+        if (!strncmp(portName, &xmcStringTab[xmcCommPorts[port].nameOffset], CONFIG_ID_STRING_LENGTH))
+            break;
 
     if (port>=xmcTab.noCommPorts)
         return XM_INVALID_PARAM;
@@ -431,6 +432,7 @@ static inline xm_s32_t CreateQueuingPort(xmObjDesc_t desc, xm_s8_t *__gParam por
 
     if (xmcCommPorts[port].channelId!=XM_NULL_CHANNEL) {
         ASSERT((xmcCommPorts[port].channelId>=0)&&(xmcCommPorts[port].channelId<xmcTab.noCommChannels));
+        //lock channel's lock
         SpinLock(&channelTab[xmcCommPorts[port].channelId].q.lock);
         if (direction==XM_DESTINATION_PORT) {
             channelTab[xmcCommPorts[port].channelId].q.receiver=GetPartition(sched->cKThread);
