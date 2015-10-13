@@ -20,9 +20,9 @@
 #define WIM_INIT  2
 
 .macro WR_DELAY
-        nop
-        nop
-        nop
+	nop
+	nop
+	nop
 .endm
 
 /*
@@ -49,22 +49,22 @@ ENTRY(_start)
 	andn %g2, 0x1, %g2
 	sta %g2, [%g1] LEON_MMU_ASI
 #endif
-        /* Enabling Cache and Flushing it */
+	/* Enabling Cache and Flushing it */
 	set CCR_DCS_MASK|CCR_ICS_MASK, %g1
 #ifdef CONFIG_CACHE_SNOOP
-        set CCR_DS_BIT, %g2
-        or %g1, %g2, %g1
+	set CCR_DS_BIT, %g2
+	or %g1, %g2, %g1
 #endif
 #ifdef CONFIG_CACHE_IBURST_FETCH
-        set CCR_IB_BIT, %g2
-        or %g1, %g2, %g1
+	set CCR_IB_BIT, %g2
+	or %g1, %g2, %g1
 #endif
 	flush
 #ifdef CONFIG_LEON3
 	sta %g1, [%g0] LEON_CCR_BASE
 #endif
 
-        /* MEMORY CONTROLLER CONFIGURATION MISS -- MIG */
+	/* MEMORY CONTROLLER CONFIGURATION MISS -- MIG */
 #ifdef CONFIG_LEON3
 	/* Set up the memory */
 	set LEON_MEMORY_CFG_BASE, %g1
@@ -81,11 +81,11 @@ ENTRY(_start)
 #endif
 
 #ifdef CONFIG_SMP
-        rd %asr17, %g1
-        sra %g1, 0x1c, %g1
-        cmp %g1, 0
-        bne 2f
-        nop
+	rd %asr17, %g1
+	sra %g1, 0x1c, %g1
+	cmp %g1, 0
+	bne 2f
+	nop
 #endif
 
 	set _VIRT2PHYS(_sbss), %o0
@@ -130,12 +130,12 @@ ENTRY(_start)
 2:
 	/* Clear general registers */
 	clr %g1
-        clr %g2
-        clr %g3
-        clr %g4
-        clr %g5
-        clr %g6
-        clr %g7
+	clr %g2
+	clr %g3
+	clr %g4
+	clr %g5
+	clr %g6
+	clr %g7
 
 	/* Set up window registers */
 	mov %g0, %wim
@@ -144,25 +144,25 @@ ENTRY(_start)
 	mov CONFIG_REGISTER_WINDOWS, %g1
 	save
 1:
-        clr %i0
-        clr %i1
-        clr %i2
-        clr %i3
-        clr %i4
-        clr %i5
-        clr %i6
-        clr %i7
-        clr %l0
-        clr %l1
-        clr %l2
-        clr %l3
-        clr %l4
-        clr %l5
-        clr %l6
-        clr %l7
-        subcc %g1, 1, %g1
-        bnz,a   1b
-        save
+	clr %i0
+	clr %i1
+	clr %i2
+	clr %i3
+	clr %i4
+	clr %i5
+	clr %i6
+	clr %i7
+	clr %l0
+	clr %l1
+	clr %l2
+	clr %l3
+	clr %l4
+	clr %l5
+	clr %l6
+	clr %l7
+	subcc %g1, 1, %g1
+	bnz,a   1b
+	save
 
 	/* Set up PSR, WIM, TBR and Y registers  */
 	mov WIM_INIT, %wim
@@ -172,15 +172,15 @@ ENTRY(_start)
 
 #ifdef CONFIG_MMU
 #ifdef CONFIG_SMP
-        rd %asr17, %g1
-        sra %g1, 0x1c, %g1
-        cmp %g1, 0
-        bne 113f
-        nop
+	rd %asr17, %g1
+	sra %g1, 0x1c, %g1
+	cmp %g1, 0
+	bne 113f
+	nop
 #endif
 
 	/* Fill ptdL3 with XM_VMAPSIZE/PAGE_SIZE pages */
-        set ((CONFIG_XM_LOAD_ADDR&PAGE_MASK)>>4)|_PG_ARCH_RW|_PG_ARCH_CACHE|_PG_ARCH_PTE_PRESENT, %o0
+	set ((CONFIG_XM_LOAD_ADDR&PAGE_MASK)>>4)|_PG_ARCH_RW|_PG_ARCH_CACHE|_PG_ARCH_PTE_PRESENT, %o0
 	set _VIRT2PHYS(_ptdL3), %o1
 	set NO_PTDL3_XMVMAP*PTDL3ENTRIES*4, %o3
 	add %o1, %o3, %o2
@@ -290,34 +290,34 @@ ENTRY(StartXM)
 
 	/* Setting up a kernel stack */
 #ifdef CONFIG_SMP
-        rd %asr17, %o0
-        sra %o0, 0x1c, %o0
+	rd %asr17, %o0
+	sra %o0, 0x1c, %o0
 #else
-        mov %g0, %o0
+	mov %g0, %o0
 #endif
-        set CONFIG_KSTACK_SIZE, %g3
-        add %o0, 1, %g1
+	set CONFIG_KSTACK_SIZE, %g3
+	add %o0, 1, %g1
 
-        set __idle_kthread, %fp
+	set __idle_kthread, %fp
 1:      dec %g1
-        cmp %g1, 0
-        bg 1b
-        add %fp, %g3, %fp
+	cmp %g1, 0
+	bg 1b
+	add %fp, %g3, %fp
 
-        sub %fp, %g3, %o1
-        sub %fp, MIN_STACK_FRAME, %sp
+	sub %fp, %g3, %o1
+	sub %fp, MIN_STACK_FRAME, %sp
 #ifdef CONFIG_SMP
-        cmp %o0, 0
-        bne 1f
+	cmp %o0, 0
+	bne 1f
 #endif
-        sub %fp, MIN_STACK_FRAME, %sp
+	sub %fp, MIN_STACK_FRAME, %sp
 
 	/* calling our first C function */
 	call Setup
-        nop
+	nop
 #ifdef CONFIG_SMP
 1:
-        call InitSecondaryCpu
+	call InitSecondaryCpu
 	nop
 #endif
 
@@ -366,23 +366,24 @@ ENTRY(_ptdL1)
 
 .align 256
 ENTRY(_ptdL2)
-        .zero NO_PTDL2_XMVMAP*PTDL2SIZE
+	.zero NO_PTDL2_XMVMAP*PTDL2SIZE
 
 .align 256
 ENTRY(_ptdL3)
-        .zero NO_PTDL3_XMVMAP*PTDL3SIZE
+	.zero NO_PTDL3_XMVMAP*PTDL3SIZE
 
 #endif
 
 ASM_ALIGN
 __idle_kthread:
-        .zero CONFIG_KSTACK_SIZE*CONFIG_NO_CPUS
+	.zero CONFIG_KSTACK_SIZE*CONFIG_NO_CPUS
 ASM_ALIGN
 __idle_kthread_top:
 
-/*.align 128*1024
+/*
+.align 128*1024
 .global ioMmuApv
 ioMmuApv:
-        .zero 128*1024
-        */
+.zero 128*1024
+*/
 .previous

@@ -76,43 +76,43 @@
 .endm
 
 .macro PSR_UNSET_ET_PIL _r
-        rd %psr, \_r\()
-        and \_r\(), ~(PSR_ET_BIT|PSR_PIL_MASK), \_r\()
-        wr \_r\(), %psr
-        WR_DELAY
+	rd %psr, \_r\()
+	and \_r\(), ~(PSR_ET_BIT|PSR_PIL_MASK), \_r\()
+	wr \_r\(), %psr
+	WR_DELAY
 .endm
 
 .macro GET_CPUID _r
 #ifdef CONFIG_SMP
-        rd %asr17, \_r\()
-        sra \_r\(), 0x1c, \_r\()
+	rd %asr17, \_r\()
+	sra \_r\(), 0x1c, \_r\()
 #else
-        mov %g0, \_r\()
+	mov %g0, \_r\()
 #endif
 .endm
 
 .macro GET_CKTHREAD _r, _tmp
 #ifdef CONFIG_SMP
-        GET_CPUID \_r\()
-        add \_r\(), \_r\(), \_tmp\()
-        add \_tmp\(), \_r\(), \_tmp\()
-        set localSchedInfo, \_r\()
-        sll \_tmp\(), 3, \_tmp\()
-        add \_r\(), \_tmp\(), \_r\()
+	GET_CPUID \_r\()
+	add \_r\(), \_r\(), \_tmp\()
+	add \_tmp\(), \_r\(), \_tmp\()
+	set localSchedInfo, \_r\()
+	sll \_tmp\(), 3, \_tmp\()
+	add \_r\(), \_tmp\(), \_r\()
 #else
-        set localSchedInfo, \_r\()
+	set localSchedInfo, \_r\()
 #endif
-        ld [\_r\()+_CKTHREAD_OFFSET], \_r\()
+	ld [\_r\()+_CKTHREAD_OFFSET], \_r\()
 .endm
 
 .macro GET_CPUCTXT _r, _tmp
-        GET_CKTHREAD \_r\(), \_tmp\()
-        ld [\_r\()+_CTRL_OFFSET+_IRQCPUCTXT_OFFSET], \_r\()
+	GET_CKTHREAD \_r\(), \_tmp\()
+	ld [\_r\()+_CTRL_OFFSET+_IRQCPUCTXT_OFFSET], \_r\()
 .endm
 
 .macro SET_CPUCTXT _ctxt, _tmp, _tmp2
-        GET_CKTHREAD \_tmp\(), \_tmp2\()
-        st \_ctxt\(), [\_tmp\()+_CTRL_OFFSET+_IRQCPUCTXT_OFFSET]
+	GET_CKTHREAD \_tmp\(), \_tmp2\()
+	st \_ctxt\(), [\_tmp\()+_CTRL_OFFSET+_IRQCPUCTXT_OFFSET]
 .endm
 
 .macro GET_CKTHREAD_STACK _r, _t
@@ -135,30 +135,30 @@
 .macro SET_CKTHREAD_SWTRAP _swtrap, _t, _tmp
 	GET_CKTHREAD \_t\(), \_tmp\()
 	ld [\_t\()+_CTRL_OFFSET+_G_OFFSET], \_t\()
-        st \_swtrap\(), [\_t\()+_SWTRAP_OFFSET]
+	st \_swtrap\(), [\_t\()+_SWTRAP_OFFSET]
 .endm
 
 .macro FROM_SV _psr, _to
 	andcc \_psr\(), PSR_PS_BIT, %g0
-        bne \_to\()
+	bne \_to\()
 	nop
 .endm
 
 .macro FROM_USR _psr, _to
 	andcc \_psr\(), PSR_PS_BIT, %g0
-        be \_to\()
+	be \_to\()
 	nop
 .endm
 
 .macro SAVE_CWND _r
-        std %i0, [\_r\()+I0_OFFS]
-        std %i2, [\_r\()+I2_OFFS]
-        std %i4, [\_r\()+I4_OFFS]
-        std %i6, [\_r\()+I6_OFFS]
-        std %l0, [\_r\()+L0_OFFS]
-        std %l2, [\_r\()+L2_OFFS]
-        std %l4, [\_r\()+L4_OFFS]
-        std %l6, [\_r\()+L6_OFFS]
+	std %i0, [\_r\()+I0_OFFS]
+	std %i2, [\_r\()+I2_OFFS]
+	std %i4, [\_r\()+I4_OFFS]
+	std %i6, [\_r\()+I6_OFFS]
+	std %l0, [\_r\()+L0_OFFS]
+	std %l2, [\_r\()+L2_OFFS]
+	std %l4, [\_r\()+L4_OFFS]
+	std %l6, [\_r\()+L6_OFFS]
 .endm
 
 .macro RESTORE_CWND _r
@@ -174,16 +174,16 @@
 
 .macro SAVE_REGRW _sp, _r
 	std \_r\()0, [\_sp\()+0x0]
-        std \_r\()2, [\_sp\()+0x8]
-        std \_r\()4, [\_sp\()+0x10]
-        std \_r\()6, [\_sp\()+0x18]
+	std \_r\()2, [\_sp\()+0x8]
+	std \_r\()4, [\_sp\()+0x10]
+	std \_r\()6, [\_sp\()+0x18]
 .endm
 
 .macro RESTORE_REGRW _sp, _r
-        ldd [\_sp\()+0x0], \_r\()0
-        ldd [\_sp\()+0x8], \_r\()2
-        ldd [\_sp\()+0x10], \_r\()4
-        ldd [\_sp\()+0x18], \_r\()6
+	ldd [\_sp\()+0x0], \_r\()0
+	ldd [\_sp\()+0x8], \_r\()2
+	ldd [\_sp\()+0x10], \_r\()4
+	ldd [\_sp\()+0x18], \_r\()6
 .endm
 
 .macro SAVE_IRQCTXT _sp
@@ -197,14 +197,14 @@
 	st %g1, [\_sp\()+12]
 	rd %y, %g1
 	st %g1, [\_sp\()+8]
-        GET_CPUCTXT %g1, %g2
-        st %g1, [\_sp\()]
-        SET_CPUCTXT \_sp\(), %g1, %g2
+	GET_CPUCTXT %g1, %g2
+	st %g1, [\_sp\()]
+	SET_CPUCTXT \_sp\(), %g1, %g2
 .endm
 
 .macro RESTORE_IRQCTXT _sp
-        ld [\_sp\()], %g1
-        SET_CPUCTXT %g1, %g2, %g3
+	ld [\_sp\()], %g1
+	SET_CPUCTXT %g1, %g2, %g3
 	ld [\_sp\()+8], %g1
 	wr %g1, %y
 	ld [\_sp\()+12], %g1
@@ -224,44 +224,44 @@
 .endm
 
 .macro CKTHREAD_CTRL_RESTORE_IFLAGS _r, _iFlags
-        st \_iFlags\(), [\_r\()+_IFLAGS_OFFSET+_VAL_OFFSET]
+	st \_iFlags\(), [\_r\()+_IFLAGS_OFFSET+_VAL_OFFSET]
 .endm
 
 .macro CKTHREAD_CTRL_SET_IFLAGS _r, _iFlags, _tmp
-        GET_CKTHREAD \_r\(), \_tmp\()
+	GET_CKTHREAD \_r\(), \_tmp\()
 	ld [\_r\()+_CTRL_OFFSET+_G_OFFSET], \_r\()
 	ld [\_r\()+_PARTCTRLTAB_OFFSET], \_r\()
-        st \_iFlags\(), [\_r\()+_IFLAGS_OFFSET+_VAL_OFFSET]
+	st \_iFlags\(), [\_r\()+_IFLAGS_OFFSET+_VAL_OFFSET]
 .endm
 
 
 .macro DO_FLUSH_CACHE _r0, _r1, _r2, _r3
-        GET_CKTHREAD \_r0\(), \_r1\()
-        ld [\_r0\()+_CTRL_OFFSET+_FLAGS_OFFSET], \_r1\()
+	GET_CKTHREAD \_r0\(), \_r1\()
+	ld [\_r0\()+_CTRL_OFFSET+_FLAGS_OFFSET], \_r1\()
 
-        srl \_r1\(), 7, \_r2\()
-        srl \_r1\(), 5, \_r1\()
-        and \_r1\(), \_r2\(), \_r1\()
+	srl \_r1\(), 7, \_r2\()
+	srl \_r1\(), 5, \_r1\()
+	and \_r1\(), \_r2\(), \_r1\()
 
-        andcc \_r1\(), 2, %g0
-        bne 61f
-        andcc \_r1\(), 1, %g0
-        be 62f
-        nop
-        b 63f
-        nop
+	andcc \_r1\(), 2, %g0
+	bne 61f
+	andcc \_r1\(), 1, %g0
+	be 62f
+	nop
+	b 63f
+	nop
 61:
-        FLUSH_ICACHE(\_r2\(), \_r3\())
-        andcc \_r1\(), 1, %g0
-        be 62f
-        nop
+	FLUSH_ICACHE(\_r2\(), \_r3\())
+	andcc \_r1\(), 1, %g0
+	be 62f
+	nop
 63:
-        FLUSH_DCACHE(\_r2\(), \_r3\())
+	FLUSH_DCACHE(\_r2\(), \_r3\())
 
 62:
-        ld [\_r0\()+_CTRL_OFFSET+_FLAGS_OFFSET], \_r1\()
-        andn \_r1\(), (1<<5)|(1<<6), \_r1\()
-        st \_r1\(), [\_r0\()+_CTRL_OFFSET+_FLAGS_OFFSET]
+	ld [\_r0\()+_CTRL_OFFSET+_FLAGS_OFFSET], \_r1\()
+	andn \_r1\(), (1<<5)|(1<<6), \_r1\()
+	st \_r1\(), [\_r0\()+_CTRL_OFFSET+_FLAGS_OFFSET]
 .endm
 
 .text
@@ -298,9 +298,9 @@ ENTRY(WindowOverflowTrap)
 #endif
 
 3:
-        set __fromWH, %l5
-        mov 1, %l6
-        st %l6, [%l5]
+	set __fromWH, %l5
+	mov 1, %l6
+	st %l6, [%l5]
 	PSR_SET_ET_PIL %l5
 
 	save ! Decrement CWP
@@ -315,8 +315,8 @@ ENTRY(WindowOverflowTrap)
 
 	restore			! Increment CWP
 
-        set __fromWH, %l5
-        st %g0, [%l5]
+	set __fromWH, %l5
+	st %g0, [%l5]
 
 	RESTORE_PSR %l0
 
@@ -356,9 +356,9 @@ ENTRY(WindowUnderflowTrap)
 #endif
 
 3:
-        set __fromWH, %l5
-        mov 1, %l6
-        st %l6, [%l5]
+	set __fromWH, %l5
+	mov 1, %l6
+	st %l6, [%l5]
 	PSR_SET_ET_PIL %l5
 			! Rotate WIM register one bit to the left
 	rd %wim, %l5	! Instruction in the entry
@@ -375,8 +375,8 @@ ENTRY(WindowUnderflowTrap)
 	save			! Come back to the trap window
 	save			! where return address is located
 
-        set __fromWH, %l5
-        st %g0, [%l5]
+	set __fromWH, %l5
+	st %g0, [%l5]
 	RESTORE_PSR %l0
 
 	jmpl %l1, %g0
@@ -397,11 +397,11 @@ ENTRY(FpDisabledTrap)
 	or %l4, %lo(DoTrap), %l4
 
 4:
-        CKTHREAD_CTRL_GET_IFLAGS %l5, %l6
-        set PSR_EF_BIT, %l5
-        andcc %l6, %l5, %l6
-        be 41b
-        nop
+	CKTHREAD_CTRL_GET_IFLAGS %l5, %l6
+	set PSR_EF_BIT, %l5
+	andcc %l6, %l5, %l6
+	be 41b
+	nop
 
 	rd %psr, %l5
 	set PSR_EF_BIT, %l6
@@ -412,12 +412,12 @@ ENTRY(FpDisabledTrap)
 // FIX THIS
 	! Current FPU's owner
 #ifdef CONFIG_SMP
-        GET_CPUID %l5
-        add %l5, %l5, %l6
-        add %l6, %l5, %l6
-        set localSchedInfo, %l5
-        sll %l6, 3, %l6
-        add %l5, %l6, %l7
+	GET_CPUID %l5
+	add %l5, %l5, %l6
+	add %l6, %l5, %l6
+	set localSchedInfo, %l5
+	sll %l6, 3, %l6
+	add %l5, %l6, %l7
 #else
 	set localSchedInfo, %l7
 #endif
@@ -507,16 +507,16 @@ KPreempt:
 	rd %wim, %g1
 
 	! check if there is an overflow
-        srl %g1, %l0, %g3
-        cmp %g3, 1
-        bne 1f
-        nop
+	srl %g1, %l0, %g3
+	cmp %g3, 1
+	bne 1f
+	nop
 
 	wr %g0, %wim
 	WR_DELAY
 
 	! so, solve the overflow
-        save
+	save
 	MOD_SHIFT2RIGHT %g1, %g7, CONFIG_REGISTER_WINDOWS
 	SAVE_CWND %sp
 	restore
@@ -533,21 +533,21 @@ KPreempt:
 
 	PSR_UNSET_ET %g1
 
-        rd %wim, %l4
-        add %l0, 1, %l6
-        and %l6, PSR_CWP_MASK, %l6
-        srl %l4, %l6, %l5
-        cmp %l5, 1
-        bne 2f
+	rd %wim, %l4
+	add %l0, 1, %l6
+	and %l6, PSR_CWP_MASK, %l6
+	srl %l4, %l6, %l5
+	cmp %l5, 1
+	bne 2f
 
-        MOD_SHIFT2LEFT %l4, %l5, CONFIG_REGISTER_WINDOWS
+	MOD_SHIFT2LEFT %l4, %l5, CONFIG_REGISTER_WINDOWS
 
-        wr %l4, 0, %wim
+	wr %l4, 0, %wim
        	WR_DELAY
 
-        restore
-        RESTORE_CWND %sp
-        save
+	restore
+	RESTORE_CWND %sp
+	save
 2:
 	sub %fp, _CPUCTXT_SIZEOF, %l5
 	RESTORE_IRQCTXT %l5
@@ -563,12 +563,12 @@ KPreempt:
 
 ENTRY(CommonTrapHandler)
 .Tbegin_trap:
-        rd %psr, %l0
-        set __fromWH, %l5
-        ld [%l5], %l5
-        cmp %l5, 1
-        be 111f
-        nop
+	rd %psr, %l0
+	set __fromWH, %l5
+	ld [%l5], %l5
+	cmp %l5, 1
+	be 111f
+	nop
 
 	FROM_SV %l0, KPreempt
 111:
@@ -632,13 +632,13 @@ FromIRet:
 
 !3:
 	! check if there is an overflow
-        srl %g1, %l0, %g3
-        cmp %g3, 1
-        bne 1f
-        nop
+	srl %g1, %l0, %g3
+	cmp %g3, 1
+	bne 1f
+	nop
 
 	! so solve the overflow
-        save
+	save
 	MOD_SHIFT2RIGHT %g1, %g7, CONFIG_REGISTER_WINDOWS
 	SAVE_CWND %sp
 	restore
@@ -651,8 +651,8 @@ FromIRet:
 	PSR_SET_ET_PIL %g1
 
 #ifdef CONFIG_AUDIT_EVENTS
-        call AuditAsmHCall
-        nop
+	call AuditAsmHCall
+	nop
 #endif
 
 	! call handler
@@ -735,12 +735,12 @@ FromIRet:
 	! Is it required to trigger a virq?
 	! %l4 will hold vTBR address
 !	andcc %l4, 0x1, %g0
-        cmp %l4, -1
+	cmp %l4, -1
 	bne,a EmulateTrapSv
-        mov %l4, %l3
+	mov %l4, %l3
 !	srl %l4, 1, %l3
 
-        DO_FLUSH_CACHE %l4, %l5, %l6, %l7
+	DO_FLUSH_CACHE %l4, %l5, %l6, %l7
 
 	RESTORE_PSR %l0
 .Tend_trap:
@@ -759,16 +759,16 @@ ENTRY(DoHypercall)
 	mov %i2, %o2
 	mov %i3, %o3
 	mov %i4, %o4
-        call AuditHCall
-        mov %i0, %o0
+	call AuditHCall
+	mov %i0, %o0
 #endif
 	set hypercallsTab, %g1
 	sll %i0, 2, %g2
 	ld [%g1+%g2], %g1
 
 	cmp  %g1, 0
-        be 1f
-        nop
+	be 1f
+	nop
 
 	mov %i1, %o0
 	mov %i2, %o1
@@ -780,8 +780,8 @@ ENTRY(DoHypercall)
        	mov %o0, %i0
 
 #ifdef CONFIG_AUDIT_EVENTS
-        call AuditHCallRet
-        nop
+	call AuditHCallRet
+	nop
 #endif
 
 	b 2f
@@ -800,7 +800,7 @@ ENTRY(DoHypercall)
 
 	! store returned value
 	jmp %l4+4
-        nop
+	nop
 
 ENTRY(AsmHypercallHandler)
 	! l0 <- psr
@@ -812,11 +812,11 @@ ENTRY(AsmHypercallHandler)
 	nop
 
 #ifdef CONFIG_AUDIT_EVENTS
-        set auditAsmHCall, %l5
-        //sll %i0, 2, %l6
-        ldsb [%l5+%i0], %l7
-        add %l7, 1, %l7
-        stsb %l7, [%l5+%i0]
+	set auditAsmHCall, %l5
+	//sll %i0, 2, %l6
+	ldsb [%l5+%i0], %l7
+	add %l7, 1, %l7
+	stsb %l7, [%l5+%i0]
 #endif
 
 	set asmHypercallsTab, %l5
@@ -831,7 +831,7 @@ ENTRY(AsmHypercallHandler)
 	nop
 
 1:
-        DO_FLUSH_CACHE %l4, %l5, %l6, %l7
+	DO_FLUSH_CACHE %l4, %l5, %l6, %l7
 	RESTORE_PSR %l0
 
 .Tend_ahp:
@@ -839,59 +839,59 @@ ENTRY(AsmHypercallHandler)
 	rett %l2+4
 
 ENTRY(EmulateTrap)
-        sll %l3, 1, %l3
-        or %l3, 1, %l3
-        SET_CKTHREAD_SWTRAP %l3, %l5, %l6
+	sll %l3, 1, %l3
+	or %l3, 1, %l3
+	SET_CKTHREAD_SWTRAP %l3, %l5, %l6
 
-        set _retl, %l4
+	set _retl, %l4
 	set FromIRet, %l5
 
 	jmp %l5
 	nop
 
 EmulateTrapSv:
-        CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
+	CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
 	andn %l5, PSR_ET_BIT, %l5
-        CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l5
+	CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l5
 
 ! The kthread stack is used as free room to store the current
 ! rw, in the case an overflow/underflow trap is raised then,
 ! its content will be smashed
 
-        GET_CKTHREAD_STACK %l4, %l5
+	GET_CKTHREAD_STACK %l4, %l5
 
-        mov %g4, %l5
-        sub %l4, 0x20, %g4
-        SAVE_REGRW %g4, %l
+	mov %g4, %l5
+	sub %l4, 0x20, %g4
+	SAVE_REGRW %g4, %l
 
-        PSR_SET_ET_PIL %l4
+	PSR_SET_ET_PIL %l4
 
-        restore
-        save
-        save
-        restore
+	restore
+	save
+	save
+	restore
 
-        GET_CKTHREAD_STACK %l4, %l5
+	GET_CKTHREAD_STACK %l4, %l5
 
-        sub %l4, 0x20, %g4
-        RESTORE_REGRW %g4, %l
-        mov %l5, %g4
+	sub %l4, 0x20, %g4
+	RESTORE_REGRW %g4, %l
+	mov %l5, %g4
 
-        PSR_UNSET_ET %l4
+	PSR_UNSET_ET %l4
 
-        mov %l3, %o0
+	mov %l3, %o0
 
        	andn %l0, PSR_CWP_MASK, %o2
 
        	set PSR_PIL_MASK|PSR_ET_BIT, %l5
-        andn %l0, %l5, %l0 ! <- saving old PSR (FLAGS)
+	andn %l0, %l5, %l0 ! <- saving old PSR (FLAGS)
 
-        CKTHREAD_CTRL_GET_IFLAGS %l5, %l4
-        or %l0, %l4, %l0
+	CKTHREAD_CTRL_GET_IFLAGS %l5, %l4
+	or %l0, %l4, %l0
 
        	save
 
-        DO_FLUSH_CACHE %l4, %l5, %l6, %l7
+	DO_FLUSH_CACHE %l4, %l5, %l6, %l7
        	rd %psr, %l0
 	and %l0, PSR_CWP_MASK, %l0
 	wr %i2, %l0, %psr
@@ -909,54 +909,54 @@ ENTRY(SparcIRetSys)
 
 ENTRY(SIRetCheckRetAddr)
 	! Checking the correctness of %l1 and %l2
-        PSR_SET_ET_PIL %l5
+	PSR_SET_ET_PIL %l5
        	set CONFIG_XM_OFFSET, %l5
        	cmp %l1, %l5
 	bgu 14f
-        nop
+	nop
 
-        cmp %l2, %l5
+	cmp %l2, %l5
 	bleu 24f
-        nop
+	nop
 
 14:
-        save
+	save
        	clr %l3
 	sethi %hi(DoUnrecovExcp), %l4
 	b CommonTrapHandler
 	or %l4, %lo(DoUnrecovExcp), %l4
 24:
 
-        ld [%l1], %l5
-        ld [%l2], %l5
-        PSR_UNSET_ET_PIL %l5
+	ld [%l1], %l5
+	ld [%l2], %l5
+	PSR_UNSET_ET_PIL %l5
 ENTRY(EIRetCheckRetAddr)
 
-        rd %psr, %l3
+	rd %psr, %l3
 
-        rd %wim, %l4
-        add %l3, 1, %l5
-        and %l5, CONFIG_REGISTER_WINDOWS-1, %l5
-        srl %l4, %l5, %l5
-        cmp %l5, 1
-        be 1f
-        nop
+	rd %wim, %l4
+	add %l3, 1, %l5
+	and %l5, CONFIG_REGISTER_WINDOWS-1, %l5
+	srl %l4, %l5, %l5
+	cmp %l5, 1
+	be 1f
+	nop
 
-        set PSR_ICC_MASK, %l4
+	set PSR_ICC_MASK, %l4
 
-        andn %l3, %l4, %l3
-        and %l0, %l4, %l0
+	andn %l3, %l4, %l3
+	and %l0, %l4, %l0
 
-        or %l0, %l3, %l0
+	or %l0, %l3, %l0
 
-        CKTHREAD_CTRL_GET_IFLAGS %l4, %l3
-        or %l3, PSR_ET_BIT, %l3
-        CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l3
+	CKTHREAD_CTRL_GET_IFLAGS %l4, %l3
+	or %l3, PSR_ET_BIT, %l3
+	CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l3
 
-        and %l3, PSR_PIL_MASK, %l3
-        cmp %l3, PSR_PIL_MASK
-        be 112f
-        nop
+	and %l3, PSR_PIL_MASK, %l3
+	cmp %l3, PSR_PIL_MASK
+	be 112f
+	nop
 
 	set _retl, %l4
 	set FromIRet, %l5
@@ -966,7 +966,7 @@ ENTRY(EIRetCheckRetAddr)
 
 112:
        	! returning to userland so it isn't necessary to check where we return
-        DO_FLUSH_CACHE %l4, %l5, %l6, %l7
+	DO_FLUSH_CACHE %l4, %l5, %l6, %l7
 
        	RESTORE_PSR %l0
 
@@ -975,7 +975,7 @@ ENTRY(EIRetCheckRetAddr)
 	rett %l2
 
 1:
-        save
+	save
 	clr %l3
 	sethi %hi(DoUnrecovExcp), %l4
 	b CommonTrapHandler
@@ -1046,12 +1046,12 @@ ENTRY(SparcFlushRegWinSys)
 	mov %l3, %g3
 
 ENTRY(SparcGetPsrSys)
-        set PSR_PIL_MASK|PSR_ET_BIT|PSR_EF_BIT, %l3
+	set PSR_PIL_MASK|PSR_ET_BIT|PSR_EF_BIT, %l3
        	andn %l0, %l3, %i0
-        CKTHREAD_CTRL_GET_IFLAGS %l5, %l4
+	CKTHREAD_CTRL_GET_IFLAGS %l5, %l4
 
-        and %l4, %l3, %l4
-        or %i0, %l4, %i0
+	and %l4, %l3, %l4
+	or %i0, %l4, %i0
 
 	jmp %l7+4
 	nop
@@ -1062,43 +1062,43 @@ ENTRY(SparcSetPsrSys)
 	andn %l0, %l3, %l0
 	or %l4, %l0, %l0
 
-        set PSR_PIL_MASK|PSR_ET_BIT, %l3
-        GET_CKTHREAD_FLAGS %l4, %l5
-        andcc %l4, (1<<1), %g0 ! KTHREAD_FP_F
-        be 111f
-        nop
+	set PSR_PIL_MASK|PSR_ET_BIT, %l3
+	GET_CKTHREAD_FLAGS %l4, %l5
+	andcc %l4, (1<<1), %g0 ! KTHREAD_FP_F
+	be 111f
+	nop
 
-        set PSR_EF_BIT, %l5
-        or %l3, %l5, %l3
+	set PSR_EF_BIT, %l5
+	or %l3, %l5, %l3
 
-        andcc %i1, %l5, %l4
-        bne 111f
-        andn %l0, %l5, %l0
-        or %l4, %l0, %l0
+	andcc %i1, %l5, %l4
+	bne 111f
+	andn %l0, %l5, %l0
+	or %l4, %l0, %l0
 
 111:
       	and %i1, %l3, %l3
 
-        CKTHREAD_CTRL_SET_IFLAGS %l4, %l3, %l5
+	CKTHREAD_CTRL_SET_IFLAGS %l4, %l3, %l5
 
-        and %l3, PSR_ET_BIT, %l4
-        cmp %l4, PSR_ET_BIT
-        bne 112f
-        nop
+	and %l3, PSR_ET_BIT, %l4
+	cmp %l4, PSR_ET_BIT
+	bne 112f
+	nop
 
-        and %l3, PSR_PIL_MASK, %l4
-        cmp %l4, PSR_PIL_MASK
-        be 112f
-        nop
+	and %l3, PSR_PIL_MASK, %l4
+	cmp %l4, PSR_PIL_MASK
+	be 112f
+	nop
 
-        mov %l2, %l1
-        add %l2, 4, %l2
+	mov %l2, %l1
+	add %l2, 4, %l2
 
 	set _retl, %l4
 	set FromIRet, %l5
 
 	jmp %l5
-        nop
+	nop
 
 112:
        	jmp %l7+4
@@ -1120,73 +1120,73 @@ ENTRY(SparcSetPilSys)
 !        set PSR_PIL_MASK|PSR_ET_BIT, %l3
 !        andn %l0, %l3, %i0
 
-        CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
+	CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
 !        and %l5, %l3, %l5
  !       or %i0, %l5, %i0
 	or %l5, PSR_PIL_MASK, %l5
-        CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l5
+	CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l5
        	jmp %l7+4
 	nop
 
 ENTRY(SparcClearPilSys)
 !        set PSR_PIL_MASK|PSR_ET_BIT, %l3
 !        andn %l0, %l3, %i0
-        CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
+	CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
 !        and %l5, %l3, %l5
 !        or %i0, %l5, %i0
 	andn %l5, PSR_PIL_MASK, %l5
-        CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l5
+	CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l5
 
-        mov %l2, %l1
-        add %l2, 4, %l2
+	mov %l2, %l1
+	add %l2, 4, %l2
 
        	set _retl, %l4
 	set FromIRet, %l5
 
 	jmp %l5
-        nop
+	nop
 
 ENTRY(SparcCtrlWinFlowSys)
 
-        ! Preveting an underflow trap
+	! Preveting an underflow trap
 
-        rd      %wim, %l5
-        add     %l0, 2, %l6     ! cwp + 2     (1 current windows of user + 1) =2
-        and     %l6, 0x1f, %l6
-        subcc   %l6, CONFIG_REGISTER_WINDOWS, %l4
-        bneg,a  1f
-        nop
+	rd      %wim, %l5
+	add     %l0, 2, %l6     ! cwp + 2     (1 current windows of user + 1) =2
+	and     %l6, 0x1f, %l6
+	subcc   %l6, CONFIG_REGISTER_WINDOWS, %l4
+	bneg,a  1f
+	nop
 
-        mov     %l4,%l6
+	mov     %l4,%l6
 1:
-        srl     %l5, %l6, %l6   ! win >> cwp + 2
+	srl     %l5, %l6, %l6   ! win >> cwp + 2
 
-        cmp     %l6, 1
-        bne     2f
-        nop
+	cmp     %l6, 1
+	bne     2f
+	nop
 
-        rd %wim, %l5    ! Instruction in the entry
-        sll %l5, 1, %l6 ! Instruction delayed in the entry
-        srl %l5, (CONFIG_REGISTER_WINDOWS)-1, %l5
-        wr %l5, %l6, %wim
-        WR_DELAY
+	rd %wim, %l5    ! Instruction in the entry
+	sll %l5, 1, %l6 ! Instruction delayed in the entry
+	srl %l5, (CONFIG_REGISTER_WINDOWS)-1, %l5
+	wr %l5, %l6, %wim
+	WR_DELAY
 
-        restore                 ! CWP -> Window saved on the stack
-        restore
+	restore                 ! CWP -> Window saved on the stack
+	restore
 
-        RESTORE_CWND %sp
+	RESTORE_CWND %sp
 
-        save                    ! Come back to the trap window
-        save                    ! where return address is located
+	save                    ! Come back to the trap window
+	save                    ! where return address is located
 
 2:
-        jmp %l7+4
-        nop
+	jmp %l7+4
+	nop
 
 .previous
 
 .data
 .align 4
 __fromWH:
-        .long 0
+	.long 0
 .previous
