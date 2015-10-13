@@ -41,6 +41,7 @@ static inline void DynListInit(struct dynList *l) {
     SpinUnlock(&l->lock);
 }
 
+//TODO DynListInsertHead Will never return unzero number...
 static inline xm_s32_t DynListInsertHead(struct dynList *l, struct dynListNode *e) {
 //cyclic LinkedList
     if (e->list) {

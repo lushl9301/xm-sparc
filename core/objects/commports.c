@@ -496,6 +496,7 @@ static xm_s32_t SendQueuingPort(xmObjDesc_t desc, void *__gParam msgPtr, xm_u32_
 
         channel=&channelTab[xmcCommPorts[port].channelId];
         SpinLock(&channel->q.lock);
+        //TODO covert channel
         if (channel->q.usedMsgs<xmcChannel->q.maxNoMsgs) {
             if (!(msg=(struct msg *)DynListRemoveTail(&channel->q.freeMsgs))) {
                 cpuCtxt_t ctxt;
@@ -553,6 +554,7 @@ static xm_s32_t ReceiveQueuingPort(xmObjDesc_t desc, void *__gParam msgPtr, xm_u
     if (OBJDESC_GET_PARTITIONID(desc)!=KID2PARTID(sched->cKThread->ctrl.g->id))
         return XM_PERM_ERROR;
 
+    //TODO maybe want to make sure two readings are  the same?
     SpinLock(&portTab[port].lock);
     partitionId=portTab[port].partitionId;
     flags=portTab[port].flags;
@@ -589,7 +591,7 @@ static xm_s32_t ReceiveQueuingPort(xmObjDesc_t desc, void *__gParam msgPtr, xm_u
                 cpuCtxt_t ctxt;
                 SpinUnlock(&channel->q.lock);
                 GetCpuCtxt(&ctxt);
-                    SystemPanic(&ctxt, "[ReceiveQueuingPort] Queuing channels internal error");
+                SystemPanic(&ctxt, "[ReceiveQueuingPort] Queuing channels internal error");
             }
             retSize=(msgSize<msg->length)?msgSize:msg->length;
             memcpy(msgPtr, msg->buffer, retSize);
@@ -685,7 +687,8 @@ static inline xm_s32_t GetQPortInfo(xmObjDesc_t desc, xmQueuingPortInfo_t *info)
 
     // Look for the channel
     for (port=partition->commPortsOffset; port<(partition->noPorts+partition->commPortsOffset); port++)
-        if (!strcmp(info->portName, &xmcStringTab[xmcCommPorts[port].nameOffset])) break;
+        if (!strcmp(info->portName, &xmcStringTab[xmcCommPorts[port].nameOffset]))
+            break;
 
     if (port>=xmcTab.noCommPorts)
         return XM_INVALID_PARAM;
@@ -712,7 +715,8 @@ static xm_s32_t CtrlQueuingPort(xmObjDesc_t desc, xm_u32_t cmd, union queuingPor
 
     switch(cmd) {
     case XM_COMM_CREATE_PORT:
-        if (!args->create.portName||(CheckGParam(args->create.portName, CONFIG_ID_STRING_LENGTH, 1, PFLAG_NOT_NULL)<0)) return XM_INVALID_PARAM;
+        if (!args->create.portName||(CheckGParam(args->create.portName, CONFIG_ID_STRING_LENGTH, 1, PFLAG_NOT_NULL)<0))
+            return XM_INVALID_PARAM;
         return CreateQueuingPort(desc, args->create.portName, args->create.maxNoMsgs, args->create.maxMsgSize, args->create.direction);
     case XM_COMM_GET_PORT_STATUS:
         return GetQPortStatus(desc, &args->status);
@@ -767,7 +771,7 @@ static inline xm_s32_t CreateTTnocPort(xmObjDesc_t desc, xm_s8_t *__gParam portN
     if (flags&COMM_PORT_OPENED)
         return XM_NO_ACTION;
 
-//     kprintf("[CreaTTnocPort] port=%d - channelId=%d  noChannels=%d\n",port,xmcCommPorts[port].channelId,xmcTab.noCommChannels);
+    // kprintf("[CreaTTnocPort] port=%d - channelId=%d  noChannels=%d\n",port,xmcCommPorts[port].channelId,xmcTab.noCommChannels);
 
     if (xmcCommPorts[port].channelId!=XM_NULL_CHANNEL) {
         ASSERT((xmcCommPorts[port].channelId>=0)&&(xmcCommPorts[port].channelId<xmcTab.noCommChannels));
@@ -1102,6 +1106,7 @@ xm_s32_t __VBOOT SetupComm(void) {
         portTab[e].lock=SPINLOCK_INIT;
 
     /* create the channels */
+    //allocate mem and init
     for (e=0; e<xmcTab.noCommChannels; e++) {
         switch(xmcCommChannelTab[e].type) {
         case XM_SAMPLING_CHANNEL:
@@ -1112,7 +1117,7 @@ xm_s32_t __VBOOT SetupComm(void) {
             break;
 #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
         case XM_TTNOC_CHANNEL:
-//             GET_MEMZ(channelTab[e].t.buffer, xmcCommChannelTab[e].t.maxLength);
+            // GET_MEMZ(channelTab[e].t.buffer, xmcCommChannelTab[e].t.maxLength);
             GET_MEMZ(channelTab[e].t.receiverTab, xmcCommChannelTab[e].t.noReceivers*sizeof(partition_t *));
             GET_MEMZ(channelTab[e].t.receiverPortTab, xmcCommChannelTab[e].t.noReceivers*sizeof(xm_s32_t));
             channelTab[e].t.lock=SPINLOCK_INIT;
@@ -1124,6 +1129,7 @@ xm_s32_t __VBOOT SetupComm(void) {
             DynListInit(&channelTab[e].q.recvMsgs);
             for (i=0; i<xmcCommChannelTab[e].q.maxNoMsgs; i++) {
                 GET_MEMZ(channelTab[e].q.msgPool[i].buffer, xmcCommChannelTab[e].q.maxLength);
+                //TODO will never return nonzero value
                 if(DynListInsertHead(&channelTab[e].q.freeMsgs, &channelTab[e].q.msgPool[i].listNode)) {
                     cpuCtxt_t ctxt;
                     GetCpuCtxt(&ctxt);
