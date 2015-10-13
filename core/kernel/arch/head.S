@@ -16,9 +16,9 @@
 #include <arch/processor.h>
 #include <arch/xm_def.h>
 #include <arch/leon.h>
-	
+
 #define WIM_INIT  2
-	
+
 .macro WR_DELAY
         nop
         nop
@@ -30,14 +30,14 @@
 -----------------
 4096 4KPAGES
 1 L1
-1 L2        
+1 L2
 64 L3
---------------       
+--------------
 */
 
 #define NO_PTDL2_XMVMAP 1
 #define NO_PTDL3_XMVMAP 64
-        
+
 .section .boot.text, "ax"
 ASM_ALIGN
 ENTRY(start)
@@ -55,7 +55,7 @@ ENTRY(_start)
         set CCR_DS_BIT, %g2
         or %g1, %g2, %g1
 #endif
-#ifdef CONFIG_CACHE_IBURST_FETCH        
+#ifdef CONFIG_CACHE_IBURST_FETCH
         set CCR_IB_BIT, %g2
         or %g1, %g2, %g1
 #endif
@@ -87,8 +87,8 @@ ENTRY(_start)
         bne 2f
         nop
 #endif
-        
-	set _VIRT2PHYS(_sbss), %o0  
+
+	set _VIRT2PHYS(_sbss), %o0
 	set _VIRT2PHYS(_ebss), %o1
 1:	stb %g0, [%o0]
 	add %o0, 0x1, %o0
@@ -107,7 +107,7 @@ ENTRY(_start)
 	cmp %o4, %g0
 	bne 1f
 	mov 1, %o4
-	
+
 	st %o4, [%o3]
 
 3:	ldub [%o0], %o3
@@ -116,10 +116,10 @@ ENTRY(_start)
 	subcc %o0, %o1, %g0
 	bl 3b
 	add %o2, 0x1, %o2
-	
+
 	b 2f
 	nop
-	
+
 1:	ldub [%o2], %o3
 	stb %o3, [%o0]
 	add %o0, 0x1, %o0
@@ -127,7 +127,7 @@ ENTRY(_start)
 	bl 1b
 	add %o2, 0x1, %o2
 
-2:        
+2:
 	/* Clear general registers */
 	clr %g1
         clr %g2
@@ -136,11 +136,11 @@ ENTRY(_start)
         clr %g5
         clr %g6
         clr %g7
-	
+
 	/* Set up window registers */
 	mov %g0, %wim
 	WR_DELAY
-	
+
 	mov CONFIG_REGISTER_WINDOWS, %g1
 	save
 1:
@@ -163,13 +163,13 @@ ENTRY(_start)
         subcc %g1, 1, %g1
         bnz,a   1b
         save
-	
-	/* Set up PSR, WIM, TBR and Y registers  */	
+
+	/* Set up PSR, WIM, TBR and Y registers  */
 	mov WIM_INIT, %wim
 	mov (PSR_PIL_MASK|PSR_ET_BIT|PSR_S_BIT|PSR_EF_BIT), %psr
 	WR_DELAY
 	mov %g0, %y
-	
+
 #ifdef CONFIG_MMU
 #ifdef CONFIG_SMP
         rd %asr17, %g1
@@ -178,13 +178,13 @@ ENTRY(_start)
         bne 113f
         nop
 #endif
-        
+
 	/* Fill ptdL3 with XM_VMAPSIZE/PAGE_SIZE pages */
         set ((CONFIG_XM_LOAD_ADDR&PAGE_MASK)>>4)|_PG_ARCH_RW|_PG_ARCH_CACHE|_PG_ARCH_PTE_PRESENT, %o0
 	set _VIRT2PHYS(_ptdL3), %o1
 	set NO_PTDL3_XMVMAP*PTDL3ENTRIES*4, %o3
 	add %o1, %o3, %o2
-	
+
 1:	st %o0, [%o1]
 	add %o1, 0x4, %o1
 	subcc %o1, %o2, %g0
@@ -193,7 +193,7 @@ ENTRY(_start)
 	set _VIRT2PHYS(_ptdL3), %o0
 	srl %o0, 4, %o0
 	or %o0, _PG_ARCH_PTD_PRESENT, %o0
-	
+
 	/* Fill ptdL2 with the correspondent ptdL3 entries */
 	set _VIRT2PHYS(_ptdL2), %o1
 	set NO_PTDL2_XMVMAP*PTDL2ENTRIES*4, %o3
@@ -213,7 +213,7 @@ ENTRY(_start)
        	set NO_PTDL2_XMVMAP*4, %o3
 	set (CONFIG_XM_OFFSET>>24)*4, %o4
 	add %o1, %o4, %o1
-	
+
 	add %o1, %o3, %o2
 
 1:	st %o0, [%o1]
@@ -226,12 +226,12 @@ ENTRY(_start)
 	set _VIRT2PHYS(_ptdL2), %o0
 	srl %o0, 4, %o0
 	or %o0, _PG_ARCH_PTD_PRESENT, %o0
-	
-	set _VIRT2PHYS(_ptdL1), %o1        
+
+	set _VIRT2PHYS(_ptdL1), %o1
 	set NO_PTDL2_XMVMAP*4, %o3
 	set (CONFIG_XM_LOAD_ADDR>>24)*4, %o4
 	add %o1, %o4, %o1
-	
+
 	add %o1, %o3, %o2
 
 1:	st %o0, [%o1]
@@ -239,20 +239,20 @@ ENTRY(_start)
 	subcc %o1, %o2, %g0
 	bl 1b
 	add %o0, 16, %o0
-	
-	/* Fill the context table with ptdL1 */	
+
+	/* Fill the context table with ptdL1 */
 	set _VIRT2PHYS(_ptdL1), %o0
 	srl %o0, 4, %o0
 	or %o0, _PG_ARCH_PTD_PRESENT, %o0
 
-	set _VIRT2PHYS(contextTab), %o1	
+	set _VIRT2PHYS(contextTab), %o1
 	st %o0, [%o1]
-        
+
 113:
 	/* Load MMU CTXT PTR <- (contextTab>>4) */
 	set _VIRT2PHYS(contextTab), %o1
 	srl %o1, 4, %o1
-	
+
 	set LEON_MMU_CPR_REG, %g1
 	sta %o1, [%g1] LEON_MMU_ASI
 
@@ -266,7 +266,7 @@ ENTRY(_start)
 	or %g2, 0x1, %g2
 	sta %g2, [%g1] LEON_MMU_ASI
 #endif
-	
+
 	sethi %hi(StartXM), %g1
 	jmpl %g1 + %lo(StartXM), %g0
 	nop
@@ -281,27 +281,27 @@ _Reset2:
 #endif
 	jmp %o0
 	nop
-	
+
 .text
 
 ENTRY(StartXM)
 	set trapTable, %g1
 	wr %g1, %tbr
-	
+
 	/* Setting up a kernel stack */
-#ifdef CONFIG_SMP        
+#ifdef CONFIG_SMP
         rd %asr17, %o0
         sra %o0, 0x1c, %o0
 #else
         mov %g0, %o0
-#endif        
+#endif
         set CONFIG_KSTACK_SIZE, %g3
         add %o0, 1, %g1
 
         set __idle_kthread, %fp
 1:      dec %g1
         cmp %g1, 0
-        bg 1b        
+        bg 1b
         add %fp, %g3, %fp
 
         sub %fp, %g3, %o1
@@ -309,9 +309,9 @@ ENTRY(StartXM)
 #ifdef CONFIG_SMP
         cmp %o0, 0
         bne 1f
-#endif        
+#endif
         sub %fp, MIN_STACK_FRAME, %sp
-        
+
 	/* calling our first C function */
 	call Setup
         nop
@@ -319,8 +319,8 @@ ENTRY(StartXM)
 1:
         call InitSecondaryCpu
 	nop
-#endif        
-        
+#endif
+
 ENTRY(__HaltSystem)
 1:	b 1b
 	nop
@@ -330,7 +330,7 @@ ENTRY(ArchStartupGuest)
 	ldd [%sp], %o0
 	jmpl %g4, %g0
 	add %sp, 8, %sp
-	
+
 ENTRY(_Reset)
 #ifdef CONFIG_MMU
 	/* Load MMU CTXT <- 0 */
@@ -340,14 +340,14 @@ ENTRY(_Reset)
 	set _Reset2, %g1
 	jmp %g1
 	nop
-	
+
 .section ".bss"
 
 #ifdef CONFIG_MMU
 .align 1024
 ENTRY(contextTab)
 	.zero CTXTTABSIZE
-        
+
 .align 1024
 ENTRY(_pgTables)
 ENTRY(_ptdL1)
@@ -359,15 +359,15 @@ ENTRY(_ptdL1)
 -----------------
 4096 4KPAGES
 1 L1
-1 L2        
+1 L2
 64 L3
---------------       
+--------------
 */
 
 .align 256
 ENTRY(_ptdL2)
         .zero NO_PTDL2_XMVMAP*PTDL2SIZE
-	
+
 .align 256
 ENTRY(_ptdL3)
         .zero NO_PTDL3_XMVMAP*PTDL3SIZE
@@ -381,9 +381,8 @@ ASM_ALIGN
 __idle_kthread_top:
 
 /*.align 128*1024
-.global ioMmuApv        
+.global ioMmuApv
 ioMmuApv:
         .zero 128*1024
         */
 .previous
-

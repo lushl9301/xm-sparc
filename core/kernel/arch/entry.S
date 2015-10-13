@@ -18,7 +18,7 @@
 #include <arch/processor.h>
 
 .global .Tbegin_trap, .Tend_trap, .Tend_ahp, .Tbegin_kpreempt, .Tend_kpreempt, .Tend_etrap
-	
+
 /*
   The SPARC manual denfines that after writing a control
   register, it is implementation defined the time that the operation
@@ -67,7 +67,7 @@
 	WR_DELAY
 .endm
 /* </track id="test-PSR-Enter-XM"> */
-	
+
 .macro PSR_UNSET_ET _r
 	rd %psr, \_r\()
 	and \_r\(), ~(PSR_ET_BIT), \_r\()
@@ -81,16 +81,16 @@
         wr \_r\(), %psr
         WR_DELAY
 .endm
- 
+
 .macro GET_CPUID _r
-#ifdef CONFIG_SMP        
+#ifdef CONFIG_SMP
         rd %asr17, \_r\()
         sra \_r\(), 0x1c, \_r\()
 #else
         mov %g0, \_r\()
 #endif
 .endm
-        
+
 .macro GET_CKTHREAD _r, _tmp
 #ifdef CONFIG_SMP
         GET_CPUID \_r\()
@@ -98,7 +98,7 @@
         add \_tmp\(), \_r\(), \_tmp\()
         set localSchedInfo, \_r\()
         sll \_tmp\(), 3, \_tmp\()
-        add \_r\(), \_tmp\(), \_r\()                
+        add \_r\(), \_tmp\(), \_r\()
 #else
         set localSchedInfo, \_r\()
 #endif
@@ -112,9 +112,9 @@
 
 .macro SET_CPUCTXT _ctxt, _tmp, _tmp2
         GET_CKTHREAD \_tmp\(), \_tmp2\()
-        st \_ctxt\(), [\_tmp\()+_CTRL_OFFSET+_IRQCPUCTXT_OFFSET]        
+        st \_ctxt\(), [\_tmp\()+_CTRL_OFFSET+_IRQCPUCTXT_OFFSET]
 .endm
-        
+
 .macro GET_CKTHREAD_STACK _r, _t
 	GET_CKTHREAD \_r\(), \_t\()
 	set (CONFIG_KSTACK_SIZE-8), \_t\()
@@ -131,13 +131,13 @@
 	GET_CKTHREAD \_r\(), \_tmp\()
 	ld [\_r\()+_CTRL_OFFSET+_FLAGS_OFFSET], \_r\()
 .endm
-        
+
 .macro SET_CKTHREAD_SWTRAP _swtrap, _t, _tmp
 	GET_CKTHREAD \_t\(), \_tmp\()
 	ld [\_t\()+_CTRL_OFFSET+_G_OFFSET], \_t\()
         st \_swtrap\(), [\_t\()+_SWTRAP_OFFSET]
 .endm
-        
+
 .macro FROM_SV _psr, _to
 	andcc \_psr\(), PSR_PS_BIT, %g0
         bne \_to\()
@@ -149,7 +149,7 @@
         be \_to\()
 	nop
 .endm
-	
+
 .macro SAVE_CWND _r
         std %i0, [\_r\()+I0_OFFS]
         std %i2, [\_r\()+I2_OFFS]
@@ -160,7 +160,7 @@
         std %l4, [\_r\()+L4_OFFS]
         std %l6, [\_r\()+L6_OFFS]
 .endm
-	
+
 .macro RESTORE_CWND _r
 	ldd [\_r\()+I0_OFFS], %i0
 	ldd [\_r\()+I2_OFFS], %i2
@@ -178,14 +178,14 @@
         std \_r\()4, [\_sp\()+0x10]
         std \_r\()6, [\_sp\()+0x18]
 .endm
-	
+
 .macro RESTORE_REGRW _sp, _r
         ldd [\_sp\()+0x0], \_r\()0
         ldd [\_sp\()+0x8], \_r\()2
         ldd [\_sp\()+0x10], \_r\()4
         ldd [\_sp\()+0x18], \_r\()6
 .endm
-	
+
 .macro SAVE_IRQCTXT _sp
 	/* storing psr and pc */
 	std %l0, [\_sp\()+48]
@@ -220,20 +220,20 @@
 	ld [\_r\()+_CTRL_OFFSET+_G_OFFSET], \_r\()
 	ld [\_r\()+_PARTCTRLTAB_OFFSET], \_r\()
 	ld [\_r\()+_IFLAGS_OFFSET+_VAL_OFFSET], \_iFlags\()
-        
-.endm  
-        
+
+.endm
+
 .macro CKTHREAD_CTRL_RESTORE_IFLAGS _r, _iFlags
         st \_iFlags\(), [\_r\()+_IFLAGS_OFFSET+_VAL_OFFSET]
 .endm
-        
+
 .macro CKTHREAD_CTRL_SET_IFLAGS _r, _iFlags, _tmp
         GET_CKTHREAD \_r\(), \_tmp\()
 	ld [\_r\()+_CTRL_OFFSET+_G_OFFSET], \_r\()
 	ld [\_r\()+_PARTCTRLTAB_OFFSET], \_r\()
         st \_iFlags\(), [\_r\()+_IFLAGS_OFFSET+_VAL_OFFSET]
 .endm
-        
+
 
 .macro DO_FLUSH_CACHE _r0, _r1, _r2, _r3
         GET_CKTHREAD \_r0\(), \_r1\()
@@ -263,38 +263,38 @@
         andn \_r1\(), (1<<5)|(1<<6), \_r1\()
         st \_r1\(), [\_r0\()+_CTRL_OFFSET+_FLAGS_OFFSET]
 .endm
-        
+
 .text
 .align 4
 
 ENTRY(WindowOverflowTrap)
 	FROM_SV %l0, 3f
-        
+
 #if defined(CONFIG_MMU)
 ! Checking the correctness of %sp
 	rd %wim, %l5
 	wr %g0, %wim
 	WR_DELAY
 	mov %g2, %l6
-	
+
 	save
 	mov %sp, %g2
 	restore
 	wr %l5, %wim
 	WR_DELAY
-        
+
 	set CONFIG_XM_OFFSET, %l5
 
 	cmp %g2, %l5
 	bleu 1f
 	mov %l6, %g2
-	
+
 	clr %l3
 	sethi %hi(DoUnrecovExcp), %l4
 	b CommonTrapHandler
 	or %l4, %lo(DoUnrecovExcp), %l4
 
-1:	
+1:
 #endif
 
 3:
@@ -304,7 +304,7 @@ ENTRY(WindowOverflowTrap)
 	PSR_SET_ET_PIL %l5
 
 	save ! Decrement CWP
-	
+
 	SAVE_CWND %sp
 
 	rd %wim, %l0	! Rotate WIM register one bit to the right
@@ -317,13 +317,13 @@ ENTRY(WindowOverflowTrap)
 
         set __fromWH, %l5
         st %g0, [%l5]
-        
+
 	RESTORE_PSR %l0
 
 	jmpl %l1, %g0
 	rett %l2
 ENTRY(EWindowOverflowTrap)
-        
+
 ENTRY(WindowUnderflowTrap)
 	FROM_SV %l0, 3f
 
@@ -333,7 +333,7 @@ ENTRY(WindowUnderflowTrap)
 	wr %g0, %wim
 	WR_DELAY
 	mov %g2, %l6
-	
+
 	restore
 	restore
 	mov %sp, %g2
@@ -346,13 +346,13 @@ ENTRY(WindowUnderflowTrap)
 	cmp %g2, %l5
 	bleu 1f
 	mov %l6, %g2
-	
+
 	clr %l3
 	sethi %hi(DoUnrecovExcp), %l4
 	b CommonTrapHandler
 	or %l4, %lo(DoUnrecovExcp), %l4
 
-1:	
+1:
 #endif
 
 3:
@@ -378,11 +378,11 @@ ENTRY(WindowUnderflowTrap)
         set __fromWH, %l5
         st %g0, [%l5]
 	RESTORE_PSR %l0
-	
+
 	jmpl %l1, %g0
 	rett %l2
 ENTRY(EWindowUnderflowTrap)
-        
+
 ENTRY(FpDisabledTrap)
 
 	! Is current thread allowed to use FP?
@@ -391,7 +391,7 @@ ENTRY(FpDisabledTrap)
 	bne 4f
 	nop
 
-41:	
+41:
 	sethi %hi(DoTrap), %l4
 	b CommonTrapHandler
 	or %l4, %lo(DoTrap), %l4
@@ -402,13 +402,13 @@ ENTRY(FpDisabledTrap)
         andcc %l6, %l5, %l6
         be 41b
         nop
-	
+
 	rd %psr, %l5
 	set PSR_EF_BIT, %l6
 	or %l5, %l6, %l5
 	wr %l5, %psr
 	WR_DELAY
-        
+
 // FIX THIS
 	! Current FPU's owner
 #ifdef CONFIG_SMP
@@ -429,11 +429,11 @@ ENTRY(FpDisabledTrap)
 
 	// Current ckthread
 	ld [%l7+_CKTHREAD_OFFSET], %l5
-	
+
 	cmp %l5, %l6
 	be 2f
 	nop
-	
+
 	ld [%l6+_CTRL_OFFSET+_G_OFFSET], %l5
 	! Store the floating point unit state and retore
 	! the current partition's one
@@ -459,7 +459,7 @@ ENTRY(FpDisabledTrap)
 	st %l6, [%l7+_FPUOWNER_OFFSET]
 
 	ld [%l6+_CTRL_OFFSET+_G_OFFSET], %l5
-	
+
 	ldd [%l5+0+_FPUREGS_OFFSET+_KARCH_OFFSET], %f0
 	ldd [%l5+8+_FPUREGS_OFFSET+_KARCH_OFFSET], %f2
 	ldd [%l5+16+_FPUREGS_OFFSET+_KARCH_OFFSET], %f4
@@ -484,10 +484,10 @@ ENTRY(FpDisabledTrap)
 	or %l0, %l5, %l0
 
 	RESTORE_PSR %l0
-	
+
 	jmpl %l1, %g0
 	rett %l2
-	
+
 3:
 	sethi %hi(DoTrap), %l4
 	b CommonTrapHandler
@@ -497,13 +497,13 @@ KPreempt:
 .Tbegin_kpreempt:
 !        sub %fp, 0x20, %l5
 !        SAVE_REGRW %l5, %o
-        
+
 	sub %fp, (MIN_STACK_FRAME+_CPUCTXT_SIZEOF), %sp ! The stack if we came from SV context
-	
+
 	! save irqctxt
 	sub %fp, _CPUCTXT_SIZEOF, %l5
 	SAVE_IRQCTXT %l5
-        
+
 	rd %wim, %g1
 
 	! check if there is an overflow
@@ -511,19 +511,19 @@ KPreempt:
         cmp %g3, 1
         bne 1f
         nop
-	
+
 	wr %g0, %wim
 	WR_DELAY
-	
+
 	! so, solve the overflow
         save
 	MOD_SHIFT2RIGHT %g1, %g7, CONFIG_REGISTER_WINDOWS
 	SAVE_CWND %sp
-	restore	
+	restore
 
 	wr %g1, %wim
 	WR_DELAY
-	
+
 1:
 	PSR_SET_ET_PIL %g1
 
@@ -541,20 +541,20 @@ KPreempt:
         bne 2f
 
         MOD_SHIFT2LEFT %l4, %l5, CONFIG_REGISTER_WINDOWS
-        
+
         wr %l4, 0, %wim
        	WR_DELAY
 
         restore
         RESTORE_CWND %sp
         save
-2:              
+2:
 	sub %fp, _CPUCTXT_SIZEOF, %l5
 	RESTORE_IRQCTXT %l5
 
 !        sub %fp, 0x20, %l5
 !        RESTORE_REGRW %l5, %o
-        
+
 //        DO_FLUSH_CACHE %l5, %l6
 	RESTORE_PSR %l0
 .Tend_kpreempt:
@@ -575,16 +575,16 @@ ENTRY(CommonTrapHandler)
 
 FromIRet:
 
-	! Getting the partition's sv stack	
+	! Getting the partition's sv stack
 	GET_CKTHREAD_STACK %l5, %l6
-	
+
 	! save irqctxt
 	sub %l5, _CPUCTXT_SIZEOF, %l6
 	SAVE_IRQCTXT %l6
-        
+
 	mov %l6, %g2
 
-	rd %wim, %g1	
+	rd %wim, %g1
 	wr %g0, %wim
 	WR_DELAY
 
@@ -596,7 +596,7 @@ FromIRet:
 	! %g4 <- CWP
 
 	rd %psr, %g6
-	
+
 	! replacing all the reg_wind's %sp
 	MOD_INTEGER2BITMAP %g4, %g6, %g7, CONFIG_REGISTER_WINDOWS
 	MOD_SHIFT2LEFT %g4, %g7, CONFIG_REGISTER_WINDOWS
@@ -618,14 +618,14 @@ FromIRet:
 1:
 	! comming back to the original register window
 	rd %psr, %g5
-	sub %g5, %g3, %g6	     
+	sub %g5, %g3, %g6
 	and %g6, CONFIG_REGISTER_WINDOWS-1, %g6
 	andn %g5, CONFIG_REGISTER_WINDOWS-1, %g5
 	wr %g5, %g6, %psr
 	WR_DELAY
 
 	mov %g3, %l7
-	
+
 	! %l5 <- start %sp
 	! %l6 <- %wim
 	! %l7 <- counter (%g3)
@@ -654,7 +654,7 @@ FromIRet:
         call AuditAsmHCall
         nop
 #endif
-        
+
 	! call handler
 	call %l4
 	sub %l5, _CPUCTXT_SIZEOF, %o0
@@ -681,12 +681,12 @@ FromIRet:
 	! %g2 <- %sp (%l5-_CPUCTXT_SIZEOF)
 	! %g3 <- counter (%l7)
 	! %g4 <- stored %wim
-	
+
 	cmp %g3, %g0 ! counter
 	ble 4f
 	mov %g3, %g5
 
-	rd %psr, %g6	
+	rd %psr, %g6
 	! replacing all the reg_wind's %sp
 	MOD_INTEGER2BITMAP %g1, %g6, %g7, CONFIG_REGISTER_WINDOWS
 2:
@@ -702,21 +702,21 @@ FromIRet:
 	cmp %g5, %g0
 	bg 2b
 	sub %g2, REG_WND_FRAME, %g2
-	
+
 	b 4f
 	nop
-	
-3:	
+
+3:
 	restore
 	sub %g2, 8, %g2
 	ld [%g2], %g7
 	sub %g2, REG_WND_FRAME, %g2
 	RESTORE_CWND %g2
-	
+
 	dec %g5
 	cmp %g5, %g0
 	bg 3b
-	mov %g7, %sp	
+	mov %g7, %sp
 4:
 	! comming back to the original register window
 	rd %psr, %g5
@@ -728,7 +728,7 @@ FromIRet:
 !5:
 	wr %l6, %wim
 	WR_DELAY
-        
+
 	sub %l5, _CPUCTXT_SIZEOF, %l6
 	RESTORE_IRQCTXT %l6
 
@@ -741,7 +741,7 @@ FromIRet:
 !	srl %l4, 1, %l3
 
         DO_FLUSH_CACHE %l4, %l5, %l6, %l7
-        
+
 	RESTORE_PSR %l0
 .Tend_trap:
 	jmpl %l1, %g0
@@ -761,11 +761,11 @@ ENTRY(DoHypercall)
 	mov %i4, %o4
         call AuditHCall
         mov %i0, %o0
-#endif    
+#endif
 	set hypercallsTab, %g1
 	sll %i0, 2, %g2
 	ld [%g1+%g2], %g1
-	
+
 	cmp  %g1, 0
         be 1f
         nop
@@ -778,12 +778,12 @@ ENTRY(DoHypercall)
 	call %g1
 	mov %i5, %o4
        	mov %o0, %i0
-        
+
 #ifdef CONFIG_AUDIT_EVENTS
         call AuditHCallRet
         nop
 #endif
-        
+
 	b 2f
 	nop
 1:
@@ -791,7 +791,7 @@ ENTRY(DoHypercall)
 2:
 	ld [%l5-4], %l1
 	ld [%l5-16], %l2
-	
+
 	mov %l2, %l1
 	add %l2, 4, %l2
 
@@ -801,12 +801,12 @@ ENTRY(DoHypercall)
 	! store returned value
 	jmp %l4+4
         nop
-	
+
 ENTRY(AsmHypercallHandler)
 	! l0 <- psr
 	! l1 <- pc
 	! l2 <- npc
-	
+
 	cmp %i0,(NR_ASM_HYPERCALLS-1)
 	bg 1f
 	nop
@@ -818,7 +818,7 @@ ENTRY(AsmHypercallHandler)
         add %l7, 1, %l7
         stsb %l7, [%l5+%i0]
 #endif
-        
+
 	set asmHypercallsTab, %l5
 	sll %i0, 2, %l6
 	ld [%l5+%l6], %l5
@@ -826,15 +826,15 @@ ENTRY(AsmHypercallHandler)
  	cmp  %l5, 0
 	be 1f
 	nop
-	
+
 	jmpl %l5, %l7
 	nop
-	
+
 1:
         DO_FLUSH_CACHE %l4, %l5, %l6, %l7
 	RESTORE_PSR %l0
-	
-.Tend_ahp:	
+
+.Tend_ahp:
 	jmp %l2
 	rett %l2+4
 
@@ -842,13 +842,13 @@ ENTRY(EmulateTrap)
         sll %l3, 1, %l3
         or %l3, 1, %l3
         SET_CKTHREAD_SWTRAP %l3, %l5, %l6
-        
+
         set _retl, %l4
 	set FromIRet, %l5
 
 	jmp %l5
 	nop
-        
+
 EmulateTrapSv:
         CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
 	andn %l5, PSR_ET_BIT, %l5
@@ -857,13 +857,13 @@ EmulateTrapSv:
 ! The kthread stack is used as free room to store the current
 ! rw, in the case an overflow/underflow trap is raised then,
 ! its content will be smashed
-        
+
         GET_CKTHREAD_STACK %l4, %l5
 
         mov %g4, %l5
         sub %l4, 0x20, %g4
         SAVE_REGRW %g4, %l
-                
+
         PSR_SET_ET_PIL %l4
 
         restore
@@ -876,13 +876,13 @@ EmulateTrapSv:
         sub %l4, 0x20, %g4
         RESTORE_REGRW %g4, %l
         mov %l5, %g4
-        
+
         PSR_UNSET_ET %l4
-        
+
         mov %l3, %o0
 
        	andn %l0, PSR_CWP_MASK, %o2
-        
+
        	set PSR_PIL_MASK|PSR_ET_BIT, %l5
         andn %l0, %l5, %l0 ! <- saving old PSR (FLAGS)
 
@@ -890,23 +890,23 @@ EmulateTrapSv:
         or %l0, %l4, %l0
 
        	save
-	
+
         DO_FLUSH_CACHE %l4, %l5, %l6, %l7
        	rd %psr, %l0
 	and %l0, PSR_CWP_MASK, %l0
-	wr %i2, %l0, %psr        
+	wr %i2, %l0, %psr
        	WR_DELAY
 
-.Tend_etrap: 
+.Tend_etrap:
 	jmp %i0
 	rett %i0+4
-        
+
 ! CWP-1(%l0) <- old PSR
 ! CWP-1(%l1) <- PC
 ! CWP-1(%l2) <- nPC
 ENTRY(SparcIRetSys)
 	restore
-        
+
 ENTRY(SIRetCheckRetAddr)
 	! Checking the correctness of %l1 and %l2
         PSR_SET_ET_PIL %l5
@@ -914,13 +914,13 @@ ENTRY(SIRetCheckRetAddr)
        	cmp %l1, %l5
 	bgu 14f
         nop
-        
+
         cmp %l2, %l5
 	bleu 24f
         nop
-        
+
 14:
-        save 
+        save
        	clr %l3
 	sethi %hi(DoUnrecovExcp), %l4
 	b CommonTrapHandler
@@ -931,9 +931,9 @@ ENTRY(SIRetCheckRetAddr)
         ld [%l2], %l5
         PSR_UNSET_ET_PIL %l5
 ENTRY(EIRetCheckRetAddr)
-                
+
         rd %psr, %l3
-        
+
         rd %wim, %l4
         add %l3, 1, %l5
         and %l5, CONFIG_REGISTER_WINDOWS-1, %l5
@@ -941,7 +941,7 @@ ENTRY(EIRetCheckRetAddr)
         cmp %l5, 1
         be 1f
         nop
-        
+
         set PSR_ICC_MASK, %l4
 
         andn %l3, %l4, %l3
@@ -952,12 +952,12 @@ ENTRY(EIRetCheckRetAddr)
         CKTHREAD_CTRL_GET_IFLAGS %l4, %l3
         or %l3, PSR_ET_BIT, %l3
         CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l3
-        
+
         and %l3, PSR_PIL_MASK, %l3
         cmp %l3, PSR_PIL_MASK
         be 112f
         nop
-        
+
 	set _retl, %l4
 	set FromIRet, %l5
 
@@ -967,7 +967,7 @@ ENTRY(EIRetCheckRetAddr)
 112:
        	! returning to userland so it isn't necessary to check where we return
         DO_FLUSH_CACHE %l4, %l5, %l6, %l7
-        
+
        	RESTORE_PSR %l0
 
 	! returning to the old pc and npc
@@ -984,7 +984,7 @@ ENTRY(EIRetCheckRetAddr)
 _retl:
 	retl
 	nop
-	
+
 ENTRY(SparcFlushRegWinSys)
 	! %g3 <- counter
 	! %g4 <- WIM
@@ -1016,46 +1016,46 @@ ENTRY(SparcFlushRegWinSys)
 
 	b 1b
 	nop
-	
+
 2:	cmp %g3, 0
 	be 4f
 	nop
-	
+
 3:	dec %g3
 	save
 	SAVE_CWND %sp
 	cmp %g3, 0
 	bne 3b
 	nop
-4:	
+4:
 	save
 	save
 
 	add %l0, 2, %g6
 	and %g6, CONFIG_REGISTER_WINDOWS-1, %g6
-	
+
 	mov 1, %g5
 	sll %g5, %g6, %g5
 	wr %g5, %wim
 	WR_DELAY
-	
+
 	mov %l4, %g4
 	mov %l5, %g5
 	mov %l6, %g6
 	jmp %l7+4
 	mov %l3, %g3
 
-ENTRY(SparcGetPsrSys)        
+ENTRY(SparcGetPsrSys)
         set PSR_PIL_MASK|PSR_ET_BIT|PSR_EF_BIT, %l3
        	andn %l0, %l3, %i0
         CKTHREAD_CTRL_GET_IFLAGS %l5, %l4
-        
+
         and %l4, %l3, %l4
         or %i0, %l4, %i0
-        
+
 	jmp %l7+4
 	nop
-	
+
 ENTRY(SparcSetPsrSys)
 	set PSR_ICC_MASK, %l3
 	and %i1, %l3, %l4
@@ -1080,7 +1080,7 @@ ENTRY(SparcSetPsrSys)
       	and %i1, %l3, %l3
 
         CKTHREAD_CTRL_SET_IFLAGS %l4, %l3, %l5
-        
+
         and %l3, PSR_ET_BIT, %l4
         cmp %l4, PSR_ET_BIT
         bne 112f
@@ -1093,17 +1093,17 @@ ENTRY(SparcSetPsrSys)
 
         mov %l2, %l1
         add %l2, 4, %l2
-        
+
 	set _retl, %l4
 	set FromIRet, %l5
 
 	jmp %l5
         nop
-        
+
 112:
        	jmp %l7+4
 	nop
-        
+
 !ENTRY(SparcFlushCacheSys)
 /*        FLUSH_CACHE()*/
 !       	jmp %l7+4
@@ -1114,15 +1114,15 @@ ENTRY(SparcSetPsrSys)
 !        set FLUSH_ENTIRE, %l3
 !        sta %g0, [%l3] LEON_MMU_FLUSH
 !        jmp %l7+4
-!	nop 
+!	nop
 
 ENTRY(SparcSetPilSys)
 !        set PSR_PIL_MASK|PSR_ET_BIT, %l3
 !        andn %l0, %l3, %i0
-        
+
         CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
 !        and %l5, %l3, %l5
- !       or %i0, %l5, %i0        
+ !       or %i0, %l5, %i0
 	or %l5, PSR_PIL_MASK, %l5
         CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l5
        	jmp %l7+4
@@ -1130,7 +1130,7 @@ ENTRY(SparcSetPilSys)
 
 ENTRY(SparcClearPilSys)
 !        set PSR_PIL_MASK|PSR_ET_BIT, %l3
-!        andn %l0, %l3, %i0        
+!        andn %l0, %l3, %i0
         CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
 !        and %l5, %l3, %l5
 !        or %i0, %l5, %i0
@@ -1139,13 +1139,13 @@ ENTRY(SparcClearPilSys)
 
         mov %l2, %l1
         add %l2, 4, %l2
-        
+
        	set _retl, %l4
 	set FromIRet, %l5
 
 	jmp %l5
         nop
-        
+
 ENTRY(SparcCtrlWinFlowSys)
 
         ! Preveting an underflow trap
@@ -1186,7 +1186,7 @@ ENTRY(SparcCtrlWinFlowSys)
 .previous
 
 .data
-.align 4        
+.align 4
 __fromWH:
         .long 0
 .previous
