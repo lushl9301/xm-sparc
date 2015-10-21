@@ -38,8 +38,8 @@ SECTIONS
     }
 #endif
     .boot ALIGN(0x1000) : {
-	  *(.boot.text)
-	  *(.boot.data)
+          *(.boot.text)
+          *(.boot.data)
     }
     . = . + CONFIG_XM_OFFSET - CONFIG_XM_LOAD_ADDR;
     .text ALIGN(8):  AT (ADDR (.text) + PHYSOFFSET) {
@@ -52,15 +52,15 @@ SECTIONS
     }
 
     .rsv_hwirqs ALIGN(8) : AT (ADDR (.rsv_hwirqs) + PHYSOFFSET){
-    	rsvHwIrqs = .;
+            rsvHwIrqs = .;
         *(.rsv_hwirqs)
-	eRsvHwIrqs = .;
+        eRsvHwIrqs = .;
     }
 
     .rsv_ioports ALIGN(8) : AT (ADDR (.rsv_ioports) + PHYSOFFSET){
-    	rsvIoPorts = .;	 
+            rsvIoPorts = .;         
         *(.rsv_ioports)
-	eRsvIoPorts = .;
+        eRsvIoPorts = .;
     }
 
     .rsv_physpages ALIGN(8) : AT (ADDR (.rsv_physpages) + PHYSOFFSET) {
@@ -79,20 +79,20 @@ SECTIONS
         hypercallFlagsTab = .;
         *(.hypercallflagstab)
 
-	. = ALIGN(8);
-	exPTable = .;
-	*(.exptable)
-	LONG(0);
+        . = ALIGN(8);
+        exPTable = .;
+        *(.exptable)
+        LONG(0);
         LONG(0);
 
-	. = ALIGN(8);
-	kDevSetup = .;
-	*(.kdevsetup)
-	LONG(0);
-	. = ALIGN(8);
-	objectSetupTab = .;
-	*(.objsetuptab)
-	LONG(0);
+        . = ALIGN(8);
+        kDevSetup = .;
+        *(.kdevsetup)
+        LONG(0);
+        . = ALIGN(8);
+        objectSetupTab = .;
+        *(.objsetuptab)
+        LONG(0);
 
         . = ALIGN(8);
         *(.rodata)
@@ -102,23 +102,23 @@ SECTIONS
     }
     
     .build_info ALIGN(8) :  AT (ADDR (.build_info) + PHYSOFFSET) {
-    	buildInfo = .;
+            buildInfo = .;
         *(.kbuild_info)
         *(.build_info)
-	BYTE(0);
+        BYTE(0);
     }
 
     .data ALIGN(8) :  AT (ADDR (.data) + PHYSOFFSET) {
-    	_sdata = .;
+            _sdata = .;
         *(.vboot.data)
         *(.data)
-	_edata = .;
-	sysResetCounter = .;
-	LONG(0);
+        _edata = .;
+        sysResetCounter = .;
+        LONG(0);
         resetStatusInit = .;
         LONG(0);
-	_cpdata = .;
-	LONG(0);
+        _cpdata = .;
+        LONG(0);
     }
 
     .bss ALIGN(8) :  AT (ADDR (.bss) + PHYSOFFSET) {
@@ -126,10 +126,10 @@ SECTIONS
         *(COMMON)
         *(.bss)
         _ebss = .; 
-	. = ALIGN(8);
-	_scdata = .;
-	. = . + SIZEOF(.data);
-	_ecdata = .;
+        . = ALIGN(8);
+        _scdata = .;
+        . = . + SIZEOF(.data);
+        _ecdata = .;
     }
 
     . = ALIGN(1<<15);

@@ -48,6 +48,8 @@ ENTRY(_start)
 	lda [%g1] LEON_MMU_ASI, %g2
 	andn %g2, 0x1, %g2
 	sta %g2, [%g1] LEON_MMU_ASI
+	/* lda [0x0] to g2 */
+	/* and write last bit back to leon_mmu_ctrl-reg */
 #endif
 	/* Enabling Cache and Flushing it */
 	set CCR_DCS_MASK|CCR_ICS_MASK, %g1
@@ -62,6 +64,7 @@ ENTRY(_start)
 	flush
 #ifdef CONFIG_LEON3
 	sta %g1, [%g0] LEON_CCR_BASE
+	/* Cache control register; similar to LEON_MMU_CTRL_REG */
 #endif
 
 	/* MEMORY CONTROLLER CONFIGURATION MISS -- MIG */
@@ -72,6 +75,7 @@ ENTRY(_start)
 	ld [%g1], %g2
 	or %g2, %g3, %g2
 	st %g2, [%g1]
+	/* st MEMORY_CFG_BASE as 0x8008000 */
 #endif
 #ifndef CONFIG_MMU
 	set LEON_MEMORY_WPR_BASE, %g1
@@ -81,20 +85,22 @@ ENTRY(_start)
 #endif
 
 #ifdef CONFIG_SMP
-	rd %asr17, %g1
-	sra %g1, 0x1c, %g1
+	rd %asr17, %g1 /* Processor configuration register */
+	sra %g1, 0x1c, %g1 /* shift right 28, get PI processor ID */
 	cmp %g1, 0
 	bne 2f
 	nop
+	/* if this is master processor then go on; else goto 2 */
 #endif
 
 	set _VIRT2PHYS(_sbss), %o0
 	set _VIRT2PHYS(_ebss), %o1
 1:	stb %g0, [%o0]
 	add %o0, 0x1, %o0
-	subcc %o0, %o1, %g0
+	subcc %o0, %o1, %g0 /* write to g0 means only care about flags */
 	bl 1b
 	nop
+	/* memory clear from sbss to ebss */
 
 	/* Copy the cdata section to the data section */
 	set _VIRT2PHYS(_sdata), %o0
@@ -106,12 +112,13 @@ ENTRY(_start)
 	ld [%o3], %o4
 	cmp %o4, %g0
 	bne 1f
+	/* if the mem to be copied is ZERO, then copy */
 	mov 1, %o4
-
 	st %o4, [%o3]
 
+	/* TODO this loop-3 is almost similiar as loop-1 */
 3:	ldub [%o0], %o3
-	stb %o3, [%o2]
+	stb %o3, [%o2] /* TODO this should be o0?*/
 	add %o0, 0x1, %o0
 	subcc %o0, %o1, %g0
 	bl 3b
@@ -119,8 +126,8 @@ ENTRY(_start)
 
 	b 2f
 	nop
-
-1:	ldub [%o2], %o3
+	/* else */
+1:	ldub [%o2], %o3 /* TODO o2 is fixed in this loop*/
 	stb %o3, [%o0]
 	add %o0, 0x1, %o0
 	subcc %o0, %o1, %g0
@@ -141,8 +148,8 @@ ENTRY(_start)
 	mov %g0, %wim
 	WR_DELAY
 
-	mov CONFIG_REGISTER_WINDOWS, %g1
-	save
+	mov CONFIG_REGISTER_WINDOWS, %g1 /* 8 register windows */
+	save /* related to current window pointer */
 1:
 	clr %i0
 	clr %i1
@@ -160,8 +167,8 @@ ENTRY(_start)
 	clr %l5
 	clr %l6
 	clr %l7
-	subcc %g1, 1, %g1
-	bnz,a   1b
+	subcc %g1, 1, %g1 /* clear all register windows */
+	bnz,a   1b /* Instructions that deal with alternate space; hence register windows */
 	save
 
 	/* Set up PSR, WIM, TBR and Y registers  */
@@ -169,12 +176,14 @@ ENTRY(_start)
 	mov (PSR_PIL_MASK|PSR_ET_BIT|PSR_S_BIT|PSR_EF_BIT), %psr
 	WR_DELAY
 	mov %g0, %y
+	/* Multiply/Divide Register (Y) contains the most significant word of */ 
+	/* the double-precision product of an integer multiplication */
 
 #ifdef CONFIG_MMU
 #ifdef CONFIG_SMP
 	rd %asr17, %g1
 	sra %g1, 0x1c, %g1
-	cmp %g1, 0
+	cmp %g1, 0 /* if not master processor then jump */
 	bne 113f
 	nop
 #endif
@@ -184,11 +193,13 @@ ENTRY(_start)
 	set _VIRT2PHYS(_ptdL3), %o1
 	set NO_PTDL3_XMVMAP*PTDL3ENTRIES*4, %o3
 	add %o1, %o3, %o2
+	/* o2 stores end of ptdL3 */
 
 1:	st %o0, [%o1]
 	add %o1, 0x4, %o1
 	subcc %o1, %o2, %g0
 	bl 1b
+	/* clear page table */
 	add %o0, (PAGE_SIZE>>4), %o0
 	set _VIRT2PHYS(_ptdL3), %o0
 	srl %o0, 4, %o0
@@ -203,6 +214,7 @@ ENTRY(_start)
 	add %o1, 0x4, %o1
 	subcc %o1, %o2, %g0
 	bl 1b
+	/* for loop to clear from o1 to o2 */
 	add %o0, 16, %o0
 
 	/* Fill ptdL1 with the correspondent ptdL2 entries (at XM_OFFSET) */
@@ -210,7 +222,7 @@ ENTRY(_start)
 	srl %o0, 4, %o0
 	or %o0, _PG_ARCH_PTD_PRESENT, %o0
 	set _VIRT2PHYS(_ptdL1), %o1
-       	set NO_PTDL2_XMVMAP*4, %o3
+	set NO_PTDL2_XMVMAP*4, %o3
 	set (CONFIG_XM_OFFSET>>24)*4, %o4
 	add %o1, %o4, %o1
 
@@ -299,7 +311,7 @@ ENTRY(StartXM)
 	add %o0, 1, %g1
 
 	set __idle_kthread, %fp
-1:      dec %g1
+1:	dec %g1
 	cmp %g1, 0
 	bg 1b
 	add %fp, %g3, %fp
