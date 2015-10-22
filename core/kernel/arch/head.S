@@ -199,7 +199,8 @@ ENTRY(_start)
 	add %o1, 0x4, %o1
 	subcc %o1, %o2, %g0
 	bl 1b
-	/* clear page table */
+	/* set page table with flag o0 */
+	
 	add %o0, (PAGE_SIZE>>4), %o0
 	set _VIRT2PHYS(_ptdL3), %o0
 	srl %o0, 4, %o0
