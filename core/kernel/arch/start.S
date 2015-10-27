@@ -19,10 +19,10 @@
 
 /*
 	Register state when starting an interrupt:
-	%i6 <- FP (Old stack)
+	%i6 <- FP (Old stack) from %o6
 	%l0 <- PSR (BUILD_IRQ)
 	%l1 <- PC
-	%l2 <- nPC
+	%l2 <- nPC //next pc
 	%l3 <- irqnr (BUILD_IRQ)
 */
 
