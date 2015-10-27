@@ -279,9 +279,9 @@ ENTRY(_start)
 	or %g2, 0x1, %g2
 	sta %g2, [%g1] LEON_MMU_ASI
 #endif
-
+	/* hi extract high 22 bit */
 	sethi %hi(StartXM), %g1
-	jmpl %g1 + %lo(StartXM), %g0
+	jmpl %g1 + %lo(StartXM), %g0 /* this is same as jmp %g1 + %lo(StartXM) */
 	nop
 
 _Reset2:
@@ -299,7 +299,9 @@ _Reset2:
 
 ENTRY(StartXM)
 	set trapTable, %g1
+	/* TODO wr %g0, reg_or_imm, %tbr according to manual */
 	wr %g1, %tbr
+
 
 	/* Setting up a kernel stack */
 #ifdef CONFIG_SMP
@@ -315,6 +317,7 @@ ENTRY(StartXM)
 1:	dec %g1
 	cmp %g1, 0
 	bg 1b
+	/* if cCpu != 0; cCpu--; */
 	add %fp, %g3, %fp
 
 	sub %fp, %g3, %o1
@@ -323,6 +326,7 @@ ENTRY(StartXM)
 	cmp %o0, 0
 	bne 1f
 #endif
+	/* TODO why again? */
 	sub %fp, MIN_STACK_FRAME, %sp
 
 	/* calling our first C function */
@@ -330,6 +334,7 @@ ENTRY(StartXM)
 	nop
 #ifdef CONFIG_SMP
 1:
+	/* each core will call this by themself */
 	call InitSecondaryCpu
 	nop
 #endif
@@ -352,6 +357,7 @@ ENTRY(_Reset)
 #endif
 	set _Reset2, %g1
 	jmp %g1
+	/* reset CPUs */
 	nop
 
 .section ".bss"
