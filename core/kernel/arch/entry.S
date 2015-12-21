@@ -20,10 +20,10 @@
 .global .Tbegin_trap, .Tend_trap, .Tend_ahp, .Tbegin_kpreempt, .Tend_kpreempt, .Tend_etrap
 
 /*
-  The SPARC manual denfines that after writing a control
-  register, it is implementation defined the time that the operation
-  is performed (it can spend up to three instruction slots), so to prevent
-  error we have added a WR_DELAY after each difficult situation
+	The SPARC manual denfines that after writing a control
+	register, it is implementation defined the time that the operation
+	is performed (it can spend up to three instruction slots), so to prevent
+	error we have added a WR_DELAY after each difficult situation
 */
 
 .macro WR_DELAY
@@ -92,6 +92,7 @@
 .endm
 
 .macro GET_CKTHREAD _r, _tmp
+/* tmp = _r * 3 * 8 = cpuID * 6 * 4 = cpuID * sizeof(localSched_t) */
 #ifdef CONFIG_SMP
 	GET_CPUID \_r\()
 	add \_r\(), \_r\(), \_tmp\()
@@ -138,6 +139,7 @@
 	st \_swtrap\(), [\_t\()+_SWTRAP_OFFSET]
 .endm
 
+/* check current mode */
 .macro FROM_SV _psr, _to
 	andcc \_psr\(), PSR_PS_BIT, %g0
 	bne \_to\()
@@ -150,6 +152,7 @@
 	nop
 .endm
 
+/* must be even */
 .macro SAVE_CWND _r
 	std %i0, [\_r\()+I0_OFFS]
 	std %i2, [\_r\()+I2_OFFS]
@@ -187,6 +190,7 @@
 .endm
 
 .macro SAVE_IRQCTXT _sp
+	/* psr was stored in l0 */
 	/* storing psr and pc */
 	std %l0, [\_sp\()+48]
 	/* storing npc and irqnr */
@@ -216,7 +220,7 @@
 .endm
 
 .macro CKTHREAD_CTRL_GET_IFLAGS _r, _iFlags
-      	GET_CKTHREAD \_r\(), \_iFlags\()
+	GET_CKTHREAD \_r\(), \_iFlags\()
 	ld [\_r\()+_CTRL_OFFSET+_G_OFFSET], \_r\()
 	ld [\_r\()+_PARTCTRLTAB_OFFSET], \_r\()
 	ld [\_r\()+_IFLAGS_OFFSET+_VAL_OFFSET], \_iFlags\()
@@ -243,6 +247,7 @@
 	srl \_r1\(), 5, \_r1\()
 	and \_r1\(), \_r2\(), \_r1\()
 
+	/* flush either or both cache */
 	andcc \_r1\(), 2, %g0
 	bne 61f
 	andcc \_r1\(), 1, %g0
@@ -304,7 +309,6 @@ ENTRY(WindowOverflowTrap)
 	PSR_SET_ET_PIL %l5
 
 	save ! Decrement CWP
-
 	SAVE_CWND %sp
 
 	rd %wim, %l0	! Rotate WIM register one bit to the right
@@ -341,6 +345,7 @@ ENTRY(WindowUnderflowTrap)
 	save
 	wr %l5, %wim
 	WR_DELAY
+
 	set CONFIG_XM_OFFSET, %l5
 
 	cmp %g2, %l5
@@ -377,6 +382,7 @@ ENTRY(WindowUnderflowTrap)
 
 	set __fromWH, %l5
 	st %g0, [%l5]
+
 	RESTORE_PSR %l0
 
 	jmpl %l1, %g0
@@ -495,8 +501,8 @@ ENTRY(FpDisabledTrap)
 
 KPreempt:
 .Tbegin_kpreempt:
-!        sub %fp, 0x20, %l5
-!        SAVE_REGRW %l5, %o
+!	sub %fp, 0x20, %l5
+!	SAVE_REGRW %l5, %o
 
 	sub %fp, (MIN_STACK_FRAME+_CPUCTXT_SIZEOF), %sp ! The stack if we came from SV context
 
@@ -543,7 +549,7 @@ KPreempt:
 	MOD_SHIFT2LEFT %l4, %l5, CONFIG_REGISTER_WINDOWS
 
 	wr %l4, 0, %wim
-       	WR_DELAY
+	WR_DELAY
 
 	restore
 	RESTORE_CWND %sp
@@ -555,7 +561,8 @@ KPreempt:
 !        sub %fp, 0x20, %l5
 !        RESTORE_REGRW %l5, %o
 
-//        DO_FLUSH_CACHE %l5, %l6
+!!?
+//	DO_FLUSH_CACHE %l5, %l6
 	RESTORE_PSR %l0
 .Tend_kpreempt:
 	jmpl %l1, %g0
@@ -755,7 +762,7 @@ ENTRY(DoHypercall)
 	nop
 
 #ifdef CONFIG_AUDIT_EVENTS
-       	mov %i1, %o1
+	mov %i1, %o1
 	mov %i2, %o2
 	mov %i3, %o3
 	mov %i4, %o4
@@ -777,7 +784,7 @@ ENTRY(DoHypercall)
 
 	call %g1
 	mov %i5, %o4
-       	mov %o0, %i0
+	mov %o0, %i0
 
 #ifdef CONFIG_AUDIT_EVENTS
 	call AuditHCallRet
@@ -823,7 +830,7 @@ ENTRY(AsmHypercallHandler)
 	sll %i0, 2, %l6
 	ld [%l5+%l6], %l5
 
- 	cmp  %l5, 0
+	cmp  %l5, 0
 	be 1f
 	nop
 
@@ -881,21 +888,21 @@ EmulateTrapSv:
 
 	mov %l3, %o0
 
-       	andn %l0, PSR_CWP_MASK, %o2
+	andn %l0, PSR_CWP_MASK, %o2
 
-       	set PSR_PIL_MASK|PSR_ET_BIT, %l5
+	set PSR_PIL_MASK|PSR_ET_BIT, %l5
 	andn %l0, %l5, %l0 ! <- saving old PSR (FLAGS)
 
 	CKTHREAD_CTRL_GET_IFLAGS %l5, %l4
 	or %l0, %l4, %l0
 
-       	save
+	save
 
 	DO_FLUSH_CACHE %l4, %l5, %l6, %l7
-       	rd %psr, %l0
+	rd %psr, %l0
 	and %l0, PSR_CWP_MASK, %l0
 	wr %i2, %l0, %psr
-       	WR_DELAY
+	WR_DELAY
 
 .Tend_etrap:
 	jmp %i0
@@ -910,8 +917,8 @@ ENTRY(SparcIRetSys)
 ENTRY(SIRetCheckRetAddr)
 	! Checking the correctness of %l1 and %l2
 	PSR_SET_ET_PIL %l5
-       	set CONFIG_XM_OFFSET, %l5
-       	cmp %l1, %l5
+	set CONFIG_XM_OFFSET, %l5
+	cmp %l1, %l5
 	bgu 14f
 	nop
 
@@ -921,7 +928,7 @@ ENTRY(SIRetCheckRetAddr)
 
 14:
 	save
-       	clr %l3
+	clr %l3
 	sethi %hi(DoUnrecovExcp), %l4
 	b CommonTrapHandler
 	or %l4, %lo(DoUnrecovExcp), %l4
@@ -965,10 +972,10 @@ ENTRY(EIRetCheckRetAddr)
 	nop
 
 112:
-       	! returning to userland so it isn't necessary to check where we return
+	! returning to userland so it isn't necessary to check where we return
 	DO_FLUSH_CACHE %l4, %l5, %l6, %l7
 
-       	RESTORE_PSR %l0
+	RESTORE_PSR %l0
 
 	! returning to the old pc and npc
 	jmp %l1
@@ -1047,7 +1054,7 @@ ENTRY(SparcFlushRegWinSys)
 
 ENTRY(SparcGetPsrSys)
 	set PSR_PIL_MASK|PSR_ET_BIT|PSR_EF_BIT, %l3
-       	andn %l0, %l3, %i0
+	andn %l0, %l3, %i0
 	CKTHREAD_CTRL_GET_IFLAGS %l5, %l4
 
 	and %l4, %l3, %l4
@@ -1077,7 +1084,7 @@ ENTRY(SparcSetPsrSys)
 	or %l4, %l0, %l0
 
 111:
-      	and %i1, %l3, %l3
+	and %i1, %l3, %l3
 
 	CKTHREAD_CTRL_SET_IFLAGS %l4, %l3, %l5
 
@@ -1101,7 +1108,7 @@ ENTRY(SparcSetPsrSys)
 	nop
 
 112:
-       	jmp %l7+4
+	jmp %l7+4
 	nop
 
 !ENTRY(SparcFlushCacheSys)
@@ -1122,10 +1129,10 @@ ENTRY(SparcSetPilSys)
 
 	CKTHREAD_CTRL_GET_IFLAGS %l4, %l5
 !        and %l5, %l3, %l5
- !       or %i0, %l5, %i0
+!        or %i0, %l5, %i0
 	or %l5, PSR_PIL_MASK, %l5
 	CKTHREAD_CTRL_RESTORE_IFLAGS %l4, %l5
-       	jmp %l7+4
+	jmp %l7+4
 	nop
 
 ENTRY(SparcClearPilSys)
@@ -1140,7 +1147,7 @@ ENTRY(SparcClearPilSys)
 	mov %l2, %l1
 	add %l2, 4, %l2
 
-       	set _retl, %l4
+	set _retl, %l4
 	set FromIRet, %l5
 
 	jmp %l5

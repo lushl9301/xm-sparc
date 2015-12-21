@@ -67,7 +67,7 @@ typedef struct {
     kThread_t *(*GetReadyKThread)(struct schedData *schedData);
 } localSched_t;
 
-extern localSched_t localSchedInfo[];
+extern localSched_t     subllocalSchedInfo[];
 
 #ifdef CONFIG_SMP
 #define GET_LOCAL_SCHED() \

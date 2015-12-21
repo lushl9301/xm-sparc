@@ -118,7 +118,7 @@ ENTRY(_start)
 
 	/* TODO this loop-3 is almost similiar as loop-1 */
 3:	ldub [%o0], %o3
-	stb %o3, [%o2] /* TODO this should be o0?*/
+	stb %o3, [%o2]
 	add %o0, 0x1, %o0
 	subcc %o0, %o1, %g0
 	bl 3b
@@ -127,7 +127,7 @@ ENTRY(_start)
 	b 2f
 	nop
 	/* else */
-1:	ldub [%o2], %o3 /* TODO o2 is fixed in this loop*/
+1:	ldub [%o2], %o3
 	stb %o3, [%o0]
 	add %o0, 0x1, %o0
 	subcc %o0, %o1, %g0
@@ -317,7 +317,7 @@ ENTRY(StartXM)
 1:	dec %g1
 	cmp %g1, 0
 	bg 1b
-	/* if cCpu != 0; cCpu--; */
+	/* while cCpu != 0; cCpu--; */
 	add %fp, %g3, %fp
 
 	sub %fp, %g3, %o1
