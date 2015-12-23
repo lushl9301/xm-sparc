@@ -289,3 +289,311 @@ FromIRet:
 ```
 
 ### ENTRY DoHypercall
+```
+    %l4 = %o7;
+    if (%i0 > NR_HYPERCALLS - 1) {
+        goto 1;
+    }
+#ifdef CONFIG_AUDIT_EVENTS
+    %o1 = %i1;
+    %o2 = %i2;
+    %o3 = %i3;
+    %o4 = %i4;
+    %o0 = %i0;
+    AuditHCall();
+#endif
+    %g1 = hypercallsTab;
+    %g2 = %i0 << 2;
+    %g1 = [%g1 + %g2];
+
+    if (%g1 == 1) {
+        goto 1;
+    }
+    %o0 = %i1;
+    %o1 = %i2;
+    %o2 = %i3;
+    %o3 = %i4;
+    %o4 = %i5;
+    call %g1;
+    %i0 = %o0;
+#ifdef CONFIG_AUDIT_EVENTS
+    call AuditHCallRet
+#endif
+    goto 2;
+
+1:
+    %o0 = XM_UNKNOWN_HYPERCALL;
+
+2:
+    [%l5 - 4] = [%l5 - 16];
+    [%l5 - 16] += 4;
+    jmp %l4 + 4;
+
+```
+
+### ENTRY AsmHypercallHandler
+```
+if (%i0 <= NR_ASM_HYPERCALLS - 1) {
+#ifdef CONFIG_AUDIT_EVENTS
+    //TODO
+#endif
+    %l5 = auditAsmHCall;
+    %l6 = %i0 >> 2;
+    %l5 = [%l5 + %l6];
+    if (%l5 != 0) {
+        jmpl %l5;
+    }
+    DO_FLUSH_CACHE();
+    RESTORE_PSR();
+    jmp %l2;
+    return %l2 + 4;
+}
+```
+
+### ENTRY EmulateTrap
+```
+    %l3 = %l3 * 2 + 1;
+    SET_CKTHREAD_SWTRAP(%l3, %l5, %l6);
+    %l4 = _retl; //asm label
+    %l5 = FromIRet;
+    jmp %l5;
+
+EmulateTrapSv:
+    %l4, %l5 = CKTHREAD_CTRL_GET_IFLAGS();
+    %l5 &= !PSR_ET_BIT; //clear bit
+    CKTHREAD_CTRL_RESTORE_IFLAGS(%l4, %l5);
+
+    %l4 = GET_CKTHREAD_STACK();
+    %l5 = %g4;
+    %g4 = %l4 - 0x20;
+    PSR_SET_ET_PIL();
+    restore();
+    save();
+    save();
+    restore();
+    %l4 = GET_CKTHREAD_STACK();
+    RESTORE_REGRW(%l4 - 0x20);
+    %g4 = %l5;
+    PSR_UNSET_ET();
+
+    %o0 = %l3;
+    %o2 = %l0 & (!PSR_CWP_MASK);
+
+    %l0 &=  (!(PSR_PIL_MASK|PSR_ET_BIT));
+
+    %l5 = CKTHREAD_CTRL_GET_IFLAGS();
+    %l0 |= %l4;
+
+    save();
+
+    DO_FLUSH_CACHE();
+    %l0 = %psr;
+    %l0 &= PSR_CWP_MASK;
+    %psr = %i2 + %l0;
+
+.Tend_etrap:
+    jmp %i0;
+    return %i0 + 4;
+```
+
+### ENTRY SparcIRetSys
+```
+restore();
+```
+
+### ENTRY SIRetCheckRetAddr
+```
+    PSR_SET_ET_PIL();
+    if (%l1 <= CONFIG_XM_OFFSET && %l2 <= CONFIG_XM_OFFSET) {
+        %l5 = [%l1];
+        %l5 = [%l2];
+        PSR_UNSET_ET_PIL();
+    } else {
+        save();
+        %l3 = 0;
+        CommonTrapHandler();
+    }
+```
+
+### ENTRY EIRetCheckRetAddr
+```
+%l3 = %psr;
+%l4 = %wim;
+%l5 = %l3 + 1;
+%l5 += CONFIG_REGISTER_WINDOWS - 1;
+%l5 = %l4 >> %l5;
+
+if (%l5 == 1) {
+    save();
+    %l3 = 0;
+    CommandTrapHandler();
+_retl:
+    return;
+}
+
+%l3 &= !PSR_ICC_MASK;
+%l0 &= PSR_ICC_MASK;
+
+%l0 |= PSR_ICC_MASK;
+
+%l3 = CKTHREAD_CTRL_GET_IFLAGS();
+%l3 |= PSR_ET_BIT
+CKTHREAD_CTRL_RESTORE_IFLAGS(%l3);
+
+%l3 &= PSR_PIL_MASK;
+if (%l3 & PSR_PIL_MASK) {
+    DO_FLUSH_CACHE();
+    RESTORE_PSR();
+    jmp %l1;
+    return %l2;
+}
+```
+
+### ENTRY SparcFlushRegWinSys
+```
+    PSR_SET_ET_PIL();
+    %l3 = %g3;
+    %l4 = %g4;
+    %l5 = %g5;
+    %l6 = %g6;
+
+    %g4 = %wim;
+    %wim = 0;
+    WR_DELAY();
+
+    %g3 = CONFIG_REGISTER_WINDOWS - 2;
+
+    %g5 = MOD_INTEGER2BITMAP(%g5, %l0, %g6, CONFIG_REGISTER_WINDOWS);
+    if (%g5 != %g4) {
+        goto 3;
+    }
+1:
+    do {
+        %g3--;
+        save();
+        %g5 = MOD_SHIFT2RIGHT(%g5, %g6, CONFIG_REGISTER_WINDOWS);
+    } while (%g5 == %g4);
+
+    if (%g3 == 0) {
+        goto 4;
+    }
+
+    do {
+        %g3--;
+        save();
+        SAVE_CWND(%sp);
+    } while (%g3 != 0);
+
+4:
+    save();
+    save();
+    %g6 = %l0 & 2;
+    %g6 += CONFIG_REGISTER_WINDOWS - 1;
+    %wim = 1 << %g6;
+    WR_DELAY();
+
+    %g4 = %l4;
+    %g5 = %l5;
+    %g6 = %l6;
+    %g3 = %l3;
+    jmp %l7 + 4;
+```
+
+### ENTRY SparcGetPsrSys
+```
+    %l3 = PSR_PIL_MASK|PSR_ET_BIT|PSR_EF_BIT;
+    %i0 = %l0 andnot %l3;
+
+    %l4 = CKTHREAD_CTRL_GET_IFLAGS();
+
+    %l4 &= %l3;
+    %i0 |= %l4;
+
+    return;
+```
+
+### ENTRY SparcSetPsrSys
+```
+%l4 = %i1 & PSR_ICC_MASK;
+%l0 &= !PSR_ICC_MASK;
+%l0 |= %l4;
+
+%l3 = PSR_PIL_MASK|PSR_ET_BIT;
+%l4 = GET_CKTHREAD_FLAGS();
+if (%l4 & 2) {
+    %l3 |= PSR_EF_BIT;
+    if (!(%i1 & PSR_EF_BIT)) {
+        %l0 &= !%l5;
+        %l0 |= %l4;
+    }
+}
+%l3 &= %i1;
+CKTHREAD_CTRL_SET_IFLAGS(%l3);
+
+if (%l3 & PSR_ET_BIT) {
+    exit;
+}
+if (%l3 & PSR_PIL_BIT) {
+    exit;
+}
+
+%l1 = %l2;
+%l2 += 4;
+
+%l4 = _retl;
+%l5 = FromIRet; //CommonTrapHandler
+
+jmp %l5;
+```
+
+### ENTRY SparcSetPilSys
+```
+%l5 = CKTHREAD_CTRL_GET_IFLAGS();
+
+%l5 |= PSR_PIL_MASK;
+
+CKTHREAD_CTRL_RESTORE_IFLAGS(%l5);
+
+return;
+```
+
+### ENTRY SparcClearPilSys
+```
+%l5 = CKTHREAD_CTRL_GET_IFLAGS();
+%l5 &= !PSR_PIL_MASK;
+CKTHREAD_CTRL_RESTORE_IFLAGS(%l5);
+
+%l1 = %l2;
+%l2 += 4;
+
+%l4 = _retl;
+%l5 = FromIRet;
+jmp %l5;
+```
+
+### ENTRY SparcCtrlWinFlowSys
+```
+%l5 = %wim;
+%l6 = (%l0 & 2) & 0x1f;
+%l4 = %l6 - CONFIG_REGISTER_WINDOWS;
+if (%l4 >= 0) { //branc on Neg
+    %l6 = %l4;
+}
+%l6 = %l5 >> %l6;
+if (%l6 != 1) {
+    return;
+}
+
+%l5 = %wim;
+%l6 = %l5 << 1;
+%l5 >>= CONFIG_REGISTER_WINDOWS - 1;
+%wim = %l5 + %l6;
+WR_DELAY();
+
+restore();
+restore();
+RESTORE_CWND();
+save();
+save();
+return;
+```
