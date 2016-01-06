@@ -24,17 +24,17 @@ start:
 	st %g1, [%g2] // store what? = = what is g1
 
 	set stack, %fp
-	set STACK_SIZE-8, %g1 //the next slot is stack size
+	set STACK_SIZE-8, %g1
 	add %fp, %g1, %fp
-	mov %g1, %o0    //TODO mv to %x0?
+	mov %g1, %o0
 	call MainLdr
 	sub %fp, MIN_STACK_FRAME, %sp
 
 	set partCtrlTabPtr, %g2
-	ld [%g2], %g1  //TODOstore Main into
+	ld [%g2], %g1
 	jmp %o0
 	nop
-1:      b 1b
+1:	b 1b
 	nop
 
 .common stack,STACK_SIZE,8
