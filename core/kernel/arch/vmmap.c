@@ -49,7 +49,6 @@ void SetupVmMap(xmAddress_t *stFrameArea, xm_s32_t *noFrames) {
     //_PHYS2VIRT(x) ((xm_u32_t)(x)+CONFIG_XM_OFFSET-CONFIG_XM_LOAD_ADDR)
     st=_PHYS2VIRT(st)-CONFIG_XM_OFFSET; //== st - xm_load_addr
     for (e=0; e<(xmcPhysMemAreaTab[xmcTab.hpv.physicalMemoryAreasOffset].size>>PTDL3_SHIFT); e++) {
-        // deal with all cache
         //TODO should put this if statement outside; this if make for-loop slow.
         if (flags&XM_MEM_AREA_UNCACHEABLE)
             _ptdL3[(st+(e<<PTDL3_SHIFT))>>PTDL3_SHIFT]&=~_PG_ARCH_CACHE;
