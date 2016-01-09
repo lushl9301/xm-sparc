@@ -1,4 +1,4 @@
-#XtratuM Hypercall Mechanisim Studies
+#XtratuM Hypercall Mechanism Studies
 ##Case study of hypercall XM_get_time
 
 ###Hypercall Declaration
