@@ -163,43 +163,54 @@ Similar as above.
 ### Functions
 
 ******
-## xmcPartitionTab
+## xmcRsvMemTab
 
 ### Declaration
 
 	//file core/kernel/setup.c
-	struct xmcMemoryRegion *xmcMemRegTab;
+    struct xmcRsvMem *xmcRsvMemTab;
 
 ### Description
-
+An array that keeps recording which memory region is reserved/used.
 
 ### Initialization
 
+Initialized by parser and xml tools.
+
 ### Functions
 
-1. SetupPartitions
+1. InitRsvMem
+//file core/kernel/rsvmem.c
 
-2. CreatePartition
+2. AllocRsvMem
+Use for-loop to iterat among memory obj one by one. If currrent memory's size is equal to  required memory size, then mark the memory as used and return its address.
 
+This function is used by ```GET_MEMA``` and ```GET_MEMAZ``` functions, which are used for allocating thread, stack and page memory.
 
 ******
-## xmcPartitionTab
+## xmcBootPartTab
 
 ### Declaration
 
 	//file core/kernel/setup.c
-	struct xmcMemoryRegion *xmcMemRegTab;
+    struct xmcBootPart *xmcBootPartTab;
 
 ### Description
-
+This array stores information about partition boot image address, entry point, details about the custom files.
+//TODO
 
 ### Initialization
 
+Initialized by parser and xml tools.
+
 ### Functions
 
-1. SetupPartitions
+1. SetupLdr
+```xmcBootPartTab``` provides image start address. The partition image mapping is setted in this function.
 
-2. CreatePartition
+2. ResetPartition
+Reset page table using image handler with address ```hdrPhysAddr```.
+Reset partition's thread (Warm and boot situation) with entryPoint in ```xmcBootPartTab```.
 
 
 ******
