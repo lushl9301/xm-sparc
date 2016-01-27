@@ -81,7 +81,7 @@ This command gives us an important line of code:
 ```
 And this function is shown as follow:
 
-```c
+```
 #define xm_hcall2(_hc, _t0, _a0, _t1, _a1) \
 ASMLINK void XM_##_hc(_t0 _a0, _t1 _a1) { \
     xm_s32_t _r ; \

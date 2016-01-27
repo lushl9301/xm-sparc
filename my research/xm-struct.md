@@ -129,7 +129,7 @@ This structure is used for carry ```customFileTab``` as well as ```noCustomFiles
 ### ./core/include/xmef.h:51:struct xmImageHdr
 
 
-```c
+```
 struct xmImageHdr {
 #define XMEF_PARTITION_MAGIC 0x24584d69 // $XMi
     xm_u32_t sSignature;
@@ -160,7 +160,7 @@ struct xmefPartition {
 ./user/tools/xmpack/xmpack.c:struct xmefPartition *partitionTab=0, *hypervisor;
 ```
 
-```xmpack``` is used for "Create a pack holding the image of XM and partitions to be written into the ROM"
+"xmpack" is used for "Create a pack holding the image of XM and partitions to be written into the ROM"
 
 ### ./core/include/xmef.h:87:struct xmefContainerHdr
 
@@ -238,7 +238,7 @@ struct xefSegment {
 } __PACKED;
 ```
 
-> TODO
+//TODO
 
 ### ./core/include/drivers/memblock.h:19:struct memBlockData
 ```c
@@ -256,7 +256,6 @@ struct xmcMemBlock {
 ```
 
 ### ./core/include/objects/console.h:22:struct console
-
 ```c
 struct console {
     const kDevice_t *dev;
@@ -324,9 +323,9 @@ union queuingPortCmd {
 };
 ```
 
-```SCmd``` and ```TCmd``` are the same.
+- ```SCmd``` and ```TCmd``` are the same.
 
-```QCmd``` has extra variable named ```maxNoMsgs```.
+- ```QCmd``` has extra variable named ```maxNoMsgs```.
 
 ### ./core/include/objects/commports.h:161:union channel
 
@@ -506,7 +505,7 @@ struct dynList {
 ```
 Simple data structure, easy to understand.
 
-./core/include/arch/irqs.h:23:struct trapHandler
+### ./core/include/arch/irqs.h:23:struct trapHandler
 ```c
 struct trapHandler {
     xmAddress_t pc;
@@ -514,7 +513,7 @@ struct trapHandler {
 ```
 Just use Program Counter to redirect trapHandler.
 
-./core/include/arch/irqs.h:32:typedef struct _cpuCtxt
+### ./core/include/arch/irqs.h:32:typedef struct _cpuCtxt
 ```c
 typedef struct _cpuCtxt {
     struct _cpuCtxt *prev; // a linked list?
@@ -535,7 +534,7 @@ typedef struct _cpuCtxt {
 ```
 A super-class of ```hmCpuCtxt```. This struct contains registers' information.
 
-./core/include/arch/xmconf.h:66:struct xmcIoPort
+### ./core/include/arch/xmconf.h:66:struct xmcIoPort
 ```c
 struct xmcIoPort {
     xm_u32_t type;
@@ -555,7 +554,7 @@ struct xmcIoPort {
 };
 ```
 
-./core/include/arch/guest.h:23:struct pctArch
+### ./core/include/arch/guest.h:23:struct pctArch
 ```c
 struct pctArch {
     xmAddress_t tbr;
@@ -580,8 +579,8 @@ void SetupPctMm(partitionControlTable_t *partCtrlTab, kThread_t *k) {
 }
 ```
 
-./core/include/arch/kthread.h:25:struct kThreadArch
-```c
+### ./core/include/arch/kthread.h:25:struct kThreadArch
+```
 struct kThreadArch {
 #if defined(CONFIG_MPU)
     xm_u32_t wpReg;
@@ -599,7 +598,7 @@ struct kThreadArch {
 
 This struct is usually contained in ```guest``` structure. Usually accessed by ```ctrl.g->kArch```.
 
-./core/include/irqs.h:34:struct irqTabEntry
+### ./core/include/irqs.h:34:struct irqTabEntry
 ```c
 struct irqTabEntry {
     irqHandler_t handler;
@@ -617,7 +616,7 @@ else
     DefaultIrqHandler(ctxt, 0);
 ```
 
-./core/include/xmconf.h:27:struct xmcHmSlot
+### ./core/include/xmconf.h:27:struct xmcHmSlot
 ```c
 struct xmcHmSlot {
     xm_u32_t action:31, log:1;
@@ -639,7 +638,7 @@ struct xmcHmSlot {
 #define XM_HM_MAX_ACTIONS 11
 };
 ```
-./core/include/xmconf.h:78:struct xmcCommPort
+### ./core/include/xmconf.h:78:struct xmcCommPort
 ```c
 struct xmcCommPort {
     xm_u32_t nameOffset;
@@ -657,7 +656,7 @@ struct xmcCommPort {
 #endif
 };
 ```
-./core/include/xmconf.h:96:struct xmcSchedCyclicSlot
+### ./core/include/xmconf.h:96:struct xmcSchedCyclicSlot
 ```c
 struct xmcSchedCyclicSlot {
     xmId_t id;
@@ -667,7 +666,7 @@ struct xmcSchedCyclicSlot {
     xm_u32_t eExec; // offset+duration (usec)
 };
 ```
-./core/include/xmconf.h:105:struct xmcSchedCyclicPlan
+### ./core/include/xmconf.h:105:struct xmcSchedCyclicPlan
 ```c
 struct xmcSchedCyclicPlan {
     xm_u32_t nameOffset;
@@ -680,7 +679,7 @@ struct xmcSchedCyclicPlan {
     xm_u32_t slotsOffset;
 };
 ```
-./core/include/xmconf.h:118:struct xmcMemoryArea
+### ./core/include/xmconf.h:118:struct xmcMemoryArea
 ```c
 struct xmcMemoryArea {
     xm_u32_t nameOffset;
@@ -702,7 +701,7 @@ struct xmcMemoryArea {
     xm_u32_t memoryRegionOffset;
 };
 ```
-./core/include/xmconf.h:139:struct xmcRsw
+### ./core/include/xmconf.h:139:struct xmcRsw
 ```c
 struct xmcRsw {
     xm_s32_t noPhysicalMemoryAreas;
@@ -710,14 +709,14 @@ struct xmcRsw {
     //xmAddress_t entryPoint;
 };
 ```
-./core/include/xmconf.h:145:struct xmcTrace
+### ./core/include/xmconf.h:145:struct xmcTrace
 ```c
 struct xmcTrace {
     xmDev_t dev;
     xm_u32_t bitmap;
 };
 ```
-./core/include/xmconf.h:150:struct xmcPartition
+### ./core/include/xmconf.h:150:struct xmcPartition
 ```c
 struct xmcPartition {
     xmId_t id;
@@ -743,7 +742,7 @@ struct xmcPartition {
     } ipviTab[CONFIG_XM_MAX_IPVI];
 };
 ```
-./core/include/xmconf.h:175:struct xmcCommChannel
+### ./core/include/xmconf.h:175:struct xmcCommChannel
 ```c
 struct xmcCommChannel {
 #define XM_SAMPLING_CHANNEL 0
@@ -774,7 +773,7 @@ struct xmcCommChannel {
     };
 };
 ```
-./core/include/xmconf.h:205:struct xmcMemoryRegion
+### ./core/include/xmconf.h:205:struct xmcMemoryRegion
 ```c
 struct xmcMemoryRegion {
     xmAddress_t startAddr;
@@ -784,14 +783,14 @@ struct xmcMemoryRegion {
     xm_u32_t flags;
 };
 ```
-./core/include/xmconf.h:213:struct xmcHwIrq
+### ./core/include/xmconf.h:213:struct xmcHwIrq
 ```c
 struct xmcHwIrq {
     xm_s32_t owner;
 #define XM_IRQ_NO_OWNER -1
 };
 ```
-./core/include/xmconf.h:218:struct xmcHpv
+### ./core/include/xmconf.h:218:struct xmcHpv
 ```
 struct xmcHpv {
     xm_s32_t noPhysicalMemoryAreas;
@@ -824,13 +823,13 @@ struct xmcHpv {
     struct xmcTrace trace;
 };
 ```
-./core/include/xmconf.h:250:struct xmcMemBlock
+### ./core/include/xmconf.h:250:struct xmcMemBlock
 ```c
 struct xmcMemBlock {
     xm_u32_t physicalMemoryAreasOffset;
 };
 ```
-./core/include/xmconf.h:256:struct xmcTTnocSlot
+### ./core/include/xmconf.h:256:struct xmcTTnocSlot
 ```c
 struct xmcTTnocSlot {
     xmAddress_t ttsocId;
@@ -840,8 +839,8 @@ struct xmcTTnocSlot {
     xmDev_t devId;
 };
 ```
-./core/include/xmconf.h:264:struct xmcDevice
-```c
+### ./core/include/xmconf.h:264:struct xmcDevice
+```
 struct xmcDevice {
 #if defined(CONFIG_DEV_MEMBLOCK)||defined(CONFIG_DEV_MEMBLOCK_MODULE)
     xmAddress_t memBlocksOffset;
@@ -863,7 +862,7 @@ struct xmcDevice {
 #endif
 };
 ```
-./core/include/xmconf.h:285:struct xmcRsvMem
+### ./core/include/xmconf.h:285:struct xmcRsvMem
 ```
 struct xmcRsvMem {
     void *obj;
@@ -872,7 +871,7 @@ struct xmcRsvMem {
     xm_u32_t size;
 } __PACKED;
 ```
-./core/include/xmconf.h:292:struct xmcBootPart
+### ./core/include/xmconf.h:292:struct xmcBootPart
 ```c
 struct xmcBootPart {
 #define XM_PART_BOOT 0x1
@@ -885,13 +884,13 @@ struct xmcBootPart {
     struct xefCustomFile customFileTab[CONFIG_MAX_NO_CUSTOMFILES];
 };
 ```
-./core/include/xmconf.h:303:struct xmcRswInfo
+### ./core/include/xmconf.h:303:struct xmcRswInfo
 ```c
 struct xmcRswInfo {
     xmAddress_t entryPoint;
 };
 ```
-./core/include/xmconf.h:308:struct xmcFpSched
+### ./core/include/xmconf.h:308:struct xmcFpSched
 ```c
 struct xmcFpSched {
     xmId_t partitionId;
@@ -899,7 +898,7 @@ struct xmcFpSched {
     xm_u32_t priority;
 };
 ```
-./core/include/xmconf.h:323:struct xmc
+### ./core/include/xmconf.h:323:struct xmc
 This structure contains every important part of the XtratuM.
 ```
 struct xmc {
@@ -952,7 +951,7 @@ struct xmc {
 } __PACKED;
 ```
 
-./core/include/physmm.h:30:struct physPage
+### ./core/include/physmm.h:30:struct physPage
 ```c
 struct physPage {
     struct dynListNode listNode;
@@ -970,7 +969,7 @@ struct physPage {
 ./core/kernel/arch/vmmap.c:    struct physPage *pagePtdL2, *pagePtdL3;
 ```
 
-./core/include/guest.h:79:struct xmPhysicalMemMap
+###/include/guest.h:79:struct xmPhysicalMemMap
 ```c
 struct xmPhysicalMemMap {
     xm_s8_t name[CONFIG_ID_STRING_LENGTH];
@@ -992,7 +991,7 @@ struct xmPhysicalMemMap {
 ```
 Use ```memMap[e].name``` to distinguish different memory area.
 
-./core/include/guest.h:100:struct schedInfo
+### ./core/include/guest.h:100:struct schedInfo
 ```c
 struct schedInfo {
     xm_u32_t noSlot;
@@ -1000,7 +999,7 @@ struct schedInfo {
     xm_u32_t slotDuration;
 };
 ```
-./core/include/guest.h:108:struct partitionControlTable_t
+### ./core/include/guest.h:108:struct partitionControlTable_t
 ```c
 typedef struct {
     xm_u32_t magic;
@@ -1037,7 +1036,7 @@ typedef struct {
 } partitionControlTable_t;
 ```
 
-./core/include/smp.h:27:struct localId
+### ./core/include/smp.h:27:struct localId
 ```c
 // This structure is stored by each processor
 struct localId {
@@ -1049,7 +1048,7 @@ struct localId {
 // but this array is never used
 ```
 
-./core/include/kdevice.h:26:typedef struct kDev
+### ./core/include/kdevice.h:26:typedef struct kDev
 ```c
 typedef struct kDev {
     xm_u16_t subId;
@@ -1075,7 +1074,7 @@ All I/O device are device; memBlock are devices so that read, write, reset, seek
 ./core/drivers/leon_uart.c:static kDevice_t uartTab[CONFIG_DEV_NO_UARTS];
 ```
 
-./core/include/kthread.h:37:struct guest
+### ./core/include/kthread.h:37:struct guest
 ```c
 struct guest {
 #define PART_VCPU_ID2KID(partId, vCpuId) ((vCpuId)<<8)|((partId)&0xff)
@@ -1094,7 +1093,7 @@ struct guest {
 };
 ```
 
-./core/include/kthread.h:69:struct __kThread
+### ./core/include/kthread.h:69:struct __kThread
 ```c
 typedef union kThread {
     struct __kThread {
@@ -1134,7 +1133,7 @@ typedef union kThread {
 
 It is common to see: ```kThread->ctrl.g```; ```ctrl``` is ```__kThread```; ```g``` is the ```guest```.
 
-./core/include/kthread.h:128:typedef struct partition
+### ./core/include/kthread.h:128:typedef struct partition
 ```c
 typedef struct partition {
     kThread_t **kThread;
@@ -1150,10 +1149,10 @@ typedef struct partition {
 
 //TODO
 
-./core/include/sched.h:33:struct schedData
-./core/include/sched.h:35:struct cyclicData
-./core/include/sched.h:53:struct fpData
-```c
+### ./core/include/sched.h:33:struct schedData
+### ./core/include/sched.h:35:struct cyclicData
+### ./core/include/sched.h:53:struct fpData
+```
 struct schedData {
 #ifdef CONFIG_CYCLIC_SCHED
     struct cyclicData {
@@ -1196,7 +1195,7 @@ typedef struct {
 
 Most important part is the ```plan```.
 
-./core/include/ktimer.h:32:typedef struct hwClock
+### ./core/include/ktimer.h:32:typedef struct hwClock
 ```c
 typedef struct hwClock {
     char *name;
@@ -1213,7 +1212,7 @@ typedef struct hwClock {
 Basic clock device. There are two clock types in Xtratum.
 One is ```HwClock_t```, the other one is ```vClock_t```.
 
-./core/include/ktimer.h:46:typedef struct hwTimer
+### ./core/include/ktimer.h:46:typedef struct hwTimer
 ```c
 typedef struct hwTimer {
     xm_s8_t *name;
@@ -1231,7 +1230,7 @@ typedef struct hwTimer {
 } hwTimer_t;
 ```
 
-./core/include/ktimer.h:63:typedef struct kTimer
+### ./core/include/ktimer.h:63:typedef struct kTimer
 
 ```c
 typedef struct kTimer {
@@ -1245,11 +1244,11 @@ typedef struct kTimer {
 } kTimer_t;
 ```
 
-./core/include/queue.h:23:struct queue
+### ./core/include/queue.h:23:struct queue
 
 This struct is not in use.
 
-./core/include/objdir.h:75:struct object
+### ./core/include/objdir.h:75:struct object
 
 Really similar to Linux kernel object oriented programming.
 
@@ -1266,9 +1265,9 @@ struct object {
 };
 ```
 
-./core/include/logstream.h:30:struct logStreamInfo
-./core/include/logstream.h:33:struct logStreamCtrl
-./core/include/logstream.h:27:struct logStreamHdr
+### ./core/include/logstream.h:30:struct logStreamInfo
+### ./core/include/logstream.h:33:struct logStreamCtrl
+### ./core/include/logstream.h:27:struct logStreamHdr
 ```c
 struct logStreamHdr {
 #define LOGSTREAM_MAGIC1 0xF9E8D7C6
@@ -1284,7 +1283,7 @@ struct logStreamHdr {
 };
 ```
 
-./core/include/logstream.h:40:struct logStream
+### ./core/include/logstream.h:40:struct logStream
 
 ```c
 struct logStream {
