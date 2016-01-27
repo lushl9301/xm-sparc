@@ -728,8 +728,8 @@ struct xmcPartition {
     xm_u32_t hwIrqs;
     xm_s32_t noPhysicalMemoryAreas;
     xm_u32_t physicalMemoryAreasOffset;
-    xmDev_t consoleDev;    
-    struct xmcPartitionArch arch;
+    xmDev_t consoleDev;
+    struct xmcPartitionArch arch; //empty
     xm_u32_t commPortsOffset;
     xm_s32_t noPorts;
     struct xmcHmSlot hmTab[XM_HM_MAX_EVENTS];

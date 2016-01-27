@@ -93,7 +93,7 @@ static xm_s32_t SeekMemBlock(const kDevice_t *kDev, xm_u32_t offset, xm_u32_t wh
     xm_s32_t off=offset;
 
     switch((whence)) {
-    case DEV_SEEK_START:	
+    case DEV_SEEK_START:
 	break;
     case DEV_SEEK_CURRENT:
 	off+=memBlockData[kDev->subId].pos;

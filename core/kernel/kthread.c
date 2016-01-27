@@ -139,7 +139,7 @@ partition_t *CreatePartition(struct xmcPartition *cfg) {
         xm_s32_t e;
         xm_u32_t cpuId;
         //create new thread
-        p->kThread[i]=k=AllocKThread(PART_VCPU_ID2KID(cfg->id, i));
+        p->kThread[i] = k = AllocKThread(PART_VCPU_ID2KID(cfg->id, i));
         if (cfg->flags&XM_PART_SYSTEM) {
             //if this is system partition
 
