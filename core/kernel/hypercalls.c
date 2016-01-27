@@ -180,6 +180,7 @@ __hypercall xm_s32_t ResumeVCpuSys(xmId_t vCpuId) {
         if (cpu!=GET_CPU_ID())
             SendIpi(cpu,NO_SHORTHAND_IPI,SCHED_PENDING_IPI_VECTOR);
             ///here may contain bugs if there is only one cpu
+            // should be no bug
     }
 #endif
 
@@ -819,6 +820,7 @@ __hypercall xm_s32_t RaisePartitionIpviSys(xmId_t partitionId, xm_u8_t noIpvi) {
 
     ipvi=&GetPartition(sched->cKThread)->cfg->ipviTab[noIpvi-XM_VT_EXT_IPVI0];
     if (ipvi->noDsts<=0)
+        //TODO this return is different from below
         return XM_INVALID_CONFIG;
 
     for (e=0; e<ipvi->noDsts; e++){
@@ -861,6 +863,7 @@ __hypercall xm_s32_t RaiseIpviSys(xm_u8_t noIpvi) {
         return XM_INVALID_PARAM;
     ipvi=&GetPartition(sched->cKThread)->cfg->ipviTab[noIpvi-XM_VT_EXT_IPVI0];
     if (ipvi->noDsts<=0)
+        //TODO return different from above
         return XM_NO_ACTION;
 
     for (e=0; e<ipvi->noDsts; e++){

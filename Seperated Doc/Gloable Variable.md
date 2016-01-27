@@ -214,15 +214,137 @@ Reset partition's thread (Warm and boot situation) with entryPoint in ```xmcBoot
 
 
 ******
-## xmcPartitionTab
+## xmcRswInfo
 
 ### Declaration
 
 	//file core/kernel/setup.c
-	struct xmcMemoryRegion *xmcMemRegTab;
+    struct xmcRswInfo *xmcRswInfo;
+
+### Description
+Not in use
+
+### Initialization
+
+### Functions
+
+
+******
+## xmcDstIpvi
+
+### Declaration
+
+	//file core/kernel/setup.c
+    struct xmcRswInfo *xmcRswInfo;
 
 ### Description
 
+Ipvi stands for *Inter-Partition Virtual Interrupts*. The XM_raise_ipvi() hypercall generates an virtual interrupt to one or several partitions as speficied in the configuration file (XM CF).
+
+### Initialization
+
+Initialized by parser and xml tools.
+
+### Functions
+
+1. hypercall RaiseIpviSys
+This function is the implementation of XM_raise_ipvi() hypercall. The XM_raise_ipvi() hypercall generates an virtual interrupt to one or several partitions as speficied in the configuration file (XM CF). The link between the partition that generates the interrupt and the receiver partitions is specified in the channel section of the configuration file.
+
+2. hypercall RaisePartitionIpviSys
+This function has similar implementation as above. However, the return values of them are different. Set irq pending if and only if ```xmcDisIpvi[ipvi->disOffset + e] == partitionId```.
+
+******
+## xmcStringTab
+
+### Declaration
+
+	//file core/kernel/setup.c
+    xm_s8_t *xmcStringTab;
+
+### Description
+
+This array of string keeps the name of partitions and plans.
+
+### Initialization
+
+Initialized by parser and xml tools.
+
+### Functions
+
+1. hypercall GetGidByNameSys
+This function is the implementation of XM_get_gid_by_name. Returns in the identifier of an entity as defined in the configuration file by providing the entity name string.
+
+2. SetupPct
+//file core/kernel/kthread.c
+Setup partiton ctrl requires the name of partition.
+
+Setup memory area requires the name of ```xmcMemArea->nameoffset```.
+
+3. file core/objects/commports.c
+Finding port is using the name of ports.
+
+******
+## xmcVCpuTab
+
+### Declaration
+
+	//file core/kernel/setup.c
+    struct xmcVCpu *xmcVCpuTab;
+
+### Description
+
+This array is used to store the cpuId for each partition.
+
+### Initialization
+
+Initialized by parser and xml tools.
+
+### Functions
+
+1. hypercall ResumeVCpuSys
+Use more informaiton about current partition's smp vcpu. Send ipi to the cpu that is not running current thread.
+
+2. hypercall RaisePartitionIpviSys
+Similar as above. SMP support
+
+3. hypercall RaiseIpviSys
+Similar as above. SMP support
+
+4. CreatePartition
+
+5. SetupPct
+For index VCpu scheduling policy
+
+6. ResetKThread
+Reset current thread only. If smp, then can keep scheduling on other cores.
+
+******
+## xmcRswInfo
+
+### Declaration
+
+	//file core/kernel/setup.c
+    struct xmcRswInfo *xmcRswInfo;
+
+### Description
+
+### Initialization
+
+### Functions
+
+1. SetupPartitions
+
+2. CreatePartition
+
+******
+## xmcRswInfo
+
+### Declaration
+
+	//file core/kernel/setup.c
+    struct xmcRswInfo *xmcRswInfo;
+
+### Description
 
 ### Initialization
 
