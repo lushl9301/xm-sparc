@@ -291,6 +291,7 @@ void ResetKThread(kThread_t *k, xmAddress_t ptdL1, xmAddress_t entryPoint, xm_u3
 #endif
     } else {
         //SetMmuCtxt(k->ctrl.g->kArch.mmuCtxt)
+        //same as following
         LoadPartitionPageTable(k);
         //mainly operating on cKThread
         StartUpGuest(entryPoint);

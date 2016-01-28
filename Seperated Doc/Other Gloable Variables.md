@@ -61,12 +61,13 @@ Setup and SMP configuration
 
 
 ******
-## __nrCpus
+## contextTab
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+	//file core/kernel/arch/head.S
+    ENTRY(contextTab)
+		.zero CTXTTABSIZE
 
 ### Description
 
@@ -76,9 +77,29 @@ Setup and SMP configuration
 
 ### Functions
 
-1. GET_NRCPUS
+1. hypercall SparcWritePtdL1Sys
 
-2. SET_NRCPUS
+	This function is EMPTY
+
+2. SetupPtdL1
+
+	//file core/kernel/arch/vmmap.c
+
+	First, CloneXMPtdL1; save _pgTables content to ptdL1
+
+    Second, update current guest's mmuCtxt, which is the current page table's backup
+
+    Save page table backup into contextTab
+
+3. LoadPartitionPageTable & SetMmuCtxt
+
+	//file core/include/arch/processor.h
+
+	Restore backuped page table when resetting kthreads and partitions
+
+4. ASM arch/head.S
+
+	load contextTab's physical address to a pointer.
 
 ******
 ## __nrCpus

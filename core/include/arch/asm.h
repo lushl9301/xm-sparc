@@ -130,12 +130,6 @@ static inline xm_s32_t AsmROnlyCheck(xmAddress_t param, xmSize_t size, xm_u32_t 
 }
 #endif
 
-/*
-#define LoadPtdL1(_ptdL1, _id) do { \
-    contextTab[(_id)+1]=((_ptdL1)>>4)|_PG_ARCH_PTD_PRESENT; \
-    SetMmuCtxt((_id)+1); \
-} while(0)
-*/
 
 #define SAVE_GLOBAL_REG(_sp) \
     "sub "#_sp", 32, "#_sp"\n\t" \

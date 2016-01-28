@@ -267,7 +267,7 @@ ENTRY(_start)
 	srl %o1, 4, %o1
 
 	set LEON_MMU_CPR_REG, %g1
-	sta %o1, [%g1] LEON_MMU_ASI
+	sta %o1, [%g1] LEON_MMU_ASI /*store into [%g1]
 
 	/* Load MMU CTXT <- 0 */
 	set LEON_MMU_CTXT_REG, %g1
