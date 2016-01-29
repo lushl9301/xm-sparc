@@ -343,24 +343,35 @@ Allocate memory in CreateLocalInfo and set IrqMask to 0xffffffff. Setup at funct
 	Assign updated local IrqMask to ```p->kThread[i]```
 
 ******
-## __nrCpus
+## cpuKhz
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+	//file core/include/guest.h
+    xm_u32_t cpuKhz;
 
 ### Description
 
+GPU's frequency
 
 ### Initialization
 
+//file core/kernel/arch/processor.c
+EarlySetupCpu
 
 ### Functions
 
-1. GET_NRCPUS
+1. GetCpuKhz
 
-2. SET_NRCPUS
+2. EarlySetupCpu
+
+3. InitPitClock
+
+	Set clock, register and irq handler
+
+4. SetupPct
+
+	partCtrlTab->cpuKhz=cpuKhz
 
 ******
 ## __nrCpus
