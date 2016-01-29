@@ -184,7 +184,7 @@ Several irqs sets its handler and data by invoking function ```SetIrqHandler```
 //file core/kernel/arch/leon_timers.c
 SetIrqHandler(TIMER_IRQ, TimerIrqHandler, 0);
 SetIrqHandler(CLOCK_IRQ, ClockIrqHandler, 0);
-//file core/kernel/arch/irqs.c
+//file core/kernel/arch/irqs.c SMP support
 SetIrqHandler(HALT_ALL_IPI_VECTOR, SmpHaltAllHndl, 0);
 SetIrqHandler(SCHED_PENDING_IPI_VECTOR, SmpSchedPendingIPIHndl, 0);
 //file core/kernel/sched.c
@@ -289,24 +289,58 @@ function InitPic()
 3. InitPic
 
 ******
-## __nrCpus
+## *trap2Str[]
+
+### Declaration
+
+	//file core/kernel/arch/irqs.c
+    xm_s8_t *trap2Str[]={
+    ...
+    };
+
+### Description
+
+Used for debug information printing
+
+### Initialization
+
+### Functions
+
+
+******
+## localCpuInfo
 
 ### Declaration
 
 	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+    localCpu_t localCpuInfo[CONFIG_NO_CPUS];
 
 ### Description
 
+Array of localCpu_t, contains flags, irqNestingCounter and globalIrqMask. Most used attribute is IrqMask.
 
 ### Initialization
 
+Allocate memory in CreateLocalInfo and set IrqMask to 0xffffffff. Setup at function ```ArchSetupIrqs``` for SMP support.
 
 ### Functions
 
-1. GET_NRCPUS
+1. GET_LOCAL_CPU
 
-2. SET_NRCPUS
+	(&localCpuInfo[GET_CPU_ID()]) //SMP
+    localCpuInfo //Not SMP
+
+    GET_CPU_ID() = __GetCpuId() = cpuId>>28
+    	__asm__ __volatile__ ("rd %%asr17, %0\n\t" : "=r" (cpuId):);
+        //Processor configuration registe PCR ars17; 31~28 is PI (Processor ID)
+
+2. ArchSetupIrqs
+
+3. CreatePartition
+
+	Load ```localIrqMask``` from cpu global IrqMask and update it according to hwIrqTable.
+
+	Assign updated local IrqMask to ```p->kThread[i]```
 
 ******
 ## __nrCpus
@@ -347,6 +381,28 @@ function InitPic()
 1. GET_NRCPUS
 
 2. SET_NRCPUS
+
+
+******
+## __nrCpus
+
+### Declaration
+
+	//file core/kernel/setup.c
+    xm_u16_t __nrCpus = 0;
+
+### Description
+
+
+### Initialization
+
+
+### Functions
+
+1. GET_NRCPUS
+
+2. SET_NRCPUS
+
 
 ******
 ## __nrCpus
