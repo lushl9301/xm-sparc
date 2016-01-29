@@ -56,9 +56,10 @@ void SetupVmMap(xmAddress_t *stFrameArea, xm_s32_t *noFrames) {
             _ptdL3[(st+(e<<PTDL3_SHIFT))>>PTDL3_SHIFT]|=_PG_ARCH_CACHE;
     }
 
+    //TODO what frame?
     for (e=0; e<*noFrames; e++)
         _ptdL3[(*stFrameArea-CONFIG_XM_OFFSET+e*PAGE_SIZE)>>PTDL3_SHIFT]=0;
-    //TODO PTDL2_SHIFT instead of PTDL3_SHIFT bug? though they should be the same
+    //TODO PTDL2_SHIFT instead of PTDL3_SHIFT bug? though they are be the same
     _ptdL3[XM_PCTRLTAB_ADDR>>PTDL2_SHIFT]=0;
     //flush cache and flush tlb
     FlushTlbGlobal();

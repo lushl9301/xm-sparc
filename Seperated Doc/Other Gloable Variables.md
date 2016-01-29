@@ -1,4 +1,3 @@
-
 ******
 ## objectTab
 
@@ -71,9 +70,11 @@ Setup and SMP configuration
 
 ### Description
 
+Save threads' contexts. contextTab is updated when saving / setting up L1 page table.
 
 ### Initialization
 
+Filled up during _start ENTRY in core/kernel/arch/head.S. First fill up l3, l2, l1 page table and copy l1 content to the memory location pointed by contextTab.
 
 ### Functions
 
@@ -102,24 +103,64 @@ Setup and SMP configuration
 	load contextTab's physical address to a pointer.
 
 ******
-## __nrCpus
+## _pgTables[], _ptdL1[], _ptdL2[], _ptdL3[]
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+	//file core/kernel/arch/head.S
+    .align 1024
+    ENTRY(_pgTables)
+    ENTRY(_ptdL1)
+        .zero PTDL1SIZE = 1024
+    /*???
+    (16MB)
+    -----------------
+    4096 4KPAGES
+    1 L1
+    1 L2
+    64 L3
+    --------------
+    */
+    .align 256
+    ENTRY(_ptdL2)
+        .zero NO_PTDL2_XMVMAP*PTDL2SIZE = 1 * 256
+
+    .align 256
+    ENTRY(_ptdL3)
+        .zero NO_PTDL3_XMVMAP*PTDL3SIZE = 64 * 256
 
 ### Description
 
+SparcV8.pdf page 241. Level 1 size 1024, 256 enries. level 2 size 256, 64 entries. level 3 size 256, 64 entries. __pgTables starts at the same location as _ptdL1.
 
 ### Initialization
 
+Filled up during _start ENTRY in core/kernel/arch/head.S.
 
 ### Functions
 
-1. GET_NRCPUS
+1. CloneXMPtdL1
 
-2. SET_NRCPUS
+	```
+//write _pgTables -> ptdL1
+WriteByPassMmuWord(&ptdL1[l1e], _pgTables[l1e]);
+	```
+
+2. _start
+
+	//file core/kernel/arch/head.S
+
+    Write ptdL3, store ptdL3 to ptdL2
+
+    Write ptdL2, store into ptdL1 (CONFIG_XM_OFFSET and CONFIG_XM_LOAD_ADDR)
+
+    Write ptdL1 to contextTab entry
+
+3. SetupVmMap
+
+	Put hypervisor's physical memory into ptdL3.
+
+	And clean the frame.
 
 ******
 ## __nrCpus

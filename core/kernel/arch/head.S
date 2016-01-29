@@ -192,16 +192,16 @@ ENTRY(_start)
 	set ((CONFIG_XM_LOAD_ADDR&PAGE_MASK)>>4)|_PG_ARCH_RW|_PG_ARCH_CACHE|_PG_ARCH_PTE_PRESENT, %o0
 	set _VIRT2PHYS(_ptdL3), %o1
 	set NO_PTDL3_XMVMAP*PTDL3ENTRIES*4, %o3
-	add %o1, %o3, %o2
 	/* o2 stores end of ptdL3 */
+	add %o1, %o3, %o2
 
 1:	st %o0, [%o1]
 	add %o1, 0x4, %o1
 	subcc %o1, %o2, %g0
 	bl 1b
-	/* set page table with flag o0 */
-	
 	add %o0, (PAGE_SIZE>>4), %o0
+	/* set page table with flag o0 */
+
 	set _VIRT2PHYS(_ptdL3), %o0
 	srl %o0, 4, %o0
 	or %o0, _PG_ARCH_PTD_PRESENT, %o0
