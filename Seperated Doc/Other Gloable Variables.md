@@ -202,27 +202,41 @@ SetIrqHandler(irqNr, SchedSyncHandler, 0);
 3. SetupIrqs
 
 	Find each irq that has owner (a certain partition). Then the handler is set to ```SetPartitionHwIrqPending```, which is used to set all running threads' flag for trigger irq.
+    
+    And set trap handler to 0.
 
 
 ******
-## __nrCpus
+## trapHandlerTab[NO_TRAPS]
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+    //core/kernel/irqs.c
+    trapHandler_t trapHandlerTab[NO_TRAPS];
 
 ### Description
 
+Similar as above
 
 ### Initialization
 
+```
+SetTrapHandler(7, SparcFpFault);
+SetTrapHandler(4, SparcTrapPageFault);
+SetTrapHandler(1, SparcTrapPageFault);
+SetTrapHandler(16, SparcTrapPageFault);
+SetTrapHandler(15, SparcTrapPageFault);
+```
 
 ### Functions
 
-1. GET_NRCPUS
+1. ArchSetupIrqs
 
-2. SET_NRCPUS
+2. SetTrapHandler
+
+3. DoTrap
+
+4. SetupIrqs
 
 ******
 ## __nrCpus
