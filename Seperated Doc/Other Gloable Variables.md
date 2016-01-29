@@ -239,6 +239,56 @@ SetTrapHandler(15, SparcTrapPageFault);
 4. SetupIrqs
 
 ******
+## hwIrqCtrl[CONFIG_NO_HWIRQS]
+
+### Declaration
+
+	//file core/kernel/irqs.c
+    hwIrqCtrl_t hwIrqCtrl[CONFIG_NO_HWIRQS]
+
+### Description
+
+This array keeps the functions of every irq.
+
+```
+typedef struct {
+    void (*Enable)(xm_u32_t irq);
+    void (*Disable)(xm_u32_t irq);
+    void (*Ack)(xm_u32_t irq);
+    void (*End)(xm_u32_t irq);
+    void (*Force)(xm_u32_t irq);
+    void (*Clear)(xm_u32_t irq);
+} hwIrqCtrl_t;
+```
+
+### Initialization
+
+//file core/kernel/arch/leon_pic.c
+
+function InitPic()
+```
+    for (e=0; e<CONFIG_NO_HWIRQS; e++) {
+        hwIrqCtrl[e].Enable=APicEnableIrq;
+        hwIrqCtrl[e].Disable=APicDisableIrq;
+        hwIrqCtrl[e].Ack=APicDisableIrq;
+        hwIrqCtrl[e].End=APicEnableIrq;
+        hwIrqCtrl[e].Force=APicForceIrq;
+#ifdef CONFIG_LEON3
+        hwIrqCtrl[e].Clear=APicClearIrq;
+#endif
+```
+
+
+### Functions
+
+1. HwIrqGetMask
+2. Hw Disable|Enable|Ack|End|Force|Clear Irq
+
+	//file core/kernel/arch/leon_pic.c
+	operation ack == operation diable
+3. InitPic
+
+******
 ## __nrCpus
 
 ### Declaration
@@ -278,3 +328,42 @@ SetTrapHandler(15, SparcTrapPageFault);
 
 2. SET_NRCPUS
 
+******
+## __nrCpus
+
+### Declaration
+
+	//file core/kernel/setup.c
+    xm_u16_t __nrCpus = 0;
+
+### Description
+
+
+### Initialization
+
+
+### Functions
+
+1. GET_NRCPUS
+
+2. SET_NRCPUS
+
+******
+## __nrCpus
+
+### Declaration
+
+	//file core/kernel/setup.c
+    xm_u16_t __nrCpus = 0;
+
+### Description
+
+
+### Initialization
+
+
+### Functions
+
+1. GET_NRCPUS
+
+2. SET_NRCPUS
