@@ -1,4 +1,3 @@
-
 #Structure in XtratuM
 
 ### List of XtratuM struct

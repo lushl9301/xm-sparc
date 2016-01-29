@@ -163,24 +163,46 @@ WriteByPassMmuWord(&ptdL1[l1e], _pgTables[l1e]);
 	And clean the frame.
 
 ******
-## __nrCpus
+## irqHandlerTab[CONFIG_NO_HWIRQS]
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+	//file core/kernel/irqs.c
+    struct irqTabEntry irqHandlerTab[CONFIG_NO_HWIRQS];
 
 ### Description
 
+This array contains ```CONFIG_NO_HWIRQS``` of ```irqTabEntry```. The struct contains irq handler and pointer to data. irq handler is function of the following format:
+```
+typedef void (*irqHandler_t)(cpuCtxt_t *, void *);
+```
 
 ### Initialization
 
+Several irqs sets its handler and data by invoking function ```SetIrqHandler```
+```c
+//file core/kernel/arch/leon_timers.c
+SetIrqHandler(TIMER_IRQ, TimerIrqHandler, 0);
+SetIrqHandler(CLOCK_IRQ, ClockIrqHandler, 0);
+//file core/kernel/arch/irqs.c
+SetIrqHandler(HALT_ALL_IPI_VECTOR, SmpHaltAllHndl, 0);
+SetIrqHandler(SCHED_PENDING_IPI_VECTOR, SmpSchedPendingIPIHndl, 0);
+//file core/kernel/sched.c
+SetIrqHandler(irqNr, SchedSyncHandler, 0);
+```
 
 ### Functions
 
-1. GET_NRCPUS
+1. SetIrqHandler
 
-2. SET_NRCPUS
+2. DoIrq
+
+	Calling irq's corresponding handler.
+
+3. SetupIrqs
+
+	Find each irq that has owner (a certain partition). Then the handler is set to ```SetPartitionHwIrqPending```, which is used to set all running threads' flag for trigger irq.
+
 
 ******
 ## __nrCpus
