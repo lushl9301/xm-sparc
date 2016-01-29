@@ -374,25 +374,98 @@ EarlySetupCpu
 	partCtrlTab->cpuKhz=cpuKhz
 
 ******
-## __nrCpus
+## sysHwClock
+
+### Declaration
+
+	//file core/kernel/arch/leon_timers.c
+    hwClock_t *sysHwClock=&pitClock;
+
+### Description
+
+System shared clock.
+
+### Initialization
+
+Hardware clock is the pit clock:
+```
+static hwClock_t pitClock={
+    .name="LEON clock",
+    .flags=0,
+    .InitClock=InitPitClock,
+    .GetTimeUsec=ReadPitClock,
+    .ShutdownClock=ShutdownPitClock,
+};
+```
+
+### Functions
+
+1. GetSysClockUsec
+
+	Return sysHwClock's usec
+
+2. SetupSysClock
+
+	Called at setup, after InitSche();
+
+    Invoke InitPitClock() at file core/kernel/arch/leon_timers.c
+
+
+******
+## sysHwTimer
+
+### Declaration
+
+	//file core/include/ktimer.h
+    hwTimer_t *sysHwTimer;
+
+### Description
+
+Hardware timer is used to trigger next event at the correct time.
+
+### Initialization
+
+Initialized during setup time. GetSysHwTimer returns pitTimer according to CPU_ID.
+
+### Functions
+
+1. SetHwTimer
+
+	Set timer according to hardware clock
+
+2. SetupKTimers
+
+	Init globalActiveKTimers list and set corresponding local hwtimer timer handler.
+
+3. SetupHwTimer
+
+	Setup hardware time at setup() time. localTimeInfo is also initialized here.
+
+******
+## localTimeInfo[]
 
 ### Declaration
 
 	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+    localTime_t localTimeInfo[CONFIG_NO_CPUS];
 
 ### Description
 
+An array that stores local time struct. ```localTime_t``` contains flags, sysHwTimer, nextAct time and a linked-list of active timers.
+
+GET_LOCAL_TIME is used to access this array and get localTime_t's address.
 
 ### Initialization
 
+Described above.
 
 ### Functions
 
-1. GET_NRCPUS
+1. InitKTimer
 
-2. SET_NRCPUS
+2. InitVTimer
 
+	use InitKTimer. set vTimer->kTimer and thead k.
 
 ******
 ## __nrCpus
@@ -413,7 +486,6 @@ EarlySetupCpu
 1. GET_NRCPUS
 
 2. SET_NRCPUS
-
 
 ******
 ## __nrCpus

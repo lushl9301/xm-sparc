@@ -41,14 +41,15 @@ inline void SetHwTimer(xmTime_t nextAct) {
 
     if (nextTime>=0) {
         //ASSERT(nextTime>0);
-        if (nextTime<localTime->sysHwTimer->GetMinInterval())
+        //can be optimized here
+        if (nextTime<localTime->sysHwTimer->GetMinInterval()) //50LL == 50usec
             nextTime=localTime->sysHwTimer->GetMinInterval();
 
-        if (nextTime>localTime->sysHwTimer->GetMaxInterval())
+        if (nextTime>localTime->sysHwTimer->GetMaxInterval()) //1000000LL == 1s
             nextTime=localTime->sysHwTimer->GetMaxInterval();
         localTime->nextAct=nextTime+cTime;
         //set hwtimer to trigger int nextTime;
-        localTime->sysHwTimer->SetHwTimer(nextTime);
+        localTime->sysHwTimer->SetHwTimer(nextTime); //function name repeated. very confusing
     } else
         TimerHandler();
 }
@@ -103,13 +104,14 @@ static xm_s32_t TimerHandler(void) {
 
 void InitKTimer(int cpuId, kTimer_t *kTimer, void (*Act)(kTimer_t *, void *), void *args, void *kThread) {
 //init timer and add it to kThread->ctrl linked list
-    localTime_t *localTime=&localTimeInfo[cpuId];;
+    localTime_t *localTime=&localTimeInfo[cpuId];
     //TODO why not just pass in kThead as k
     kThread_t *k=(kThread_t *)kThread;
 
     memset((xm_s8_t *)kTimer, 0, sizeof(kTimer_t));
     kTimer->actionArgs=args;
     kTimer->Action=Act;
+    // if not local active ktimer, use gloobal active ktimer
     if(DynListInsertHead((k)?&k->ctrl.localActiveKTimers:&localTime->globalActiveKTimers, &kTimer->dynListPtrs)) {
         cpuCtxt_t ctxt;
         GetCpuCtxt(&ctxt);
