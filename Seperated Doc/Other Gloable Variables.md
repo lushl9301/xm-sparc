@@ -468,6 +468,83 @@ Described above.
 	use InitKTimer. set vTimer->kTimer and thead k.
 
 ******
+## systemStatus
+
+### Declaration
+
+	//file core/objects/status.c
+    xmSystemStatus_t systemStatus;
+
+### Description
+
+xmSystemStatus_t contains a seriels of counter. Such as irqs counter, reset counter, port msg read written counter.
+
+Used only when define ```CONFIG_OBJ_STATUS_ACC```.
+
+### Initialization
+
+### Functions
+
+
+******
+## partitionStatus
+
+### Declaration
+
+	//file core/objects/status.c
+    xmPartitionStatus_t *partitionStatus;
+
+### Description
+
+Similar as above struct
+
+### Initialization
+
+
+### Functions
+
+
+******
+## __nrCpus
+
+### Declaration
+
+	//file core/kernel/setup.c
+    xm_u16_t __nrCpus = 0;
+
+### Description
+
+
+### Initialization
+
+
+### Functions
+
+1. GET_NRCPUS
+
+2. SET_NRCPUS
+
+******
+## __nrCpus
+
+### Declaration
+
+	//file core/kernel/setup.c
+    xm_u16_t __nrCpus = 0;
+
+### Description
+
+
+### Initialization
+
+
+### Functions
+
+1. GET_NRCPUS
+
+2. SET_NRCPUS
+
+******
 ## __nrCpus
 
 ### Declaration
