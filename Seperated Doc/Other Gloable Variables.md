@@ -616,45 +616,72 @@ These entry is used to mark 3 trap in entry.S assembly code. @function ```ArchTr
 2. ArchTrapIsSysCtxt
 
 ******
-## __nrCpus
+## ArchStartupGuest
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+	//This should be a function
+	//file core/kernel/arch/head.S
+```
+ENTRY(ArchStartupGuest)
+	ldd [%sp], %o0
+	jmpl %g4, %g0
+	add %sp, 8, %sp
+```
 
 ### Description
 
 
 ### Initialization
+```asm
+void SetupKStack(kThread_t *k, void *StartUp, xmAddress_t entryPoint) {
+//only called from ResetKThread()
+    extern xm_u32_t ArchStartupGuest;
+    k->ctrl.kStack=(xm_u32_t *)&k->kStack[CONFIG_KSTACK_SIZE-MIN_STACK_FRAME-8];
+    *--(k->ctrl.kStack)=(xm_u32_t)0; /* o1 */
+    *--(k->ctrl.kStack)=(xm_u32_t)entryPoint; /* o0 */
+    *--(k->ctrl.kStack)=(xm_u32_t)&ArchStartupGuest;  /* %g5 */
+    *--(k->ctrl.kStack)=(xm_u32_t)StartUp;  /* %g4 */
+    *--(k->ctrl.kStack)=(xm_u32_t)GetPsr()&~(PSR_CWP_MASK|PSR_ICC_MASK);/*  %PSR (%g7) */
+    *--(k->ctrl.kStack)=(xm_u32_t)2; /* %WIM (%g6) */
+}
+```
 
 
 ### Functions
 
-1. GET_NRCPUS
-
-2. SET_NRCPUS
+1. SetupKStack
 
 
 ******
-## __nrCpus
+## _sldr[], _eldr[]
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+//TODO
+	//file core/ldr/ldr.sparv8.lds.in
+```
+    _sldr = .;
+    . = (XM_PCTRLTAB_ADDR)-256*1024-(4096*18);
+    //...
+    //...
+    _eldr = .;
+    /DISCARD/ : {
+        *(.note)
+        *(.comment*)
+    }
+```
+
 
 ### Description
 
+start and end of partition loader.
 
 ### Initialization
 
-
 ### Functions
 
-1. GET_NRCPUS
-
-2. SET_NRCPUS
+1. SetupLdr
 
 
 ******
