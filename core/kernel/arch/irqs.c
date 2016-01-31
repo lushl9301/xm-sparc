@@ -60,7 +60,7 @@ xm_s32_t ArchTrapIsSysCtxt(cpuCtxt_t *ctxt) {
     extern xm_u8_t WindowUnderflowTrap[], EWindowUnderflowTrap[];
     extern xm_u8_t SIRetCheckRetAddr[], EIRetCheckRetAddr[];
 
-    if ((ctxt->pc>=(xmAddress_t)WindowOverflowTrap)&&(ctxt->pc<(xmAddress_t)EWindowOverflowTrap))
+    if ((ctxt->pc>=(xmAddress_t)WindowOverflowTrap)&&(ctxt->pc < (xmAddress_t)EWindowOverflowTrap))
         return 0;
 
     if ((ctxt->pc>=(xmAddress_t)WindowUnderflowTrap)&&(ctxt->pc<(xmAddress_t)EWindowUnderflowTrap))

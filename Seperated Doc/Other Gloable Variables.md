@@ -520,24 +520,100 @@ Only the first entry of this array is used. Used at ```ResetPartition``` and ```
 
 
 ******
-## __nrCpus
+## hypercallFlagsTab
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+	//file core/kernel/hypercalls.c
+```
+extern struct {
+    xm_u32_t noArgs;
+#define HYP_NO_ARGS(args) ((args)&~0x80000000)
+} hypercallFlagsTab[NR_HYPERCALLS];
+```
 
 ### Description
 
+This array is used to keep all hypercalls' argument numbers. The number of arguments of a hypercall is used during construct hypercall using assembly code.
+
+### Initialization
+
+	//file core/kernel/arch/xm.lds.in
+```
+    .rodata ALIGN(8) :  AT (ADDR (.rodata) + PHYSOFFSET) {
+        asmHypercallsTab = .;
+        *(.ahypercallstab)
+        fastHypercallsTab = .;
+        *(.fhypercallstab)
+        hypercallsTab = .;
+        *(.hypercallstab)
+        hypercallFlagsTab = .;
+        *(.hypercallflagstab)
+        ...
+        ...
+    }
+```
+```hypercallFlagsTab``` is pointed to ```hypercallflagstab```. While ```hypercallflagstab``` is initialized by macro and assmebly code
+
+```
+#define HYPERCALLR_TAB(_hc, _args) \
+    __asm__ (".section .hypercallstab, \"a\"\n\t" \
+             ".align 4\n\t" \
+             ".long "#_hc"\n\t" \
+             ".previous\n\t" \
+             ".section .hypercallflagstab, \"a\"\n\t" \
+             ".long (0x80000000|"#_args")\n\t" \
+             ".previous\n\t")
+
+#define HYPERCALL_TAB(_hc, _args) \
+    __asm__ (".section .hypercallstab, \"a\"\n\t" \
+             ".align 4\n\t" \
+             ".long "#_hc"\n\t" \
+             ".previous\n\t" \
+             ".section .hypercallflagstab, \"a\"\n\t" \
+             ".long ("#_args")\n\t" \
+             ".previous\n\t")
+```
+
+### Functions
+
+1. MulticallSys
+
+	Execute a sequence of hypercalls. There will be several hypercalls from ```startAddr``` to ```endAddr```. The iterater's offset depends on the number of arguments of a certain hypercall.
+
+2. AuditHCall
+
+	Only when CONFIG_AUDIT_EVENTS
+
+******
+## WindowOverflowTrap[],EWindowOverflowTrap[], WindowUnderflowTrap[], EWindowUnderflowTrap[], SIRetCheckRetAddr[], EIRetCheckRetAddr[]
+
+### Declaration
+
+	//file core/kernel/arch/entry
+    //line 270+
+	ENTRY(WindowOverflowTrap)
+    ENTRY(EWindowOverflowTrap)
+    ENTRY(WindowUnderflowTrap)
+    ENTRY(EWindowUnderflowTrap)
+    //line 900+
+    ENTRY(SIRetCheckRetAddr)
+    ENTRY(EIRetCheckRetAddr)
+
+### Description
+
+These entry is used to mark 3 trap in entry.S assembly code. @function ```ArchTrapIsSysCtxt```, if current context's pc is located between any pair of these entry, it is not system trap.
 
 ### Initialization
 
 
 ### Functions
 
-1. GET_NRCPUS
+1. DoTrap
 
-2. SET_NRCPUS
+	If ```ArchTrapIsSysCtxt```, mark ```hmLog.opCodeH |= HMLOG_OPCODE_SYS_MASK.```
+
+2. ArchTrapIsSysCtxt
 
 ******
 ## __nrCpus
@@ -558,6 +634,28 @@ Only the first entry of this array is used. Used at ```ResetPartition``` and ```
 1. GET_NRCPUS
 
 2. SET_NRCPUS
+
+
+******
+## __nrCpus
+
+### Declaration
+
+	//file core/kernel/setup.c
+    xm_u16_t __nrCpus = 0;
+
+### Description
+
+
+### Initialization
+
+
+### Functions
+
+1. GET_NRCPUS
+
+2. SET_NRCPUS
+
 
 ******
 ## __nrCpus
