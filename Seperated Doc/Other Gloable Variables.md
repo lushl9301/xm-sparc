@@ -505,24 +505,19 @@ Similar as above struct
 
 
 ******
-## __nrCpus
+## resetStatusInit
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
-
 ### Description
 
+Only the first entry of this array is used. Used at ```ResetPartition``` and ```ResetThread```. Assigned to k->ctrl.g->partCtrlTab->resetStatus, but not used anymore.
 
 ### Initialization
 
 
 ### Functions
 
-1. GET_NRCPUS
-
-2. SET_NRCPUS
 
 ******
 ## __nrCpus
