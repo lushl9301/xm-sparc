@@ -685,6 +685,65 @@ start and end of partition loader.
 
 
 ******
+## smpStartBarrier
+
+### Declaration
+
+	//file core/kernel/setup.c
+    barrier_t smpStartBarrier = BARRIER_INIT;
+
+### Description
+
+Instead of taking this as a barrier, it is more like a simple spinlock, mutex or semaphore.
+```
+static inline void BarrierWait(barrier_t *b) {
+    while(b->v);
+}
+static inline void BarrierLock(barrier_t *b) {
+    b->v=1;
+}
+static inline void BarrierUnlock(barrier_t *b) {
+    b->v=0;
+}
+```
+
+### Initialization
+
+### Functions
+
+1. Setup
+
+	First CPU set lock BarrierLock before InitSched() and unlock it during FreeBootMem, before Schedule().
+
+    Second CPU will be polling smpStartBarrier. Once it is unlocked, second CPU can go for Schedule().
+
+2. FreeBootMem
+
+	Unlock barrier and do Schedule()
+
+******
+## _sxm[], _exm[], physXmcTab[]
+
+### Declaration
+
+### Description
+
+
+
+### Initialization
+
+Initialized in core/kernel/arch/xm.ldr.in
+//START and END of xm
+//line 29 _sxm = .;
+//line 139 _exm = . + PHYSOFFSET;
+
+// used to indicate the start of customFileTab, part of ``` __XMHDR```
+//line 138 physXmcTab = . + PHYSOFFSET;
+
+### Functions
+
+
+******
 ## __nrCpus
 
 ### Declaration
