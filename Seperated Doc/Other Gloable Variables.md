@@ -744,21 +744,154 @@ Initialized in core/kernel/arch/xm.ldr.in
 
 
 ******
-## __nrCpus
+## sysResetCounter
 
 ### Declaration
 
-	//file core/kernel/setup.c
-    xm_u16_t __nrCpus = 0;
+	//file core/kernel/arch/xm.ldr.in
+    sysResetCounter = .;
+    LONG(0);
+
+### Description
+
+A variable that keeps the reset times.
+
+### Initialization
+
+Shown in declaration.
+
+### Functions
+
+1. ResetSystem
+
+	IF WARM_RESET then increase the counter.
+
+    ELSE (COLD_RESET) then set counter to 0.
+
+2. CtrlStatus
+
+    Assign current sysResetCounter to ```systemStatus.resetCounter```, which will be returned to ```CtrlStatus``` caller.
+
+    This function is used in hypercall CtrlObjectSys.
+
+******
+## exPTable[]
+
+### Declaration
+
+	//file core/kernel/arch/xm.ldr.in
+    exPTable = .;
+    *(.exptable)
+    LONG(0);
+    LONG(0);
+
+### Description
+
+Each element contains wwo varibles: exPTable[e].a, and exPTable[e].b.
+
+### Initialization
+
+```
+#define ASM_EXPTABLE(_a, _b) \
+    ".section .exptable, \"a\"\n\t" \
+    ".align 4\n\t" \
+    ".long "#_a"\n\t" \
+    ".long "#_b"\n\t" \
+    ".previous\n\t"
+
+//_s for size; SB, SH, STUB, UH, etc....
+#define ASM_RW(_s, _tmp) \
+   __asm__ __volatile__ ("orn %0, %%g0, %0\n\t" : "=r" (ret)); \
+   __asm__ __volatile__ ("1:ld"_s" [%2], %1\n\t" \
+                         "2:st"_s" %1, [%2]\n\t" \
+                         "mov %%g0, %0\n\t" \
+                         "3:\n\t" \
+                         ASM_EXPTABLE(1b, 3b) \
+                         ASM_EXPTABLE(2b, 3b) \
+                         : "=r" (ret), "=r" (_tmp) : "r" (addr));
+
+#define ASM_RD(_s, _tmp) \
+    __asm__ __volatile__ ("orn %0, %%g0, %0\n\t" : "=r" (ret)); \
+    __asm__ __volatile__ ("1:ld"_s" [%2], %1\n\t" \
+                          "mov %%g0, %0\n\t" \
+                          "2:\n\t" \
+                          ASM_EXPTABLE(1b, 2b) \
+                          : "=r"(ret), "=r" (_tmp) : "r" (addr))
+```
+
+exptable is store with pc location: "1b", "3b"; "2b", "3b"
+
+So generally, exPTable[e].a is the execution code address, and exPTable[e].b is used to indicate where to go in order to skip current execution.
+
+### Functions
+
+1. IsInPartExTable
+
+	This function is called at DoTrap @core/kernel/irqs.c.
+
+    If current trap happens when PC is equal to exPTable[e].a, then jump to exPTable[e].b to skip.
+
+    //TODO
+
+******
+## partitionTab
+
+### Declaration
+
+	//file core/kernel/sched.c
+    partition_t *partitionTab;
+
 
 ### Description
 
 
+
 ### Initialization
 
+Initialized as zero in function ```InitSched``` at core/kernel/sched.c.
 
 ### Functions
 
-1. GET_NRCPUS
+1. CtrlStatus
 
-2. SET_NRCPUS
+	Get partition ID from obj description and local sched. Use partition ID to access / update partitionTab[partId].
+
+2. HmRaiseEvent
+
+	Get partition ID from log. Take action according to partitionTab[partitionId].cfg->hmTab[eventId].action.
+
+3. CopyArea
+
+	Get partition IDs of src partition and dst partition. Check if the area is available or not.
+
+4. TriggerIrqHandler
+
+	Use SetPartitionHwIrqPending to partition indicated by ctxt.
+
+5. hypercall HaltPartitionSys
+
+	Find first unflaged VCpu. If exist, partition is about to halt. Then call ```HALT_PARTITION```, which just partitionTab[id].opMode=XM_OPMODE_IDLE.
+
+6. hypercall SuspendPartitionSys, ResumePartitionSys, ResetPartitionSys
+
+	This is similar as the above one.
+
+7. hypercall RaisePartitionIpviSys, RaiseIpviSys
+
+	Similar to RaiseIpviSys as mentioned above. If partition did not set noIpvi pending, set irq pending to every VCpu.
+
+8. CreatePartition
+
+	Init partition and its threads.
+
+9. SUSPEND_VCPU, RESUME_VCPU, HALT_VCPU
+
+	Take partition ID and VCpuId as input. Set the flag of partition's certain thread with ```KTHREAD_XXXX_F```.
+
+10. SUSPEND_PARTITION, RESUME_PARTITION, SHUTDOWN_PARTITION, HALT_PARTITION
+
+	Similar as above. Use loop to iterate among all VCpus.
+
+11. GetPartition
+
+	Take current thread and the partition ID it stores to find the reference of partition.
