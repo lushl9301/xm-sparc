@@ -30,6 +30,7 @@
     ".long "#_b"\n\t" \
     ".previous\n\t"
 
+//TODO number of parameter wrong? but never called
 #define EXPTABLE(_a) \
     __asm__ (ASM_EXPTABLE(_a))
 

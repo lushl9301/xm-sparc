@@ -85,14 +85,14 @@ void SetTrapPending(cpuCtxt_t *ctxt) {
 }
 
 static inline xmAddress_t IsInPartExTable(xmAddress_t addr) {
-//exPTablePtr is constructed by asm; a and b are pc?
+//exPTablePtr is constructed by asm; a and b are pc? YES
     extern struct exPTable {
         xmAddress_t a;
         xmAddress_t b;
     } exPTable[];
     struct exPTable *exPTablePtr;
     xm_s32_t e;
-    //TODO e must be 0?
+    //e must be 0? YES
     for (exPTablePtr=exPTable; exPTablePtr; exPTablePtr=(struct exPTable *)exPTablePtr[e].b) {
         for (e=0; exPTablePtr[e].a; e++)
             if (addr==exPTablePtr[e].a)

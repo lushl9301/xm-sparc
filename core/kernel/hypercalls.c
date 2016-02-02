@@ -825,7 +825,7 @@ __hypercall xm_s32_t RaisePartitionIpviSys(xmId_t partitionId, xm_u8_t noIpvi) {
 
     for (e=0; e<ipvi->noDsts; e++){
         if (partitionId==xmcDstIpvi[ipvi->dstOffset+e]){
-            partition_t *p=&partitionTab[xmcDstIpvi[ipvi->dstOffset+e]];
+            partition_t *p=&partitionTab[xmcDstIpvi[ipvi->dstOffset+e]];//TODO this will be slower than used partitionId
             if (ArePartitionExtIrqPendingSet(p, noIpvi))
                 return XM_NO_ACTION;
 
