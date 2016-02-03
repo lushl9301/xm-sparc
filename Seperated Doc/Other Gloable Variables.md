@@ -1,3 +1,5 @@
+#Other Global Variables
+
 ******
 ## objectTab
 
@@ -22,11 +24,12 @@ Initialized by assigned with object's address.
 
 2. OBJDESC_GET_CLASS
 
+	```
     // Object descriptor:
     // VALIDITY  | CLASS| vCPUID | PARTITIONID | ID
     //     1     |   7  |   4    |      10     |  10
     return ((oD>>24)&OBJDESC_CLASS_MASK)
-
+	```
 ******
 ## __nrCpus
 
@@ -202,7 +205,7 @@ SetIrqHandler(irqNr, SchedSyncHandler, 0);
 3. SetupIrqs
 
 	Find each irq that has owner (a certain partition). Then the handler is set to ```SetPartitionHwIrqPending```, which is used to set all running threads' flag for trigger irq.
-    
+
     And set trap handler to 0.
 
 
@@ -266,6 +269,7 @@ typedef struct {
 //file core/kernel/arch/leon_pic.c
 
 function InitPic()
+
 ```
     for (e=0; e<CONFIG_NO_HWIRQS; e++) {
         hwIrqCtrl[e].Enable=APicEnableIrq;
@@ -273,19 +277,21 @@ function InitPic()
         hwIrqCtrl[e].Ack=APicDisableIrq;
         hwIrqCtrl[e].End=APicEnableIrq;
         hwIrqCtrl[e].Force=APicForceIrq;
-#ifdef CONFIG_LEON3
+    #ifdef CONFIG_LEON3
         hwIrqCtrl[e].Clear=APicClearIrq;
-#endif
+    #endif
 ```
 
 
 ### Functions
 
 1. HwIrqGetMask
+
 2. Hw Disable|Enable|Ack|End|Force|Clear Irq
 
 	//file core/kernel/arch/leon_pic.c
 	operation ack == operation diable
+
 3. InitPic
 
 ******
@@ -388,6 +394,7 @@ System shared clock.
 ### Initialization
 
 Hardware clock is the pit clock:
+
 ```
 static hwClock_t pitClock={
     .name="LEON clock",
@@ -556,7 +563,7 @@ This array is used to keep all hypercalls' argument numbers. The number of argum
 ```hypercallFlagsTab``` is pointed to ```hypercallflagstab```. While ```hypercallflagstab``` is initialized by macro and assmebly code
 
 ```
-#define HYPERCALLR_TAB(_hc, _args) \
+    #define HYPERCALLR_TAB(_hc, _args) \
     __asm__ (".section .hypercallstab, \"a\"\n\t" \
              ".align 4\n\t" \
              ".long "#_hc"\n\t" \
@@ -565,7 +572,7 @@ This array is used to keep all hypercalls' argument numbers. The number of argum
              ".long (0x80000000|"#_args")\n\t" \
              ".previous\n\t")
 
-#define HYPERCALL_TAB(_hc, _args) \
+    #define HYPERCALL_TAB(_hc, _args) \
     __asm__ (".section .hypercallstab, \"a\"\n\t" \
              ".align 4\n\t" \
              ".long "#_hc"\n\t" \
@@ -592,7 +599,7 @@ This array is used to keep all hypercalls' argument numbers. The number of argum
 
 	//file core/kernel/arch/entry
     //line 270+
-	ENTRY(WindowOverflowTrap)
+    ENTRY(WindowOverflowTrap)
     ENTRY(EWindowOverflowTrap)
     ENTRY(WindowUnderflowTrap)
     ENTRY(EWindowUnderflowTrap)
@@ -658,8 +665,9 @@ void SetupKStack(kThread_t *k, void *StartUp, xmAddress_t entryPoint) {
 
 ### Declaration
 
-//TODO
+	//TODO
 	//file core/ldr/ldr.sparv8.lds.in
+
 ```
     _sldr = .;
     . = (XM_PCTRLTAB_ADDR)-256*1024-(4096*18);
@@ -690,7 +698,7 @@ start and end of partition loader.
 ### Declaration
 
 	//file core/kernel/setup.c
-    barrier_t smpStartBarrier = BARRIER_INIT;
+	barrier_t smpStartBarrier = BARRIER_INIT;
 
 ### Description
 
@@ -792,7 +800,7 @@ Each element contains wwo varibles: exPTable[e].a, and exPTable[e].b.
 ### Initialization
 
 ```
-#define ASM_EXPTABLE(_a, _b) \
+    #define ASM_EXPTABLE(_a, _b) \
     ".section .exptable, \"a\"\n\t" \
     ".align 4\n\t" \
     ".long "#_a"\n\t" \
@@ -800,7 +808,7 @@ Each element contains wwo varibles: exPTable[e].a, and exPTable[e].b.
     ".previous\n\t"
 
 //_s for size; SB, SH, STUB, UH, etc....
-#define ASM_RW(_s, _tmp) \
+    #define ASM_RW(_s, _tmp) \
    __asm__ __volatile__ ("orn %0, %%g0, %0\n\t" : "=r" (ret)); \
    __asm__ __volatile__ ("1:ld"_s" [%2], %1\n\t" \
                          "2:st"_s" %1, [%2]\n\t" \
@@ -810,7 +818,7 @@ Each element contains wwo varibles: exPTable[e].a, and exPTable[e].b.
                          ASM_EXPTABLE(2b, 3b) \
                          : "=r" (ret), "=r" (_tmp) : "r" (addr));
 
-#define ASM_RD(_s, _tmp) \
+    #define ASM_RD(_s, _tmp) \
     __asm__ __volatile__ ("orn %0, %%g0, %0\n\t" : "=r" (ret)); \
     __asm__ __volatile__ ("1:ld"_s" [%2], %1\n\t" \
                           "mov %%g0, %0\n\t" \
