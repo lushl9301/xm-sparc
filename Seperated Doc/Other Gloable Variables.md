@@ -6,7 +6,21 @@
 ### Declaration
 
 	//file core/kernel/objdir.c
-    struct xmcRswInfo *xmcRswInfo;const struct object *objectTab[OBJ_NO_CLASSES]={[0 ... OBJ_NO_CLASSES-1] = 0};
+    const struct object *objectTab[OBJ_NO_CLASSES]={[0 ... OBJ_NO_CLASSES-1] = 0};
+
+    ```c
+    typedef xm_s32_t (*readObjOp_t)(xmObjDesc_t, void *, xmSize_t, xm_u32_t *);
+    typedef xm_s32_t (*writeObjOp_t)(xmObjDesc_t, void *, xmSize_t, xm_u32_t *);
+    typedef xm_s32_t (*seekObjOp_t)(xmObjDesc_t, xmSize_t, xm_u32_t);
+    typedef xm_s32_t (*ctrlObjOp_t)(xmObjDesc_t, xm_u32_t, void *);
+    struct object {
+        readObjOp_t Read;
+        writeObjOp_t Write;
+        seekObjOp_t Seek;
+        ctrlObjOp_t Ctrl;
+    };
+    ```
+This is used for c object-oriented programming. Each object instance will assign their operations to these Read, Write, Seek, Ctrl fucntion pointers.
 
 ### Description
 
@@ -173,6 +187,22 @@ WriteByPassMmuWord(&ptdL1[l1e], _pgTables[l1e]);
 	//file core/kernel/irqs.c
     struct irqTabEntry irqHandlerTab[CONFIG_NO_HWIRQS];
 
+    ```c
+    struct irqTabEntry {
+        irqHandler_t handler;
+        void *data;
+    };
+    ```
+Irq handlers are assigned to this struct. A certain irq handler is triggled by invoking the irqTabEntry->handler that has the same index.
+
+Usage:
+    ```c
+    if (irqHandlerTab[ctxt->irqNr].handler)
+        (*(irqHandlerTab[ctxt->irqNr].handler))(ctxt, irqHandlerTab[ctxt->irqNr].data);
+    else
+        DefaultIrqHandler(ctxt, 0);
+    ```
+
 ### Description
 
 This array contains ```CONFIG_NO_HWIRQS``` of ```irqTabEntry```. The struct contains irq handler and pointer to data. irq handler is function of the following format:
@@ -217,6 +247,11 @@ SetIrqHandler(irqNr, SchedSyncHandler, 0);
     //core/kernel/irqs.c
     trapHandler_t trapHandlerTab[NO_TRAPS];
 
+Comparing to irq handler entry, trap handler is just a function pointer type
+    ```
+    typedef xm_s32_t (*trapHandler_t)(cpuCtxt_t *, xm_u16_t *);
+    ```
+
 ### Description
 
 Similar as above
@@ -253,6 +288,7 @@ SetTrapHandler(15, SparcTrapPageFault);
 
 This array keeps the functions of every irq.
 
+Another OOP:
 ```
 typedef struct {
     void (*Enable)(xm_u32_t irq);
@@ -300,9 +336,31 @@ function InitPic()
 ### Declaration
 
 	//file core/kernel/arch/irqs.c
-    xm_s8_t *trap2Str[]={
-    ...
+
+Put trap name to string in C.
+    ```
+	xm_s8_t *trap2Str[]={
+    __STR(DATA_STORE_ERROR), // 0
+    __STR(INSTRUCTION_ACCESS_MMU_MISS), // 1
+    __STR(INSTRUCTION_ACCESS_ERROR), // 2
+    __STR(R_REGISTER_ACCESS_ERROR), // 3
+    __STR(INSTRUCTION_ACCESS_EXCEPTION), // 4
+    __STR(PRIVILEGED_INSTRUCTION), // 5
+    __STR(ILLEGAL_INSTRUCTION), // 6
+    __STR(FP_DISABLED), // 7
+    __STR(CP_DISABLED), // 8
+    __STR(UNIMPLEMENTED_FLUSH), // 9
+    __STR(WATCHPOINT_DETECTED), // 10
+    __STR(MEM_ADDRESS_NOT_ALIGNED), // 11
+    __STR(FP_EXCEPTION), // 12
+    __STR(CP_EXCEPTION), // 13
+    __STR(DATA_ACCESS_ERROR), // 14
+    __STR(DATA_ACCESS_MMU_MISS), // 15
+    __STR(DATA_ACCESS_EXCEPTION),// 16
+    __STR(TAG_OVERFLOW), // 17
+    __STR(DIVISION_BY_ZERO), // 18
     };
+    ```
 
 ### Description
 
@@ -387,6 +445,20 @@ EarlySetupCpu
 	//file core/kernel/arch/leon_timers.c
     hwClock_t *sysHwClock=&pitClock;
 
+Hardware clock and its functions, shown as the Initialization section below.
+    ```
+    typedef struct hwClock {
+        char *name;
+        xm_u32_t flags;
+    #define HWCLOCK_ENABLED (1<<0)
+    #define PER_CPU (1<<1)
+        xm_u32_t freqKhz;
+        xm_s32_t (*InitClock)(void);
+        xmTime_t (*GetTimeUsec)(void);
+        void (*ShutdownClock)(void);
+    } hwClock_t;
+	```
+
 ### Description
 
 System shared clock.
@@ -426,6 +498,24 @@ static hwClock_t pitClock={
 	//file core/include/ktimer.h
     hwTimer_t *sysHwTimer;
 
+This struct is an attribute of ```localTime_t```.
+	```
+    typedef struct hwTimer {
+        xm_s8_t *name;
+        xm_u32_t flags;
+    #define HWTIMER_ENABLED (1<<0)
+        xm_u32_t freqKhz;
+        xm_s32_t irq;
+        xm_s32_t (*InitHwTimer)(void);
+        void (*SetHwTimer)(xmTime_t);
+        // This is the maximum value to be programmed
+        xmTime_t (*GetMaxInterval)(void);
+        xmTime_t (*GetMinInterval)(void);
+        timerHandler_t (*SetTimerHandler)(timerHandler_t);
+        void (*ShutdownHwTimer)(void);
+    } hwTimer_t;
+	```
+
 ### Description
 
 Hardware timer is used to trigger next event at the correct time.
@@ -456,6 +546,19 @@ Initialized during setup time. GetSysHwTimer returns pitTimer according to CPU_I
 	//file core/kernel/setup.c
     localTime_t localTimeInfo[CONFIG_NO_CPUS];
 
+As delivered in the Description part below, the dynamic list is used to maintain the active timers.
+
+The flags is used to indicate whether the next act is valid. sysHwTime is the reference to HwTimer that is attached to the CPU.
+	```
+    typedef struct {
+        xm_u32_t flags;
+        hwTimer_t *sysHwTimer;
+
+    #define NEXT_ACT_IS_VALID 0x1
+        xmTime_t nextAct;
+        struct dynList globalActiveKTimers;
+    } localTime_t;
+	```
 ### Description
 
 An array that stores local time struct. ```localTime_t``` contains flags, sysHwTimer, nextAct time and a linked-list of active timers.
@@ -482,6 +585,27 @@ Described above.
 	//file core/objects/status.c
     xmSystemStatus_t systemStatus;
 
+	```
+    typedef struct {
+        xm_u32_t resetCounter;
+        /* Number of HM events emitted. */
+        xm_u64_t noHmEvents;                /* [[OPTIONAL]] */
+        /* Number of HW interrupts received. */
+        xm_u64_t noIrqs;                    /* [[OPTIONAL]] */
+        /* Current major cycle interation. */
+        xm_u64_t currentMaf;                /* [[OPTIONAL]] */
+        /* Total number of system messages: */
+        xm_u64_t noSamplingPortMsgsRead;    /* [[OPTIONAL]] */
+        xm_u64_t noSamplingPortMsgsWritten; /* [[OPTIONAL]] */
+    #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
+        xm_u64_t noTTnocPortMsgsRead;    /* [[OPTIONAL]] */
+        xm_u64_t noTTnocPortMsgsWritten; /* [[OPTIONAL]] */
+    #endif
+        xm_u64_t noQueuingPortMsgsSent;     /* [[OPTIONAL]] */
+        xm_u64_t noQueuingPortMsgsReceived; /* [[OPTIONAL]] */
+    } xmSystemStatus_t;
+	```
+
 ### Description
 
 xmSystemStatus_t contains a seriels of counter. Such as irqs counter, reset counter, port msg read written counter.
@@ -501,6 +625,35 @@ Used only when define ```CONFIG_OBJ_STATUS_ACC```.
 	//file core/objects/status.c
     xmPartitionStatus_t *partitionStatus;
 
+	```
+    typedef struct {
+        /* Current state of the partition: ready, suspended ... */
+        xm_u32_t state;
+    #define XM_STATUS_IDLE 0x0
+    #define XM_STATUS_READY 0x1
+    #define XM_STATUS_SUSPENDED 0x2
+    #define XM_STATUS_HALTED 0x3
+
+        /*By compatibility with ARINC*/
+        xm_u32_t opMode;
+    #define XM_OPMODE_IDLE 0x0
+    #define XM_OPMODE_COLD_RESET 0x1
+    #define XM_OPMODE_WARM_RESET 0x2
+    #define XM_OPMODE_NORMAL 0x3
+
+        /* Number of virtual interrupts received. */
+        xm_u64_t noVIrqs;                   /* [[OPTIONAL]] */
+        /* Reset information */
+        xm_u32_t resetCounter;
+        xm_u32_t resetStatus;
+        xmTime_t execClock;
+        /* Total number of partition messages: */
+        xm_u64_t noSamplingPortMsgsRead;    /* [[OPTIONAL]] */
+        xm_u64_t noSamplingPortMsgsWritten; /* [[OPTIONAL]] */
+        xm_u64_t noQueuingPortMsgsSent;     /* [[OPTIONAL]] */
+        xm_u64_t noQueuingPortMsgsReceived; /* [[OPTIONAL]] */
+    } xmPartitionStatus_t;
+	```
 ### Description
 
 Similar as above struct
@@ -532,12 +685,14 @@ Only the first entry of this array is used. Used at ```ResetPartition``` and ```
 ### Declaration
 
 	//file core/kernel/hypercalls.c
-```
-extern struct {
-    xm_u32_t noArgs;
-#define HYP_NO_ARGS(args) ((args)&~0x80000000)
-} hypercallFlagsTab[NR_HYPERCALLS];
-```
+
+noArgs is used to indicate how many arguments of this hypercall is using.
+	```
+    extern struct {
+        xm_u32_t noArgs;
+    #define HYP_NO_ARGS(args) ((args)&~0x80000000)
+    } hypercallFlagsTab[NR_HYPERCALLS];
+	```
 
 ### Description
 
@@ -700,6 +855,11 @@ start and end of partition loader.
 	//file core/kernel/setup.c
 	barrier_t smpStartBarrier = BARRIER_INIT;
 
+	```
+    typedef struct {
+        volatile xm_s32_t v;
+    } barrier_t;
+	```
 ### Description
 
 Instead of taking this as a barrier, it is more like a simple spinlock, mutex or semaphore.
@@ -735,7 +895,6 @@ static inline void BarrierUnlock(barrier_t *b) {
 ### Declaration
 
 ### Description
-
 
 
 ### Initialization
@@ -849,9 +1008,76 @@ So generally, exPTable[e].a is the execution code address, and exPTable[e].b is 
 	//file core/kernel/sched.c
     partition_t *partitionTab;
 
+Linked-list of kThread_t to shown the current execution thread in this partition. cfg points to che partition configuration from xml parser. Partition original ID, physicalMemoryAreasOffset, noVCpus and noPorts are those not kept in partition_t but xmcPartition.
+	```
+    typedef struct partition {
+        kThread_t **kThread;
+        xmAddress_t pctArray;
+        xmSize_t pctArraySize;
+        xm_u32_t opMode;
+        xmAddress_t imgStart; /*Partition Memory address in the container*/
+        ///??? container?
+        xmAddress_t vLdrStack; /*Stack address allocated by XM*/
+        struct xmcPartition *cfg;
+    } partition_t;
+	```
+Where struct ```kThread_t``` is:
+	```
+    typedef union kThread {
+        struct __kThread {
+            // Harcoded, don't change it
+            xm_u32_t magic1;
+            // Harcoded, don't change it
+            xmAddress_t *kStack;
+            spinLock_t lock;
+            volatile xm_u32_t flags;
+    //  [3...0] -> scheduling bits
+    #define KTHREAD_FP_F (1<<1) // Floating point enabled
+    #define KTHREAD_HALTED_F (1<<2)  // 1:HALTED
+    #define KTHREAD_SUSPENDED_F (1<<3) // 1:SUSPENDED
+    #define KTHREAD_READY_F (1<<4) // 1:READY
+    #define KTHREAD_FLUSH_CACHE_B 5
+    #define KTHREAD_FLUSH_CACHE_W 3
+    #define KTHREAD_FLUSH_DCACHE_F (1<<5)
+    #define KTHREAD_FLUSH_ICACHE_F (1<<6)
+    #define KTHREAD_CACHE_ENABLED_B 7
+    #define KTHREAD_CACHE_ENABLED_W 3
+    #define KTHREAD_DCACHE_ENABLED_F (1<<7)
+    #define KTHREAD_ICACHE_ENABLED_F (1<<8)
+
+    #define KTHREAD_NO_PARTITIONS_FIELD (0xff<<16) // No. partitions
+    #define KTHREAD_TRAP_PENDING_F (1<<31) // 31: PENDING
+
+            struct dynList localActiveKTimers;
+            struct guest *g;
+            void *schedData;
+            cpuCtxt_t *irqCpuCtxt;
+            xm_u32_t irqMask;
+            xm_u32_t magic2;
+        } ctrl;
+        xm_u8_t kStack[CONFIG_KSTACK_SIZE];
+    } kThread_t;
+	```
+For ```guest``` struct:
+	```
+    struct guest {
+    #define PART_VCPU_ID2KID(partId, vCpuId) ((vCpuId)<<8)|((partId)&0xff)
+    #define KID2PARTID(id) ((id)&0xff)
+    #define KID2VCPUID(id) ((id)>>8)
+        xmId_t id; // 15..8: vCpuId, 7..0: partitionId
+        struct kThreadArch kArch;
+        vTimer_t vTimer;
+        kTimer_t kTimer;
+        kTimer_t watchdogTimer;
+        vClock_t vClock;
+        xm_u32_t opMode; /*Only for debug vcpus*/
+        partitionControlTable_t *partCtrlTab;
+        xm_u32_t swTrap;
+        struct trapHandler overrideTrapTab[NO_TRAPS];
+    };
+	```
 
 ### Description
-
 
 
 ### Initialization
