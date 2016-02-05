@@ -6,8 +6,8 @@ Declared at xmconf.h
 
 ### Declaration
 
-	//file core/kernel/setup.c
-	struct xmcPartition *xmcPartitionTab;
+    //file core/kernel/setup.c
+    struct xmcPartition *xmcPartitionTab;
 
 ### Description
 
@@ -24,21 +24,21 @@ Initialization is done using xmcparser and xml tools.
 
 1. SetupPartitions
 
-	xmcPartitionTab[e].noPhysicalMemoryAreas is used for print information about physical memory area.
+    xmcPartitionTab[e].noPhysicalMemoryAreas is used for print information about physical memory area.
 
 2. CreatePartition
 
-	Assign xmcPartition to a partition_t p, an element in partitionTab.
+    Assign xmcPartition to a partition_t p, an element in partitionTab.
 
-	For each virtual CPU, allocate one thread to partition, with flags cleared and timers  allocated.
+    For each virtual CPU, allocate one thread to partition, with flags cleared and timers  allocated.
 
 ******
 ## xmcMemRegTab
 
 ### Declaration
 
-	//file core/kernel/setup.c
-	struct xmcMemoryRegion *xmcMemRegTab;
+    //file core/kernel/setup.c
+    struct xmcMemoryRegion *xmcMemRegTab;
 
 ### Description
 
@@ -52,25 +52,25 @@ Initialized by parser and xml tools.
 
 1. PmmFindAnonymousPage
 
-	Binary search for a certain address.
+    Binary search for a certain address.
 
 2. PmmFindPage
 
 3. PmmFindArea
 
 4. PmmResetPartition 
-	```
+    ```
     page=&physPageTab[memArea->memoryRegionOffset][(addr-memRegion->startAddr)>>PAGE_SHIFT];
-	```
+    ```
     is used to find addr located page.
 5. SetupPhysMM
 
-	Create empty physical memory of size:
-	```
+    Create empty physical memory of size:
+    ```
 //e for one of current xmcTab.noRegions
 GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE))
-	```
-	and init spinlock for the area
+    ```
+    and init spinlock for the area
 
 
 ******
@@ -78,7 +78,7 @@ GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     struct xmcMemoryArea *xmcPhysMemAreaTab;
 
 ### Description
@@ -95,7 +95,7 @@ Initialized by parser and xml tools.
 
 1. ReadMemBlock
 
-	//file core/drivers/memblock.c
+    //file core/drivers/memblock.c
 
 2. WriteMemBlock
 
@@ -103,38 +103,38 @@ Initialized by parser and xml tools.
 
 4. InitMemBlock
 
-	VmMapPage virtual memory paging operation here
+    VmMapPage virtual memory paging operation here
 
 5. SetupVmMap
 
-	//file core/kernel/arch/vmmap.c
+    //file core/kernel/arch/vmmap.c
 
-	Set flags and initial value of ```_ptdL3```
+    Set flags and initial value of ```_ptdL3```
 
 6. PmmFindPage & FindAddr & FindArea & ResetPartition
 
-	//file core/kernel/mmu/physmm.c
+    //file core/kernel/mmu/physmm.c
 
-	Uses xmcPhysMemAreaTab's memory region information.
+    Uses xmcPhysMemAreaTab's memory region information.
 
 7. SetupPageTable
 
-	//file core/kernel/mmu/vmmap.c
+    //file core/kernel/mmu/vmmap.c
 
     same as above
 
 8. SetupPartitions
 
-	//file setup.c
+    //file setup.c
 
-	same as above
+    same as above
 
 ******
 ## xmcCommChannelTab
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     struct xmcCommChannel *xmcCommChannelTab;
 
 ### Description
@@ -152,8 +152,8 @@ It is used file core/objects/commports.c mainly (not considering ttnocports.c he
 
 ### Declaration
 
-	//file core/kernel/setup.c
-	struct xmcCommChannel *xmcCommChannelTab;
+    //file core/kernel/setup.c
+    struct xmcCommChannel *xmcCommChannelTab;
 
 ### Description
 Similar as above.
@@ -169,7 +169,7 @@ Similar as above.
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     struct xmcIoPort *xmcIoPortTab;
 
 ### Description
@@ -183,7 +183,7 @@ Similar as above.
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     struct xmcRsvMem *xmcRsvMemTab;
 
 ### Description
@@ -197,20 +197,20 @@ Initialized by parser and xml tools.
 
 1. InitRsvMem
 
-	//file core/kernel/rsvmem.c
+    //file core/kernel/rsvmem.c
 
 2. AllocRsvMem
 
-	Use for-loop to iterat among memory obj one by one. If currrent memory's size is equal to  required memory size, then mark the memory as used and return its address.
+    Use for-loop to iterat among memory obj one by one. If currrent memory's size is equal to  required memory size, then mark the memory as used and return its address.
 
-	This function is used by ```GET_MEMA``` and ```GET_MEMAZ``` functions, which are used for allocating thread, stack and page memory.
+    This function is used by ```GET_MEMA``` and ```GET_MEMAZ``` functions, which are used for allocating thread, stack and page memory.
 
 ******
 ## xmcBootPartTab
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     struct xmcBootPart *xmcBootPartTab;
 
 ### Description
@@ -225,11 +225,11 @@ Initialized by parser and xml tools.
 
 1. SetupLdr
 
-	```xmcBootPartTab``` provides image start address. The partition image mapping is setted in this function.
+    ```xmcBootPartTab``` provides image start address. The partition image mapping is setted in this function.
 
 2. ResetPartition
 
-	Reset page table using image handler with address ```hdrPhysAddr```.
+    Reset page table using image handler with address ```hdrPhysAddr```.
 Reset partition's thread (Warm and boot situation) with entryPoint in ```xmcBootPartTab```.
 
 
@@ -238,7 +238,7 @@ Reset partition's thread (Warm and boot situation) with entryPoint in ```xmcBoot
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     struct xmcRswInfo *xmcRswInfo;
 
 ### Description
@@ -254,7 +254,7 @@ Not in use
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     struct xmcRswInfo *xmcRswInfo;
 
 ### Description
@@ -269,18 +269,18 @@ Initialized by parser and xml tools.
 
 1. hypercall RaiseIpviSys
 
-	This function is the implementation of XM_raise_ipvi() hypercall. The XM_raise_ipvi() hypercall generates an virtual interrupt to one or several partitions as speficied in the configuration file (XM CF). The link between the partition that generates the interrupt and the receiver partitions is specified in the channel section of the configuration file.
+    This function is the implementation of XM_raise_ipvi() hypercall. The XM_raise_ipvi() hypercall generates an virtual interrupt to one or several partitions as speficied in the configuration file (XM CF). The link between the partition that generates the interrupt and the receiver partitions is specified in the channel section of the configuration file.
 
 2. hypercall RaisePartitionIpviSys
 
-	This function has similar implementation as above. However, the return values of them are different. Set irq pending if and only if ```xmcDisIpvi[ipvi->disOffset + e] == partitionId```.
+    This function has similar implementation as above. However, the return values of them are different. Set irq pending if and only if ```xmcDisIpvi[ipvi->disOffset + e] == partitionId```.
 
 ******
 ## xmcStringTab
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     xm_s8_t *xmcStringTab;
 
 ### Description
@@ -295,7 +295,7 @@ Initialized by parser and xml tools.
 
 1. hypercall GetGidByNameSys
 
-	This function is the implementation of XM_get_gid_by_name. Returns in the identifier of an entity as defined in the configuration file by providing the entity name string.
+    This function is the implementation of XM_get_gid_by_name. Returns in the identifier of an entity as defined in the configuration file by providing the entity name string.
 
 2. SetupPct
 
@@ -303,18 +303,18 @@ Initialized by parser and xml tools.
 
     Setup partiton ctrl requires the name of partition.
 
-	Setup memory area requires the name of ```xmcMemArea->nameoffset```.
+    Setup memory area requires the name of ```xmcMemArea->nameoffset```.
 
 3. file core/objects/commports.c
 
-	Finding port is using the name of ports.
+    Finding port is using the name of ports.
 
 ******
 ## xmcVCpuTab
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     struct xmcVCpu *xmcVCpuTab;
 
 ### Description
@@ -329,23 +329,23 @@ Initialized by parser and xml tools.
 
 1. hypercall ResumeVCpuSys
 
-	Use more informaiton about current partition's smp vcpu. Send ipi to the cpu that is not running current thread.
+    Use more informaiton about current partition's smp vcpu. Send ipi to the cpu that is not running current thread.
 
 2. hypercall RaisePartitionIpviSys
 
-	Similar as above. SMP support
+    Similar as above. SMP support
 
 3. hypercall RaiseIpviSys
 
-	Similar as above. SMP support
+    Similar as above. SMP support
 
 4. CreatePartition
 
 5. SetupPct
 
-	For index VCpu scheduling policy
+    For index VCpu scheduling policy
 
 6. ResetKThread
 
-	Reset current thread only. If smp, then can keep scheduling on other cores.
+    Reset current thread only. If smp, then can keep scheduling on other cores.
 u
