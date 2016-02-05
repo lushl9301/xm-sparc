@@ -10,7 +10,8 @@ Declared at xmconf.h
     struct xmcPartition *xmcPartitionTab;
 
 As described in the next section. ```xmcPartition``` is loaded according to xm partitions' configurations and attributes. It is indexed by numerical id.
-    ```c
+
+```c
     struct xmcPartition {
         xmId_t id;
         xm_u32_t nameOffset;
@@ -34,7 +35,7 @@ As described in the next section. ```xmcPartition``` is loaded according to xm p
             xm_s32_t noDsts;
         } ipviTab[CONFIG_XM_MAX_IPVI];
     };
-    ```
+```
 
 ### Description
 
@@ -66,7 +67,7 @@ Initialization is done using xmcparser and xml tools.
     //file core/kernel/setup.c
     struct xmcMemoryRegion *xmcMemRegTab;
 
-    ```c
+```c
     struct xmcMemoryRegion {
         xmAddress_t startAddr;
         xmSize_t size;
@@ -74,7 +75,7 @@ Initialization is done using xmcparser and xml tools.
     #define XMC_REG_FLAG_ROM (1<<1)
         xm_u32_t flags;
     };
-    ```
+```
 
 ### Description
 
@@ -95,17 +96,17 @@ Initialized by parser and xml tools.
 3. PmmFindArea
 
 4. PmmResetPartition 
-    ```
+```
     page=&physPageTab[memArea->memoryRegionOffset][(addr-memRegion->startAddr)>>PAGE_SHIFT];
-    ```
+```
     is used to find addr located page.
 5. SetupPhysMM
 
     Create empty physical memory of size:
-    ```
+```
 //e for one of current xmcTab.noRegions
 GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE))
-    ```
+```
     and init spinlock for the area
 
 
@@ -117,7 +118,7 @@ GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE
     //file core/kernel/setup.c
     struct xmcMemoryArea *xmcPhysMemAreaTab;
 
-    ```c
+```c
     struct xmcMemoryArea {
         xm_u32_t nameOffset;
         xmAddress_t startAddr;
@@ -137,7 +138,7 @@ GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE
         xm_u32_t flags;
         xm_u32_t memoryRegionOffset;
     };
-    ```
+```
 
 ### Description
 An array of ```xmcMemoryRegion```. The size of the array is the summ of ```xmcPartitonTab[0~xmcTab.noPartitions-1].noPhysicalMemoryAreas```.
@@ -195,7 +196,7 @@ Initialized by parser and xml tools.
     //file core/kernel/setup.c
     struct xmcCommChannel *xmcCommChannelTab;
 
-    ```c
+```c
     struct xmcCommChannel {
     #define XM_SAMPLING_CHANNEL 0
     #define XM_QUEUING_CHANNEL 1
@@ -223,7 +224,7 @@ Initialized by parser and xml tools.
     #endif
         };
     };
-    ```
+```
 
 ### Description
 An array of ```xmcCommChannel```  with size of ```xmcTab.noCommChannels```. Struct ```xmcCommChannel``` contains type and union of xm channel.
@@ -243,7 +244,7 @@ It is used file core/objects/commports.c mainly (not considering ttnocports.c he
     //file core/kernel/setup.c
     struct xmcCommPort *xmcCommPorts;
 
-    ```c
+```c
     struct xmcCommPort {
         xm_u32_t nameOffset;
         xm_s32_t channelId;
@@ -259,7 +260,7 @@ It is used file core/objects/commports.c mainly (not considering ttnocports.c he
         xmDev_t devId;
     #endif
     };
-    ```
+```
 
 ### Description
 Similar as above.
@@ -279,7 +280,7 @@ Similar as above.
     struct xmcIoPort *xmcIoPortTab;
 
 
-    ```c
+```c
     struct xmcIoPort {
         xm_u32_t type;
     #define XM_IOPORT_RANGE 0
@@ -296,7 +297,7 @@ Similar as above.
             } restricted;
         };
     };
-    ```
+```
 
 ### Description
 
@@ -313,14 +314,14 @@ Similar as above.
     struct xmcRsvMem *xmcRsvMemTab;
 
 
-    ```
+```
     struct xmcRsvMem {
         void *obj;
         xm_u32_t usedAlign;
     #define RSV_MEM_USED 0x80000000
         xm_u32_t size;
     } __PACKED;
-    ```
+```
 
 ### Description
 An array that keeps recording which memory region is reserved/used.
@@ -349,7 +350,7 @@ Initialized by parser and xml tools.
     //file core/kernel/setup.c
     struct xmcBootPart *xmcBootPartTab;
 
-    ```c
+```c
     struct xmcBootPart {
     #define XM_PART_BOOT 0x1
         xm_u32_t flags;
@@ -360,7 +361,7 @@ Initialized by parser and xml tools.
         xm_u32_t noCustomFiles;
         struct xefCustomFile customFileTab[CONFIG_MAX_NO_CUSTOMFILES];
     };
-    ```
+```
 ### Description
 This array stores information about partition boot image address, entry point, details about the custom files.
 //TODO
@@ -405,11 +406,11 @@ Not in use
     //file core/kernel/setup.c
     struct xmcRswInfo *xmcRswInfo;
 
-    ```c
+```c
     struct xmcRswInfo {
         xmAddress_t entryPoint;
     };
-    ```
+```
 
 ### Description
 
@@ -471,11 +472,11 @@ Initialized by parser and xml tools.
     //file core/kernel/setup.c
     struct xmcVCpu *xmcVCpuTab;
 
-    ```
+```
     struct xmcVCpu{
         xmId_t cpu;
     };
-    ```
+```
 
 ### Description
 
