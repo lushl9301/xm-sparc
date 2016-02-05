@@ -5,7 +5,7 @@
 
 ### Declaration
 
-	//file core/kernel/objdir.c
+    //file core/kernel/objdir.c
     const struct object *objectTab[OBJ_NO_CLASSES]={[0 ... OBJ_NO_CLASSES-1] = 0};
 
     ```c
@@ -34,22 +34,22 @@ Initialized by assigned with object's address.
 
 1. ReadObjectSys & WriteObjectSys & SeekObjectSys & CtrlObjectSys
 
-	Get object's offset on the array from object descriptor. Check if the object is not NULL and has the corresponding function.
+    Get object's offset on the array from object descriptor. Check if the object is not NULL and has the corresponding function.
 
 2. OBJDESC_GET_CLASS
 
-	```
+    ```
     // Object descriptor:
     // VALIDITY  | CLASS| vCPUID | PARTITIONID | ID
     //     1     |   7  |   4    |      10     |  10
     return ((oD>>24)&OBJDESC_CLASS_MASK)
-	```
+    ```
 ******
 ## __nrCpus
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     xm_u16_t __nrCpus = 0;
 
 ### Description
@@ -69,11 +69,11 @@ Setup and SMP configuration
 
 1. GET_NRCPUS
 
-	Usually used as the terminat condition of for-loop.
+    Usually used as the terminat condition of for-loop.
 
 2. SET_NRCPUS
 
-	This function is mentioned above
+    This function is mentioned above
 
 
 ******
@@ -81,9 +81,9 @@ Setup and SMP configuration
 
 ### Declaration
 
-	//file core/kernel/arch/head.S
+    //file core/kernel/arch/head.S
     ENTRY(contextTab)
-		.zero CTXTTABSIZE
+        .zero CTXTTABSIZE
 
 ### Description
 
@@ -97,13 +97,13 @@ Filled up during _start ENTRY in core/kernel/arch/head.S. First fill up l3, l2, 
 
 1. hypercall SparcWritePtdL1Sys
 
-	This function is EMPTY
+    This function is EMPTY
 
 2. SetupPtdL1
 
-	//file core/kernel/arch/vmmap.c
+    //file core/kernel/arch/vmmap.c
 
-	First, CloneXMPtdL1; save _pgTables content to ptdL1
+    First, CloneXMPtdL1; save _pgTables content to ptdL1
 
     Second, update current guest's mmuCtxt, which is the current page table's backup
 
@@ -111,20 +111,20 @@ Filled up during _start ENTRY in core/kernel/arch/head.S. First fill up l3, l2, 
 
 3. LoadPartitionPageTable & SetMmuCtxt
 
-	//file core/include/arch/processor.h
+    //file core/include/arch/processor.h
 
-	Restore backuped page table when resetting kthreads and partitions
+    Restore backuped page table when resetting kthreads and partitions
 
 4. ASM arch/head.S
 
-	load contextTab's physical address to a pointer.
+    load contextTab's physical address to a pointer.
 
 ******
 ## _pgTables[], _ptdL1[], _ptdL2[], _ptdL3[]
 
 ### Declaration
 
-	//file core/kernel/arch/head.S
+    //file core/kernel/arch/head.S
     .align 1024
     ENTRY(_pgTables)
     ENTRY(_ptdL1)
@@ -158,14 +158,14 @@ Filled up during _start ENTRY in core/kernel/arch/head.S.
 
 1. CloneXMPtdL1
 
-	```
+    ```
 //write _pgTables -> ptdL1
 WriteByPassMmuWord(&ptdL1[l1e], _pgTables[l1e]);
-	```
+    ```
 
 2. _start
 
-	//file core/kernel/arch/head.S
+    //file core/kernel/arch/head.S
 
     Write ptdL3, store ptdL3 to ptdL2
 
@@ -175,16 +175,16 @@ WriteByPassMmuWord(&ptdL1[l1e], _pgTables[l1e]);
 
 3. SetupVmMap
 
-	Put hypervisor's physical memory into ptdL3.
+    Put hypervisor's physical memory into ptdL3.
 
-	And clean the frame.
+    And clean the frame.
 
 ******
 ## irqHandlerTab[CONFIG_NO_HWIRQS]
 
 ### Declaration
 
-	//file core/kernel/irqs.c
+    //file core/kernel/irqs.c
     struct irqTabEntry irqHandlerTab[CONFIG_NO_HWIRQS];
 
     ```c
@@ -193,7 +193,8 @@ WriteByPassMmuWord(&ptdL1[l1e], _pgTables[l1e]);
         void *data;
     };
     ```
-Irq handlers are assigned to this struct. A certain irq handler is triggled by invoking the irqTabEntry->handler that has the same index.
+
+Type irq handler is given bellow. Irq handlers are assigned to this struct. A certain irq handler is triggled by invoking the irqTabEntry->handler that has the same index.
 
 Usage:
     ```c
@@ -230,11 +231,11 @@ SetIrqHandler(irqNr, SchedSyncHandler, 0);
 
 2. DoIrq
 
-	Calling irq's corresponding handler.
+    Calling irq's corresponding handler.
 
 3. SetupIrqs
 
-	Find each irq that has owner (a certain partition). Then the handler is set to ```SetPartitionHwIrqPending```, which is used to set all running threads' flag for trigger irq.
+    Find each irq that has owner (a certain partition). Then the handler is set to ```SetPartitionHwIrqPending```, which is used to set all running threads' flag for trigger irq.
 
     And set trap handler to 0.
 
@@ -281,7 +282,7 @@ SetTrapHandler(15, SparcTrapPageFault);
 
 ### Declaration
 
-	//file core/kernel/irqs.c
+    //file core/kernel/irqs.c
     hwIrqCtrl_t hwIrqCtrl[CONFIG_NO_HWIRQS]
 
 ### Description
@@ -325,8 +326,8 @@ function InitPic()
 
 2. Hw Disable|Enable|Ack|End|Force|Clear Irq
 
-	//file core/kernel/arch/leon_pic.c
-	operation ack == operation diable
+    //file core/kernel/arch/leon_pic.c
+    operation ack == operation diable
 
 3. InitPic
 
@@ -335,11 +336,11 @@ function InitPic()
 
 ### Declaration
 
-	//file core/kernel/arch/irqs.c
+    //file core/kernel/arch/irqs.c
 
 Put trap name to string in C.
     ```
-	xm_s8_t *trap2Str[]={
+    xm_s8_t *trap2Str[]={
     __STR(DATA_STORE_ERROR), // 0
     __STR(INSTRUCTION_ACCESS_MMU_MISS), // 1
     __STR(INSTRUCTION_ACCESS_ERROR), // 2
@@ -376,7 +377,7 @@ Used for debug information printing
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     localCpu_t localCpuInfo[CONFIG_NO_CPUS];
 
 ### Description
@@ -391,27 +392,27 @@ Allocate memory in CreateLocalInfo and set IrqMask to 0xffffffff. Setup at funct
 
 1. GET_LOCAL_CPU
 
-	(&localCpuInfo[GET_CPU_ID()]) //SMP
+    (&localCpuInfo[GET_CPU_ID()]) //SMP
     localCpuInfo //Not SMP
 
     GET_CPU_ID() = __GetCpuId() = cpuId>>28
-    	__asm__ __volatile__ ("rd %%asr17, %0\n\t" : "=r" (cpuId):);
+        __asm__ __volatile__ ("rd %%asr17, %0\n\t" : "=r" (cpuId):);
         //Processor configuration registe PCR ars17; 31~28 is PI (Processor ID)
 
 2. ArchSetupIrqs
 
 3. CreatePartition
 
-	Load ```localIrqMask``` from cpu global IrqMask and update it according to hwIrqTable.
+    Load ```localIrqMask``` from cpu global IrqMask and update it according to hwIrqTable.
 
-	Assign updated local IrqMask to ```p->kThread[i]```
+    Assign updated local IrqMask to ```p->kThread[i]```
 
 ******
 ## cpuKhz
 
 ### Declaration
 
-	//file core/include/guest.h
+    //file core/include/guest.h
     xm_u32_t cpuKhz;
 
 ### Description
@@ -431,18 +432,18 @@ EarlySetupCpu
 
 3. InitPitClock
 
-	Set clock, register and irq handler
+    Set clock, register and irq handler
 
 4. SetupPct
 
-	partCtrlTab->cpuKhz=cpuKhz
+    partCtrlTab->cpuKhz=cpuKhz
 
 ******
 ## sysHwClock
 
 ### Declaration
 
-	//file core/kernel/arch/leon_timers.c
+    //file core/kernel/arch/leon_timers.c
     hwClock_t *sysHwClock=&pitClock;
 
 Hardware clock and its functions, shown as the Initialization section below.
@@ -457,7 +458,7 @@ Hardware clock and its functions, shown as the Initialization section below.
         xmTime_t (*GetTimeUsec)(void);
         void (*ShutdownClock)(void);
     } hwClock_t;
-	```
+    ```
 
 ### Description
 
@@ -481,11 +482,11 @@ static hwClock_t pitClock={
 
 1. GetSysClockUsec
 
-	Return sysHwClock's usec
+    Return sysHwClock's usec
 
 2. SetupSysClock
 
-	Called at setup, after InitSche();
+    Called at setup, after InitSche();
 
     Invoke InitPitClock() at file core/kernel/arch/leon_timers.c
 
@@ -495,11 +496,11 @@ static hwClock_t pitClock={
 
 ### Declaration
 
-	//file core/include/ktimer.h
+    //file core/include/ktimer.h
     hwTimer_t *sysHwTimer;
 
 This struct is an attribute of ```localTime_t```.
-	```
+    ```
     typedef struct hwTimer {
         xm_s8_t *name;
         xm_u32_t flags;
@@ -514,7 +515,7 @@ This struct is an attribute of ```localTime_t```.
         timerHandler_t (*SetTimerHandler)(timerHandler_t);
         void (*ShutdownHwTimer)(void);
     } hwTimer_t;
-	```
+    ```
 
 ### Description
 
@@ -528,37 +529,36 @@ Initialized during setup time. GetSysHwTimer returns pitTimer according to CPU_I
 
 1. SetHwTimer
 
-	Set timer according to hardware clock
+    Set timer according to hardware clock
 
 2. SetupKTimers
 
-	Init globalActiveKTimers list and set corresponding local hwtimer timer handler.
+    Init globalActiveKTimers list and set corresponding local hwtimer timer handler.
 
 3. SetupHwTimer
 
-	Setup hardware time at setup() time. localTimeInfo is also initialized here.
+    Setup hardware time at setup() time. localTimeInfo is also initialized here.
 
 ******
 ## localTimeInfo[]
 
 ### Declaration
 
-	//file core/kernel/setup.c
+    //file core/kernel/setup.c
     localTime_t localTimeInfo[CONFIG_NO_CPUS];
 
 As delivered in the Description part below, the dynamic list is used to maintain the active timers.
 
 The flags is used to indicate whether the next act is valid. sysHwTime is the reference to HwTimer that is attached to the CPU.
-	```
+    ```
     typedef struct {
         xm_u32_t flags;
         hwTimer_t *sysHwTimer;
-
     #define NEXT_ACT_IS_VALID 0x1
         xmTime_t nextAct;
         struct dynList globalActiveKTimers;
     } localTime_t;
-	```
+    ```
 ### Description
 
 An array that stores local time struct. ```localTime_t``` contains flags, sysHwTimer, nextAct time and a linked-list of active timers.
@@ -575,17 +575,17 @@ Described above.
 
 2. InitVTimer
 
-	use InitKTimer. set vTimer->kTimer and thead k.
+    use InitKTimer. set vTimer->kTimer and thead k.
 
 ******
 ## systemStatus
 
 ### Declaration
 
-	//file core/objects/status.c
+    //file core/objects/status.c
     xmSystemStatus_t systemStatus;
 
-	```
+    ```
     typedef struct {
         xm_u32_t resetCounter;
         /* Number of HM events emitted. */
@@ -604,7 +604,7 @@ Described above.
         xm_u64_t noQueuingPortMsgsSent;     /* [[OPTIONAL]] */
         xm_u64_t noQueuingPortMsgsReceived; /* [[OPTIONAL]] */
     } xmSystemStatus_t;
-	```
+    ```
 
 ### Description
 
@@ -622,10 +622,10 @@ Used only when define ```CONFIG_OBJ_STATUS_ACC```.
 
 ### Declaration
 
-	//file core/objects/status.c
+    //file core/objects/status.c
     xmPartitionStatus_t *partitionStatus;
 
-	```
+    ```
     typedef struct {
         /* Current state of the partition: ready, suspended ... */
         xm_u32_t state;
@@ -653,7 +653,7 @@ Used only when define ```CONFIG_OBJ_STATUS_ACC```.
         xm_u64_t noQueuingPortMsgsSent;     /* [[OPTIONAL]] */
         xm_u64_t noQueuingPortMsgsReceived; /* [[OPTIONAL]] */
     } xmPartitionStatus_t;
-	```
+    ```
 ### Description
 
 Similar as above struct
@@ -669,12 +669,16 @@ Similar as above struct
 
 ### Declaration
 
+    extern xm_u32_t resetStatusInit[];
+
 ### Description
 
 Only the first entry of this array is used. Used at ```ResetPartition``` and ```ResetThread```. Assigned to k->ctrl.g->partCtrlTab->resetStatus, but not used anymore.
 
 ### Initialization
 
+    resetStatusInit = .;
+    LONG(0);
 
 ### Functions
 
@@ -684,15 +688,15 @@ Only the first entry of this array is used. Used at ```ResetPartition``` and ```
 
 ### Declaration
 
-	//file core/kernel/hypercalls.c
+    //file core/kernel/hypercalls.c
 
 noArgs is used to indicate how many arguments of this hypercall is using.
-	```
+    ```
     extern struct {
         xm_u32_t noArgs;
     #define HYP_NO_ARGS(args) ((args)&~0x80000000)
     } hypercallFlagsTab[NR_HYPERCALLS];
-	```
+    ```
 
 ### Description
 
@@ -700,7 +704,7 @@ This array is used to keep all hypercalls' argument numbers. The number of argum
 
 ### Initialization
 
-	//file core/kernel/arch/xm.lds.in
+    //file core/kernel/arch/xm.lds.in
 ```
     .rodata ALIGN(8) :  AT (ADDR (.rodata) + PHYSOFFSET) {
         asmHypercallsTab = .;
@@ -715,7 +719,7 @@ This array is used to keep all hypercalls' argument numbers. The number of argum
         ...
     }
 ```
-```hypercallFlagsTab``` is pointed to ```hypercallflagstab```. While ```hypercallflagstab``` is initialized by macro and assmebly code
+    ```hypercallFlagsTab``` is pointed to ```hypercallflagstab```. While ```hypercallflagstab``` is initialized by macro and assmebly code
 
 ```
     #define HYPERCALLR_TAB(_hc, _args) \
@@ -726,7 +730,6 @@ This array is used to keep all hypercalls' argument numbers. The number of argum
              ".section .hypercallflagstab, \"a\"\n\t" \
              ".long (0x80000000|"#_args")\n\t" \
              ".previous\n\t")
-
     #define HYPERCALL_TAB(_hc, _args) \
     __asm__ (".section .hypercallstab, \"a\"\n\t" \
              ".align 4\n\t" \
@@ -741,18 +744,18 @@ This array is used to keep all hypercalls' argument numbers. The number of argum
 
 1. MulticallSys
 
-	Execute a sequence of hypercalls. There will be several hypercalls from ```startAddr``` to ```endAddr```. The iterater's offset depends on the number of arguments of a certain hypercall.
+    Execute a sequence of hypercalls. There will be several hypercalls from ```startAddr``` to ```endAddr```. The iterater's offset depends on the number of arguments of a certain hypercall.
 
 2. AuditHCall
 
-	Only when CONFIG_AUDIT_EVENTS
+    Only when CONFIG_AUDIT_EVENTS
 
 ******
 ## WindowOverflowTrap[],EWindowOverflowTrap[], WindowUnderflowTrap[], EWindowUnderflowTrap[], SIRetCheckRetAddr[], EIRetCheckRetAddr[]
 
 ### Declaration
 
-	//file core/kernel/arch/entry
+    //file core/kernel/arch/entry
     //line 270+
     ENTRY(WindowOverflowTrap)
     ENTRY(EWindowOverflowTrap)
@@ -773,7 +776,7 @@ These entry is used to mark 3 trap in entry.S assembly code. @function ```ArchTr
 
 1. DoTrap
 
-	If ```ArchTrapIsSysCtxt```, mark ```hmLog.opCodeH |= HMLOG_OPCODE_SYS_MASK.```
+    If ```ArchTrapIsSysCtxt```, mark ```hmLog.opCodeH |= HMLOG_OPCODE_SYS_MASK.```
 
 2. ArchTrapIsSysCtxt
 
@@ -782,13 +785,13 @@ These entry is used to mark 3 trap in entry.S assembly code. @function ```ArchTr
 
 ### Declaration
 
-	//This should be a function
-	//file core/kernel/arch/head.S
+    //This should be a function
+    //file core/kernel/arch/head.S
 ```
 ENTRY(ArchStartupGuest)
-	ldd [%sp], %o0
-	jmpl %g4, %g0
-	add %sp, 8, %sp
+    ldd [%sp], %o0
+    jmpl %g4, %g0
+    add %sp, 8, %sp
 ```
 
 ### Description
@@ -820,8 +823,8 @@ void SetupKStack(kThread_t *k, void *StartUp, xmAddress_t entryPoint) {
 
 ### Declaration
 
-	//TODO
-	//file core/ldr/ldr.sparv8.lds.in
+    //TODO
+    //file core/ldr/ldr.sparv8.lds.in
 
 ```
     _sldr = .;
@@ -852,14 +855,14 @@ start and end of partition loader.
 
 ### Declaration
 
-	//file core/kernel/setup.c
-	barrier_t smpStartBarrier = BARRIER_INIT;
+    //file core/kernel/setup.c
+    barrier_t smpStartBarrier = BARRIER_INIT;
 
-	```
+    ```
     typedef struct {
         volatile xm_s32_t v;
     } barrier_t;
-	```
+    ```
 ### Description
 
 Instead of taking this as a barrier, it is more like a simple spinlock, mutex or semaphore.
@@ -881,13 +884,13 @@ static inline void BarrierUnlock(barrier_t *b) {
 
 1. Setup
 
-	First CPU set lock BarrierLock before InitSched() and unlock it during FreeBootMem, before Schedule().
+    First CPU set lock BarrierLock before InitSched() and unlock it during FreeBootMem, before Schedule().
 
     Second CPU will be polling smpStartBarrier. Once it is unlocked, second CPU can go for Schedule().
 
 2. FreeBootMem
 
-	Unlock barrier and do Schedule()
+    Unlock barrier and do Schedule()
 
 ******
 ## _sxm[], _exm[], physXmcTab[]
@@ -896,6 +899,7 @@ static inline void BarrierUnlock(barrier_t *b) {
 
 ### Description
 
+This should be the start and end address of xm.
 
 ### Initialization
 
@@ -915,7 +919,7 @@ Initialized in core/kernel/arch/xm.ldr.in
 
 ### Declaration
 
-	//file core/kernel/arch/xm.ldr.in
+    //file core/kernel/arch/xm.ldr.in
     sysResetCounter = .;
     LONG(0);
 
@@ -931,7 +935,7 @@ Shown in declaration.
 
 1. ResetSystem
 
-	IF WARM_RESET then increase the counter.
+    IF WARM_RESET then increase the counter.
 
     ELSE (COLD_RESET) then set counter to 0.
 
@@ -946,7 +950,7 @@ Shown in declaration.
 
 ### Declaration
 
-	//file core/kernel/arch/xm.ldr.in
+    //file core/kernel/arch/xm.ldr.in
     exPTable = .;
     *(.exptable)
     LONG(0);
@@ -994,7 +998,7 @@ So generally, exPTable[e].a is the execution code address, and exPTable[e].b is 
 
 1. IsInPartExTable
 
-	This function is called at DoTrap @core/kernel/irqs.c.
+    This function is called at DoTrap @core/kernel/irqs.c.
 
     If current trap happens when PC is equal to exPTable[e].a, then jump to exPTable[e].b to skip.
 
@@ -1005,11 +1009,11 @@ So generally, exPTable[e].a is the execution code address, and exPTable[e].b is 
 
 ### Declaration
 
-	//file core/kernel/sched.c
+    //file core/kernel/sched.c
     partition_t *partitionTab;
 
 Linked-list of kThread_t to shown the current execution thread in this partition. cfg points to che partition configuration from xml parser. Partition original ID, physicalMemoryAreasOffset, noVCpus and noPorts are those not kept in partition_t but xmcPartition.
-	```
+    ```
     typedef struct partition {
         kThread_t **kThread;
         xmAddress_t pctArray;
@@ -1020,9 +1024,9 @@ Linked-list of kThread_t to shown the current execution thread in this partition
         xmAddress_t vLdrStack; /*Stack address allocated by XM*/
         struct xmcPartition *cfg;
     } partition_t;
-	```
+    ```
 Where struct ```kThread_t``` is:
-	```
+    ```
     typedef union kThread {
         struct __kThread {
             // Harcoded, don't change it
@@ -1057,9 +1061,10 @@ Where struct ```kThread_t``` is:
         } ctrl;
         xm_u8_t kStack[CONFIG_KSTACK_SIZE];
     } kThread_t;
-	```
+    ```
+
 For ```guest``` struct:
-	```
+    ```
     struct guest {
     #define PART_VCPU_ID2KID(partId, vCpuId) ((vCpuId)<<8)|((partId)&0xff)
     #define KID2PARTID(id) ((id)&0xff)
@@ -1075,7 +1080,27 @@ For ```guest``` struct:
         xm_u32_t swTrap;
         struct trapHandler overrideTrapTab[NO_TRAPS];
     };
-	```
+    ```
+
+For ```vTimer_t``` in ```guest```:
+    ```
+    typedef struct {
+        xmTime_t value;
+        xmTime_t interval;
+    #define VTIMER_ARMED (1<<0)
+        xm_u32_t flags;
+        kTimer_t kTimer;
+    } vTimer_t;
+    ```
+And ```vClock_t```:
+    ```
+    typedef struct {
+        xmTime_t acc;
+        xmTime_t delta;
+        xm_u32_t flags;
+    #define VCLOCK_ENABLED (1<<0)
+    } vClock_t;
+    ```
 
 ### Description
 
@@ -1088,44 +1113,44 @@ Initialized as zero in function ```InitSched``` at core/kernel/sched.c.
 
 1. CtrlStatus
 
-	Get partition ID from obj description and local sched. Use partition ID to access / update partitionTab[partId].
+    Get partition ID from obj description and local sched. Use partition ID to access / update partitionTab[partId].
 
 2. HmRaiseEvent
 
-	Get partition ID from log. Take action according to partitionTab[partitionId].cfg->hmTab[eventId].action.
+    Get partition ID from log. Take action according to partitionTab[partitionId].cfg->hmTab[eventId].action.
 
 3. CopyArea
 
-	Get partition IDs of src partition and dst partition. Check if the area is available or not.
+    Get partition IDs of src partition and dst partition. Check if the area is available or not.
 
 4. TriggerIrqHandler
 
-	Use SetPartitionHwIrqPending to partition indicated by ctxt.
+    Use SetPartitionHwIrqPending to partition indicated by ctxt.
 
 5. hypercall HaltPartitionSys
 
-	Find first unflaged VCpu. If exist, partition is about to halt. Then call ```HALT_PARTITION```, which just partitionTab[id].opMode=XM_OPMODE_IDLE.
+    Find first unflaged VCpu. If exist, partition is about to halt. Then call ```HALT_PARTITION```, which just partitionTab[id].opMode=XM_OPMODE_IDLE.
 
 6. hypercall SuspendPartitionSys, ResumePartitionSys, ResetPartitionSys
 
-	This is similar as the above one.
+    This is similar as the above one.
 
 7. hypercall RaisePartitionIpviSys, RaiseIpviSys
 
-	Similar to RaiseIpviSys as mentioned above. If partition did not set noIpvi pending, set irq pending to every VCpu.
+    Similar to RaiseIpviSys as mentioned above. If partition did not set noIpvi pending, set irq pending to every VCpu.
 
 8. CreatePartition
 
-	Init partition and its threads.
+    Init partition and its threads.
 
 9. SUSPEND_VCPU, RESUME_VCPU, HALT_VCPU
 
-	Take partition ID and VCpuId as input. Set the flag of partition's certain thread with ```KTHREAD_XXXX_F```.
+    Take partition ID and VCpuId as input. Set the flag of partition's certain thread with ```KTHREAD_XXXX_F```.
 
 10. SUSPEND_PARTITION, RESUME_PARTITION, SHUTDOWN_PARTITION, HALT_PARTITION
 
-	Similar as above. Use loop to iterate among all VCpus.
+    Similar as above. Use loop to iterate among all VCpus.
 
 11. GetPartition
 
-	Take current thread and the partition ID it stores to find the reference of partition.
+    Take current thread and the partition ID it stores to find the reference of partition.
