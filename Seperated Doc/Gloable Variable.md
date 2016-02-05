@@ -9,6 +9,33 @@ Declared at xmconf.h
     //file core/kernel/setup.c
     struct xmcPartition *xmcPartitionTab;
 
+As described in the next section. ```xmcPartition``` is loaded according to xm partitions' configurations and attributes. It is indexed by numerical id.
+    ```c
+    struct xmcPartition {
+        xmId_t id;
+        xm_u32_t nameOffset;
+        xm_u32_t flags;
+    #define XM_PART_SYSTEM 0x100
+    #define XM_PART_FP 0x200
+        xm_u32_t noVCpus;
+        xm_u32_t hwIrqs;
+        xm_s32_t noPhysicalMemoryAreas;
+        xm_u32_t physicalMemoryAreasOffset;
+        xmDev_t consoleDev;
+        struct xmcPartitionArch arch; //empty
+        xm_u32_t commPortsOffset;
+        xm_s32_t noPorts;
+        struct xmcHmSlot hmTab[XM_HM_MAX_EVENTS];
+        xm_u32_t ioPortsOffset;
+        xm_s32_t noIoPorts;
+        struct xmcTrace trace;
+        struct xmcPartIpvi {
+            xm_u32_t dstOffset;
+            xm_s32_t noDsts;
+        } ipviTab[CONFIG_XM_MAX_IPVI];
+    };
+    ```
+
 ### Description
 
 An array of ```xmcPartiton```. Length of this array is ```xmcTab.noPartitions```. ```xmcPartition``` struct consists of the id of partition, number of virtual CPUs assigned to this partition, communication ports of the partition, consoleDev, etc.. It is the detailed representation of XtratuM partition transalted from XML files.
@@ -18,7 +45,6 @@ One of the attribute ```xmcPartitionArch``` is empty.
 ### Initialization
 
 Initialization is done using xmcparser and xml tools.
-
 
 ### Functions
 
@@ -39,6 +65,16 @@ Initialization is done using xmcparser and xml tools.
 
     //file core/kernel/setup.c
     struct xmcMemoryRegion *xmcMemRegTab;
+
+    ```c
+    struct xmcMemoryRegion {
+        xmAddress_t startAddr;
+        xmSize_t size;
+    #define XMC_REG_FLAG_PGTAB (1<<0)
+    #define XMC_REG_FLAG_ROM (1<<1)
+        xm_u32_t flags;
+    };
+    ```
 
 ### Description
 
@@ -80,6 +116,28 @@ GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE
 
     //file core/kernel/setup.c
     struct xmcMemoryArea *xmcPhysMemAreaTab;
+
+    ```c
+    struct xmcMemoryArea {
+        xm_u32_t nameOffset;
+        xmAddress_t startAddr;
+        xmAddress_t mappedAt;
+        xmSize_t size;
+    #define XM_MEM_AREA_SHARED (1<<0)
+    #define XM_MEM_AREA_UNMAPPED (1<<1)
+    #define XM_MEM_AREA_READONLY (1<<2)
+    #define XM_MEM_AREA_UNCACHEABLE (1<<3)
+    #define XM_MEM_AREA_ROM (1<<4)
+    #define XM_MEM_AREA_FLAG0 (1<<5)
+    #define XM_MEM_AREA_FLAG1 (1<<6)
+    #define XM_MEM_AREA_FLAG2 (1<<7)
+    #define XM_MEM_AREA_FLAG3 (1<<8)
+    #define XM_MEM_AREA_TAGGED (1<<9)
+    #define XM_MEM_AREA_IOMMU (1<<10)
+        xm_u32_t flags;
+        xm_u32_t memoryRegionOffset;
+    };
+    ```
 
 ### Description
 An array of ```xmcMemoryRegion```. The size of the array is the summ of ```xmcPartitonTab[0~xmcTab.noPartitions-1].noPhysicalMemoryAreas```.
@@ -137,6 +195,36 @@ Initialized by parser and xml tools.
     //file core/kernel/setup.c
     struct xmcCommChannel *xmcCommChannelTab;
 
+    ```c
+    struct xmcCommChannel {
+    #define XM_SAMPLING_CHANNEL 0
+    #define XM_QUEUING_CHANNEL 1
+    #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
+    #define XM_TTNOC_CHANNEL 2
+    #endif
+        xm_s32_t type;
+        union {
+            struct {
+                xm_s32_t maxLength;
+                xm_s32_t maxNoMsgs;
+            } q;
+            struct {
+                xm_s32_t maxLength;
+                xm_u32_t validPeriod;
+                xm_s32_t noReceivers;
+            } s;
+    #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
+            struct {
+                xm_s32_t maxLength;
+                xm_u32_t validPeriod;
+                xm_s32_t noReceivers;
+                xmId_t nodeId;
+            } t;
+    #endif
+        };
+    };
+    ```
+
 ### Description
 An array of ```xmcCommChannel```  with size of ```xmcTab.noCommChannels```. Struct ```xmcCommChannel``` contains type and union of xm channel.
 
@@ -153,7 +241,25 @@ It is used file core/objects/commports.c mainly (not considering ttnocports.c he
 ### Declaration
 
     //file core/kernel/setup.c
-    struct xmcCommChannel *xmcCommChannelTab;
+    struct xmcCommPort *xmcCommPorts;
+
+    ```c
+    struct xmcCommPort {
+        xm_u32_t nameOffset;
+        xm_s32_t channelId;
+    #define XM_NULL_CHANNEL -1
+        xm_s32_t direction;
+    #define XM_SOURCE_PORT 0x2
+    #define XM_DESTINATION_PORT 0x1
+        xm_s32_t type;
+    #define XM_SAMPLING_PORT 0
+    #define XM_QUEUING_PORT 1
+    #define XM_TTNOC_PORT 2
+    #if defined(CONFIG_DEV_TTNOC)||defined(CONFIG_DEV_TTNOC_MODULE)
+        xmDev_t devId;
+    #endif
+    };
+    ```
 
 ### Description
 Similar as above.
@@ -172,6 +278,26 @@ Similar as above.
     //file core/kernel/setup.c
     struct xmcIoPort *xmcIoPortTab;
 
+
+    ```c
+    struct xmcIoPort {
+        xm_u32_t type;
+    #define XM_IOPORT_RANGE 0
+    #define XM_RESTRICTED_IOPORT 1
+        union {
+            struct xmcIoPortRange {
+                xmIoAddress_t base;
+                xm_s32_t noPorts;
+            } range;
+            struct xmcRestrictdIoPort {
+                xmIoAddress_t address;
+                xm_u32_t mask;
+    #define XM_DEFAULT_RESTRICTED_IOPORT_MASK (~0)
+            } restricted;
+        };
+    };
+    ```
+
 ### Description
 
 ### Initialization
@@ -185,6 +311,16 @@ Similar as above.
 
     //file core/kernel/setup.c
     struct xmcRsvMem *xmcRsvMemTab;
+
+
+    ```
+    struct xmcRsvMem {
+        void *obj;
+        xm_u32_t usedAlign;
+    #define RSV_MEM_USED 0x80000000
+        xm_u32_t size;
+    } __PACKED;
+    ```
 
 ### Description
 An array that keeps recording which memory region is reserved/used.
@@ -213,6 +349,18 @@ Initialized by parser and xml tools.
     //file core/kernel/setup.c
     struct xmcBootPart *xmcBootPartTab;
 
+    ```c
+    struct xmcBootPart {
+    #define XM_PART_BOOT 0x1
+        xm_u32_t flags;
+        xmAddress_t hdrPhysAddr;
+        xmAddress_t entryPoint;
+        xmAddress_t imgStart;
+        xmSize_t imgSize;
+        xm_u32_t noCustomFiles;
+        struct xefCustomFile customFileTab[CONFIG_MAX_NO_CUSTOMFILES];
+    };
+    ```
 ### Description
 This array stores information about partition boot image address, entry point, details about the custom files.
 //TODO
@@ -256,6 +404,12 @@ Not in use
 
     //file core/kernel/setup.c
     struct xmcRswInfo *xmcRswInfo;
+
+    ```c
+    struct xmcRswInfo {
+        xmAddress_t entryPoint;
+    };
+    ```
 
 ### Description
 
@@ -317,6 +471,12 @@ Initialized by parser and xml tools.
     //file core/kernel/setup.c
     struct xmcVCpu *xmcVCpuTab;
 
+    ```
+    struct xmcVCpu{
+        xmId_t cpu;
+    };
+    ```
+
 ### Description
 
 This array is used to store the cpuId for each partition.
@@ -348,4 +508,3 @@ Initialized by parser and xml tools.
 6. ResetKThread
 
     Reset current thread only. If smp, then can keep scheduling on other cores.
-u
