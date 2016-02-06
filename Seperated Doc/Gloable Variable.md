@@ -51,11 +51,11 @@ Initialization is done using xmcparser and xml tools.
 
 1. SetupPartitions
 
-    xmcPartitionTab[e].noPhysicalMemoryAreas is used for print information about physical memory area.
+    xmcPartitionTab[e].noPhysicalMemoryAreas is used for print information about physical memory area in this function.
 
 2. CreatePartition
 
-    Assign xmcPartition to a partition_t p, an element in partitionTab.
+    Assign xmcPartition to a partition_t p, a certain element in partitionTab array.
 
     For each virtual CPU, allocate one thread to partition, with flags cleared and timers  allocated.
 
@@ -95,7 +95,8 @@ Initialized by parser and xml tools.
 
 3. PmmFindArea
 
-4. PmmResetPartition 
+4. PmmResetPartition
+
 ```
     page=&physPageTab[memArea->memoryRegionOffset][(addr-memRegion->startAddr)>>PAGE_SHIFT];
 ```
