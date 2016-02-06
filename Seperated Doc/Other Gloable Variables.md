@@ -92,7 +92,7 @@ Save threads' contexts. contextTab is updated when saving / setting up L1 page t
 
 ### Initialization
 
-Filled up during _start ENTRY in core/kernel/arch/head.S. First fill up l3, l2, l1 page table and copy l1 content to the memory location pointed by contextTab.
+Filled up during _start ENTRY in core/kernel/arch/head.S. First fill up l3, l2, l1 page table and copy l1 content to the memory location pointed by ```contextTab```.
 
 ### Functions
 
@@ -118,7 +118,7 @@ Filled up during _start ENTRY in core/kernel/arch/head.S. First fill up l3, l2, 
 
 4. ASM arch/head.S
 
-    load contextTab's physical address to a pointer.
+    Load contextTab's physical address to a pointer.
 
 ******
 ## _pgTables[], _ptdL1[], _ptdL2[], _ptdL3[]
@@ -233,6 +233,8 @@ SetIrqHandler(irqNr, SchedSyncHandler, 0);
 
 1. SetIrqHandler
 
+    Pass irq's index number, new handler function pointer and data pointer into this function. And set handler function to irqHandlerTab[irq].
+
 2. DoIrq
 
     Calling irq's corresponding handler.
@@ -297,14 +299,14 @@ This array keeps the functions of every irq.
 Another OOP:
 
 ```
-typedef struct {
-    void (*Enable)(xm_u32_t irq);
-    void (*Disable)(xm_u32_t irq);
-    void (*Ack)(xm_u32_t irq);
-    void (*End)(xm_u32_t irq);
-    void (*Force)(xm_u32_t irq);
-    void (*Clear)(xm_u32_t irq);
-} hwIrqCtrl_t;
+    typedef struct {
+        void (*Enable)(xm_u32_t irq);
+        void (*Disable)(xm_u32_t irq);
+        void (*Ack)(xm_u32_t irq);
+        void (*End)(xm_u32_t irq);
+        void (*Force)(xm_u32_t irq);
+        void (*Clear)(xm_u32_t irq);
+    } hwIrqCtrl_t;
 ```
 
 ### Initialization
@@ -330,12 +332,20 @@ function InitPic()
 
 1. HwIrqGetMask
 
-2. Hw Disable|Enable|Ack|End|Force|Clear Irq
+```
+xm_u32_t HwIrqGetMask(void) {
+    return ~LoadIoReg(GET_APIC_BASE()+PROC0_INT_MASK_REG);
+}
+```
+
+2. HwDisable|Enable|Ack|End|Force|Clear Irq
 
     //file core/kernel/arch/leon_pic.c
     operation ack == operation diable
 
 3. InitPic
+
+    Mentioned above.
 
 ******
 ## *trap2Str[]
@@ -348,25 +358,25 @@ Put trap name to string in C.
 
 ```
     xm_s8_t *trap2Str[]={
-    __STR(DATA_STORE_ERROR), // 0
-    __STR(INSTRUCTION_ACCESS_MMU_MISS), // 1
-    __STR(INSTRUCTION_ACCESS_ERROR), // 2
-    __STR(R_REGISTER_ACCESS_ERROR), // 3
-    __STR(INSTRUCTION_ACCESS_EXCEPTION), // 4
-    __STR(PRIVILEGED_INSTRUCTION), // 5
-    __STR(ILLEGAL_INSTRUCTION), // 6
-    __STR(FP_DISABLED), // 7
-    __STR(CP_DISABLED), // 8
-    __STR(UNIMPLEMENTED_FLUSH), // 9
-    __STR(WATCHPOINT_DETECTED), // 10
-    __STR(MEM_ADDRESS_NOT_ALIGNED), // 11
-    __STR(FP_EXCEPTION), // 12
-    __STR(CP_EXCEPTION), // 13
-    __STR(DATA_ACCESS_ERROR), // 14
-    __STR(DATA_ACCESS_MMU_MISS), // 15
-    __STR(DATA_ACCESS_EXCEPTION),// 16
-    __STR(TAG_OVERFLOW), // 17
-    __STR(DIVISION_BY_ZERO), // 18
+        __STR(DATA_STORE_ERROR), // 0
+        __STR(INSTRUCTION_ACCESS_MMU_MISS), // 1
+        __STR(INSTRUCTION_ACCESS_ERROR), // 2
+        __STR(R_REGISTER_ACCESS_ERROR), // 3
+        __STR(INSTRUCTION_ACCESS_EXCEPTION), // 4
+        __STR(PRIVILEGED_INSTRUCTION), // 5
+        __STR(ILLEGAL_INSTRUCTION), // 6
+        __STR(FP_DISABLED), // 7
+        __STR(CP_DISABLED), // 8
+        __STR(UNIMPLEMENTED_FLUSH), // 9
+        __STR(WATCHPOINT_DETECTED), // 10
+        __STR(MEM_ADDRESS_NOT_ALIGNED), // 11
+        __STR(FP_EXCEPTION), // 12
+        __STR(CP_EXCEPTION), // 13
+        __STR(DATA_ACCESS_ERROR), // 14
+        __STR(DATA_ACCESS_MMU_MISS), // 15
+        __STR(DATA_ACCESS_EXCEPTION),// 16
+        __STR(TAG_OVERFLOW), // 17
+        __STR(DIVISION_BY_ZERO), // 18
     };
 ```
 
@@ -386,6 +396,16 @@ Used for debug information printing
 
     //file core/kernel/setup.c
     localCpu_t localCpuInfo[CONFIG_NO_CPUS];
+
+```
+    typedef struct {
+        xm_u32_t flags;
+    #define CPU_SLOT_ENABLED (1<<0)
+    #define BSP_FLAG (1<<1)
+        volatile xm_u32_t irqNestingCounter;
+        xm_u32_t globalIrqMask;
+    } localCpu_t;
+```
 
 ### Description
 
@@ -407,6 +427,9 @@ Allocate memory in CreateLocalInfo and set IrqMask to 0xffffffff. Setup at funct
         //Processor configuration registe PCR ars17; 31~28 is PI (Processor ID)
 
 2. ArchSetupIrqs
+
+    //TODO
+    ```InitPic``` is invoked here. And special handler for SMP and MMU supports are defined here.
 
 3. CreatePartition
 
@@ -435,7 +458,27 @@ EarlySetupCpu
 
 1. GetCpuKhz
 
+```
+    xm_u32_t GetCpuKhz(void) {
+    #ifdef CONFIG_LEON3
+        xm_u32_t pFreq=(LoadIoReg(LEON_TIMER_CFG_BASE+SCAR_REG)+1)*1000;
+        //XM_CPUFREQ_AUTO == 0
+        if (xmcTab.hpv.cpuTab[GET_CPU_ID()].freq==XM_CPUFREQ_AUTO)
+            return pFreq;
+        if (xmcTab.hpv.cpuTab[GET_CPU_ID()].freq!=pFreq)
+            PWARN("XMC freq (%dKhz) mismatches hw detected (%dKhz)\n", xmcTab.hpv.cpuTab[GET_CPU_ID()].freq, pFreq);
+    #endif
+        return xmcTab.hpv.cpuTab[GET_CPU_ID()].freq;
+    }
+```
+
 2. EarlySetupCpu
+
+```
+    void __VBOOT EarlySetupCpu(void) {
+        cpuKhz=GetCpuKhz();
+    }
+```
 
 3. InitPitClock
 
@@ -583,6 +626,25 @@ Described above.
 
 1. InitKTimer
 
+    Used in ```InitVTimer``` and ```CreatePartition```.
+
+```
+    void InitKTimer(int cpuId, kTimer_t *kTimer, void (*Act)(kTimer_t *, void *), void *args, void *kThread) {
+    //init timer and add it to kThread->ctrl linked list
+        localTime_t *localTime=&localTimeInfo[cpuId];
+        kThread_t *k=(kThread_t *)kThread;
+        memset((xm_s8_t *)kTimer, 0, sizeof(kTimer_t));
+        kTimer->actionArgs=args;
+        kTimer->Action=Act;
+        // if not local active ktimer, use gloobal active ktimer
+        if(DynListInsertHead((k)?&k->ctrl.localActiveKTimers:&localTime->globalActiveKTimers, &kTimer->dynListPtrs)) {
+            cpuCtxt_t ctxt;
+            GetCpuCtxt(&ctxt);
+            SystemPanic(&ctxt, "[KTIMER] Error allocating ktimer");
+        }
+    }
+```
+
 2. InitVTimer
 
     use InitKTimer. set vTimer->kTimer and thead k.
@@ -618,7 +680,7 @@ Described above.
 
 ### Description
 
-xmSystemStatus_t contains a seriels of counter. Such as irqs counter, reset counter, port msg read written counter.
+```xmSystemStatus_t``` contains a seriels of counter, such as irqs counter, reset counter and port msg read written counter.
 
 Used only when define ```CONFIG_OBJ_STATUS_ACC```.
 
@@ -626,6 +688,15 @@ Used only when define ```CONFIG_OBJ_STATUS_ACC```.
 
 ### Functions
 
+1. ReadSamplingPort
+
+2. SendQueuingPort
+
+3. ReceiveQueuingPort
+
+4. ReadTTnocPort
+
+5. WriteTTnocPort
 
 ******
 ## partitionStatus
@@ -673,6 +744,17 @@ Similar as above struct
 
 ### Functions
 
+1. ReadSamplingPort
+
+2. WriteSamplingPort
+
+3. SendQueuingPort
+
+4. ReceiveQueuingPort
+
+5. ReadTTnocPort
+
+6. WriteTTnocPort
 
 ******
 ## resetStatusInit
@@ -792,6 +874,21 @@ These entry is used to mark 3 trap in entry.S assembly code. @function ```ArchTr
 
 2. ArchTrapIsSysCtxt
 
+```
+    xm_s32_t ArchTrapIsSysCtxt(cpuCtxt_t *ctxt) {
+        extern xm_u8_t WindowOverflowTrap[], EWindowOverflowTrap[];
+        extern xm_u8_t WindowUnderflowTrap[], EWindowUnderflowTrap[];
+        extern xm_u8_t SIRetCheckRetAddr[], EIRetCheckRetAddr[];
+        if ((ctxt->pc>=(xmAddress_t)WindowOverflowTrap)&&(ctxt->pc < (xmAddress_t)EWindowOverflowTrap))
+            return 0;
+        if ((ctxt->pc>=(xmAddress_t)WindowUnderflowTrap)&&(ctxt->pc<(xmAddress_t)EWindowUnderflowTrap))
+            return 0;
+        if ((ctxt->pc>=(xmAddress_t)SIRetCheckRetAddr)&&(ctxt->pc<(xmAddress_t)EIRetCheckRetAddr))
+            return 0;
+        return 1;
+    }
+```
+
 ******
 ## ArchStartupGuest
 
@@ -799,6 +896,7 @@ These entry is used to mark 3 trap in entry.S assembly code. @function ```ArchTr
 
     //This should be a function
     //file core/kernel/arch/head.S
+
 ```
 ENTRY(ArchStartupGuest)
     ldd [%sp], %o0
@@ -862,6 +960,7 @@ start and end of partition loader.
 
 1. SetupLdr
 
+    //TODO
 
 ******
 ## smpStartBarrier
@@ -905,6 +1004,19 @@ Instead of taking this as a barrier, it is more like a simple spinlock, mutex or
 2. FreeBootMem
 
     Unlock barrier and do Schedule()
+
+```
+    __NOINLINE void FreeBootMem(void) {
+    //enable Schedule; call Schedule;
+        extern barrier_t smpStartBarrier;
+        extern void IdleTask(void);
+        ASSERT(!HwIsSti());
+        BarrierUnlock(&smpStartBarrier);
+        GET_LOCAL_SCHED()->flags|=LOCAL_SCHED_ENABLED;
+        Schedule();
+        IdleTask();
+    }
+```
 
 ******
 ## _sxm[], _exm[], physXmcTab[]
@@ -1081,6 +1193,7 @@ Where struct ```kThread_t``` is:
 ```
 
 For ```guest``` struct:
+
 ```
     struct guest {
     #define PART_VCPU_ID2KID(partId, vCpuId) ((vCpuId)<<8)|((partId)&0xff)

@@ -1,6 +1,6 @@
 #Global Varible
 
-Declared at xmconf.h
+Declared at ```xmconf.h```. Their data is assigned by xmcparser and xml tools. They are most likely to be read-only in XM kernel.
 
 ## xmcPartitionTab
 
@@ -9,7 +9,7 @@ Declared at xmconf.h
     //file core/kernel/setup.c
     struct xmcPartition *xmcPartitionTab;
 
-As described in the next section. ```xmcPartition``` is loaded according to xm partitions' configurations and attributes. It is indexed by numerical id.
+As described in the next section. ```xmcPartition``` is loaded according to XM partitions' configurations and attributes. It is indexed by numerical id.
 
 ```c
     struct xmcPartition {
@@ -57,7 +57,7 @@ Initialization is done using xmcparser and xml tools.
 
     Assign xmcPartition to a partition_t p, a certain element in partitionTab array.
 
-    For each virtual CPU, allocate one thread to partition, with flags cleared and timers  allocated.
+    For each virtual CPU, allocate one thread to partition, with flags cleared and timers allocated.
 
 ******
 ## xmcMemRegTab
@@ -91,17 +91,21 @@ Initialized by parser and xml tools.
 
     Binary search for a certain address.
 
-2. PmmFindPage
+2. PmmFindPage & PmmFindArea
 
-3. PmmFindArea
+    Similar as above
 
-4. PmmResetPartition
+3. PmmResetPartition
+
+    Called at function ```ResetPartition```. This function reset partition's physical memory's type and counter to PPAG_STD and 0.
+
 
 ```
     page=&physPageTab[memArea->memoryRegionOffset][(addr-memRegion->startAddr)>>PAGE_SHIFT];
 ```
     is used to find addr located page.
-5. SetupPhysMM
+
+4. SetupPhysMM
 
     Create empty physical memory of size:
 ```
@@ -143,7 +147,7 @@ GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE
 
 ### Description
 An array of ```xmcMemoryRegion```. The size of the array is the summ of ```xmcPartitonTab[0~xmcTab.noPartitions-1].noPhysicalMemoryAreas```.
-Struct ```xmcMemoryArea``` consists of its starting address, mapped address, flags, as well as the size of this memory area.
+SDEV_SEEK_ENDtruct ```xmcMemoryArea``` consists of its starting address, mapped address, flags, as well as the size of this memory area.
 
 This array is used mainly to record the memory size allocation. Array ```memBlockData``` is used to keep tracking the usage of memory of a ```kDevice_t```.
 
@@ -153,13 +157,15 @@ Initialized by parser and xml tools.
 
 ### Functions
 
-1. ReadMemBlock
+1. ReadMemBlock & WriteMemBlock
 
     //file core/drivers/memblock.c
+    // In ReadMemBlock, there may be error if no mmu is defined on SPARC arch
+    These two functions are more or less the same. Frist check if there is enough space left, then do memory copy and update memory usage correspondingly.
 
-2. WriteMemBlock
+2. SeekMemBlock
 
-3. SeekMemBlock
+    Pass seek operation, DEV_SEEK_START, DEV_SEEK_CURRENT and DEV_SEEK_END.
 
 4. InitMemBlock
 
@@ -235,7 +241,7 @@ An array of ```xmcCommChannel```  with size of ```xmcTab.noCommChannels```. Stru
 Initialized by parser and xml tools.
 
 ### Functions
-It is used file core/objects/commports.c mainly (not considering ttnocports.c here).  Only provide configuration details.
+It is used in file core/objects/commports.c mainly (not considering ttnocports.c here). This struct only provide configuration details.
 
 ******
 ## xmcCommPorts
@@ -273,8 +279,6 @@ Similar as above.
 ******
 ## xmcIoPortTab
 
-//TODO
-
 ### Declaration
 
     //file core/kernel/setup.c
@@ -302,9 +306,18 @@ Similar as above.
 
 ### Description
 
+A single port with restrictions on the bits the the partition is allowed to write in. Only those bits that are set in the mask, can be modified by the partition.
 ### Initialization
 
 ### Functions
+
+1. IoPortLogSearch
+
+    Iterate among the partition's IO ports and return found Port's mask.
+
+2. SparcIoOutportSys
+
+    Use the IoPortLogSearch shown above.
 
 ******
 ## xmcRsvMemTab
@@ -313,7 +326,6 @@ Similar as above.
 
     //file core/kernel/setup.c
     struct xmcRsvMem *xmcRsvMemTab;
-
 
 ```
     struct xmcRsvMem {
@@ -337,9 +349,18 @@ Initialized by parser and xml tools.
 
     //file core/kernel/rsvmem.c
 
+```
+    void InitRsvMem(void) {
+    //mark as unused
+        xm_s32_t e;
+        for (e=0; xmcRsvMemTab[e].obj; e++)
+            xmcRsvMemTab[e].usedAlign&=~RSV_MEM_USED;
+    }
+```
+
 2. AllocRsvMem
 
-    Use for-loop to iterat among memory obj one by one. If currrent memory's size is equal to  required memory size, then mark the memory as used and return its address.
+    Use for-loop to iterat among memory objects one by one. If currrent memory's size is equal to required memory size, then mark the memory as used and return its address.
 
     This function is used by ```GET_MEMA``` and ```GET_MEMAZ``` functions, which are used for allocating thread, stack and page memory.
 
@@ -415,7 +436,7 @@ Not in use
 
 ### Description
 
-Ipvi stands for *Inter-Partition Virtual Interrupts*. The XM_raise_ipvi() hypercall generates an virtual interrupt to one or several partitions as speficied in the configuration file (XM CF).
+Ipvi stands for *Inter-Partition Virtual Interrupts*. The ```XM_raise_ipvi()``` hypercall generates an virtual interrupt to one or several partitions as speficied in the configuration file.
 
 ### Initialization
 
@@ -425,7 +446,7 @@ Initialized by parser and xml tools.
 
 1. hypercall RaiseIpviSys
 
-    This function is the implementation of XM_raise_ipvi() hypercall. The XM_raise_ipvi() hypercall generates an virtual interrupt to one or several partitions as speficied in the configuration file (XM CF). The link between the partition that generates the interrupt and the receiver partitions is specified in the channel section of the configuration file.
+    This function is the implementation of ```XM_raise_ipvi()``` hypercall. This hypercall generates an virtual interrupt to one or several partitions as speficied in the configuration file. The link between the partition that generates the interrupt and the receiver partitions is specified in the channel section of the configuration file.
 
 2. hypercall RaisePartitionIpviSys
 
@@ -481,7 +502,7 @@ Initialized by parser and xml tools.
 
 ### Description
 
-This array is used to store the cpuId for each partition.
+This array is used to store the IDs of CPUs for each partition.
 
 ### Initialization
 
