@@ -69,7 +69,7 @@ static xm_s32_t WriteMemBlock(const kDevice_t *kDev, xm_u8_t *buffer, xmSSize_t 
     xm_u8_t *ptr;
     ASSERT(buffer);
     if (((xmSSize_t)xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size-(xmSSize_t)memBlockData[kDev->subId].pos-len)<0)
-	len=xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size-memBlockData[kDev->subId].pos;
+        len=xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size-memBlockData[kDev->subId].pos;
     
     if (len<=0)
         return 0;
@@ -94,17 +94,17 @@ static xm_s32_t SeekMemBlock(const kDevice_t *kDev, xm_u32_t offset, xm_u32_t wh
 
     switch((whence)) {
     case DEV_SEEK_START:
-	break;
+        break;
     case DEV_SEEK_CURRENT:
-	off+=memBlockData[kDev->subId].pos;
-	break;
+        off+=memBlockData[kDev->subId].pos;
+        break;
     case DEV_SEEK_END:
-	off+=xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size;
-	break;
+        off+=xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size;
+        break;
     }
     if (off<0) off=0;
     if (off>xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size) 
-	off=xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size;
+        off=xmcPhysMemAreaTab[memBlockData[kDev->subId].cfg->physicalMemoryAreasOffset].size;
     memBlockData[kDev->subId].pos=off;
 
     return off;
@@ -128,19 +128,19 @@ xm_s32_t __VBOOT InitMemBlock(void) {
         memBlockTab[e].Write=WriteMemBlock;
         memBlockTab[e].Read=ReadMemBlock;
         memBlockTab[e].Seek=SeekMemBlock;
-	memBlockData[e].cfg=&xmcMemBlockTab[e];
+        memBlockData[e].cfg=&xmcMemBlockTab[e];
 #if defined(CONFIG_MMU)&&!defined(CONFIG_ARCH_MMU_BYPASS)
-	// Mapping on virtual memory
-	noPages=SIZE2PAGES(xmcPhysMemAreaTab[xmcMemBlockTab[e].physicalMemoryAreasOffset].size);
-	if (!(memBlockData[e].addr=VmmAlloc(noPages))) {
+        // Mapping on virtual memory
+        noPages=SIZE2PAGES(xmcPhysMemAreaTab[xmcMemBlockTab[e].physicalMemoryAreasOffset].size);
+        if (!(memBlockData[e].addr=VmmAlloc(noPages))) {
             cpuCtxt_t ctxt;
             GetCpuCtxt(&ctxt);
-	    SystemPanic(&ctxt, "[InitMemBlock] System is out of free frames\n");
+            SystemPanic(&ctxt, "[InitMemBlock] System is out of free frames\n");
         }
-	for (i=0; i<(noPages*PAGE_SIZE); i+=PAGE_SIZE)
+        for (i=0; i<(noPages*PAGE_SIZE); i+=PAGE_SIZE)
             VmMapPage(xmcPhysMemAreaTab[xmcMemBlockTab[e].physicalMemoryAreasOffset].startAddr+i, memBlockData[e].addr+i, _PG_ATTR_PRESENT|_PG_ATTR_RW);
 #else
-	memBlockData[e].addr=xmcPhysMemAreaTab[xmcMemBlockTab[e].physicalMemoryAreasOffset].startAddr;
+        memBlockData[e].addr=xmcPhysMemAreaTab[xmcMemBlockTab[e].physicalMemoryAreasOffset].startAddr;
 #endif
     }
 
