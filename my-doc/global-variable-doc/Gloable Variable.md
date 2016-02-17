@@ -162,8 +162,8 @@ GET_MEMZ(physPageTab[e], sizeof(struct physPage)*(xmcMemRegTab[e].size/PAGE_SIZE
 ```
 
 ### Description
-An array of ```xmcMemoryRegion```. The size of the array is the summ of ```xmcPartitonTab[0~xmcTab.noPartitions-1].noPhysicalMemoryAreas```.
-SDEV_SEEK_ENDtruct ```xmcMemoryArea``` consists of its starting address, mapped address, flags, as well as the size of this memory area.
+An array of ```xmcMemoryRegion```. The size of the array is the sum of ```xmcPartitonTab[0~xmcTab.noPartitions-1].noPhysicalMemoryAreas```.
+Struct ```xmcMemoryArea``` consists of its starting address, mapped address, flags, as well as the size of this memory area.
 
 This array is used mainly to record the memory size allocation. Array ```memBlockData``` is used to keep tracking the usage of memory of a ```kDevice_t```.
 
