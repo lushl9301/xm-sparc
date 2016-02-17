@@ -39,7 +39,7 @@ As described in the next section. ```xmcPartition``` is loaded according to XM p
 
 ### Description
 
-An array of ```xmcPartiton```. Length of this array is ```xmcTab.noPartitions```. ```xmcPartition``` struct consists of the id of partition, number of virtual CPUs assigned to this partition, communication ports of the partition, consoleDev, etc.. It is the detailed representation of XtratuM partition transalted from XML files.
+An array of ```xmcPartiton```. The length of this array is ```xmcTab.noPartitions```. ```xmcPartition``` struct consists of the id of partition, number of virtual CPUs assigned to this partition, communication ports of the partition, consoleDev, etc.. It is the detailed representation of XtratuM partition transalted from XML files.
 
 One of the attribute ```xmcPartitionArch``` is empty.
 
@@ -51,7 +51,11 @@ Initialization is done using xmcparser and xml tools.
 
 1. SetupPartitions
 
-    xmcPartitionTab[e].noPhysicalMemoryAreas is used for print information about physical memory area in this function.
+    First, xmcPartitionTab[e] is passed to @file kthread.c @function ```CreatePartition``` as ```xmcPartition *cfg```. Then, the partition with ID = cfg->id is configured / initialized according to cfg.
+
+    After successful initlization of a partition, xmcPartitionTab[e].noPhysicalMemoryAreas is used for print information about physical memory area in this function.
+    
+    A foor-loop is used to do the previews steps for ```xmcTab.noPartitions``` times.
 
 2. CreatePartition
 
