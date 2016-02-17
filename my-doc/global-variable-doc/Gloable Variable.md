@@ -85,6 +85,18 @@ Initialization is done using xmcparser and xml tools.
 
 An array of ```xmcMemoryRegion```. The length of this array is ```xmcTab.noRegions```, which is the number of regions of XtratuM. ```xmcMemoryRegion``` struct consists of the start address, size of the memory region and corresponding flags of it.
 
+This variable describes the memory regions of XM kernel. For example, if the memory is 256M, the variable can be defined as:
+```c
+    xmcMemRegTab[] = { 
+        [0] = {
+            .startAddr = 0x0,
+            .size = 268435456,   //256M
+            .flags = 0x1,
+        },
+    };
+```
+Then, xmcTab.noRegions == 1
+
 ### Initialization
 
 Initialized by parser and xml tools.
