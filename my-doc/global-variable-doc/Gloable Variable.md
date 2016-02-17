@@ -53,13 +53,13 @@ Initialization is done using xmcparser and xml tools.
 
     First, xmcPartitionTab[e] is passed to @file kthread.c @function ```CreatePartition``` as ```xmcPartition *cfg```. Then, the partition with ID = cfg->id is configured / initialized according to cfg.
 
-    After successful initlization of a partition, xmcPartitionTab[e].noPhysicalMemoryAreas is used for print information about physical memory area in this function.
-    
+    After successful initlization of a partition, xmcPartitionTab[e].noPhysicalMemoryAreas is used for print information about physical memory area in this function. ```noPhysicalMemoryAreas``` indicates the number of memory areas that partiton e holds, while ```physicalMemoryAreasOffset``` is the index of partition e's memory area among all memory area array.
+
     A foor-loop is used to do the previews steps for ```xmcTab.noPartitions``` times.
 
 2. CreatePartition
 
-    Assign xmcPartition to a partition_t p, a certain element in partitionTab array.
+    Assign xmcPartition to a partition_t p, which is a certain element in ```partitionTab``` array.
 
     For each virtual CPU, allocate one thread to partition, with flags cleared and timers allocated.
 
