@@ -8,12 +8,14 @@ extern __stdcall xm_s32_t XM_get_time(xm_u32_t clock_id, xmTime_t *time);
 ```
 
 The hypercall is declared in user/libxm/include/xmhypercalls.h. We can see that the following list of hypercalls are declared in the header file :
-	* Time management hypercalls
-	* Partition status hypercalls
-	* System status hypercalls
-	* Object related hypercalls (read / write / seek / ctrl object)
-	* Paging hypercalls
-	* Hw interrupt management
+
+* Time management hypercalls
+* Partition status hypercalls
+* System status hypercalls
+* Object related hypercalls (read / write / seek / ctrl object)
+* Paging hypercalls
+* Hw interrupt management
+
 These hypercalls are ```__stdcall``` as shown in the hypercall declaration.
 
 ```__stdcall``` is defined in core/include/arch/linkage.h. But this macro is simply EMPTY. Maybe, there will be future improvements.
