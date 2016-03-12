@@ -1,4 +1,7 @@
+#Macros in entry.S
+
 ### macro MOD_INTEGER2BITMAP dst, src, tmp, mod
+
 ```c
 dst = 1 << sanitized(src) = 1 << (src && (mod - 1));
 ```
@@ -6,14 +9,16 @@ dst = 1 << sanitized(src) = 1 << (src && (mod - 1));
 ### macro MOD_SHIFT2LEFT dst, tmp, mod
 
 Move 1 bit left logically
+
 ```c
-dst = (dst >> (mod - 1)) | (dst << 1); // >> (mod - 1) means clean it?
+dst = (dst >> (mod - 1)) | (dst << 1); // >> (mod - 1) means clean it
 dst &= 1 << (mod -1)
 ```
 
 ### macro MOD_SHIFT2RIGHT dst, tmp, mod
 
 Move 1 bit right logically
+
 ```c
 dst = (dst << (mod - 1)) | (dst >> 1);
 dst &= 1 << (mod - 1);
@@ -43,9 +48,11 @@ WR_delay
 
 ### macro GET_CPUID r
 %asr17 is PCR;
+
 bit 31 to 28 is Processor index
 
 SRA Shift right arithmetic
+
 ```c
 #ifdef CONFIG_SMP
 return %asr17 >> 28
@@ -55,7 +62,9 @@ return 0
 ```
 
 ### macro GET_CKTHREAD r, tmp
+
 ckthread is stored in localSchedInfo[]
+
 ```c
 #ifdef CONFIG_SMP
 tmp = GET_CPUID();
